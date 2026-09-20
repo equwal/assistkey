@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Debug builds only. The reader's e-ink panel is driven outside
+    SurfaceFlinger, so `adb shell screencap` returns a black frame; ShotApp has
+    each screen draw its own view tree to a PNG instead. None of this is in a
+    release build.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:name=".debug.ShotApp" />
+</manifest>

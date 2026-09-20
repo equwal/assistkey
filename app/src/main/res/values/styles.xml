@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- E-ink: light, high contrast, no animation anywhere. -->
-    <style name="Theme.App" parent="@android:style/Theme.DeviceDefault.Light">
+    <!--
+        No action bar: every page draws its own title, and from Android 15 an
+        app targeting SDK 35+ is laid out edge to edge, which slid the top of
+        each page underneath the bar. Ui.page pads for the system bars itself.
+    -->
+    <style name="Theme.App" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
         <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:navigationBarColor">@android:color/white</item>
     </style>
 
     <!--

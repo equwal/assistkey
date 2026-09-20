@@ -9,6 +9,7 @@ import android.text.InputType
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.WindowInsets
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.Button
@@ -46,8 +47,20 @@ object Ui {
             isFillViewport = true
             setBackgroundColor(Color.WHITE)
             addView(col, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+            // Edge-to-edge is enforced from Android 15, so the status and
+            // navigation bars overlap the window. Pad by whatever they cover;
+            // the scrolling content still runs underneath.
+            clipToPadding = false
+            setOnApplyWindowInsetsListener { v, insets ->
+                val bars = insets.getInsets(
+                    WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout()
+                )
+                v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+                insets
+            }
         }
         a.setContentView(scroll)
+        scroll.requestApplyInsets()
         return col
     }
 
