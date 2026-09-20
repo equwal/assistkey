@@ -68,7 +68,28 @@ class MainActivity : Activity() {
                 build()
             }
             col.row("Status: " + Channels.status(this, ch), null, enabled = on)
-            if (on && !ok) col.button("Set up " + ch.title.lowercase()) { claim(ch) }
+            if (on && !ok) {
+                col.button("Set up " + ch.title.lowercase()) { claim(ch) }
+                if (ch == Channel.ACCESSIBILITY) restrictedSettingsHint(col)
+            }
+        }
+    }
+
+    /**
+     * Sideloaded apps cannot be given accessibility access until the user
+     * clears Android's restricted-settings block, and the symptom is that the
+     * toggle appears to work and then quietly reverts. Nothing can detect this,
+     * so it gets called out wherever it would bite.
+     */
+    private fun restrictedSettingsHint(col: LinearLayout) {
+        col.note(
+            "If the switch turns itself back off, Android is blocking it " +
+                "because this app was installed outside an app store. Open " +
+                "App info, tap the three-dot menu, choose Allow restricted " +
+                "settings, then try again."
+        )
+        col.button("Open App info") {
+            Channels.safeStart(this, Channels.appInfoIntent(this))
         }
     }
 
@@ -144,6 +165,11 @@ class MainActivity : Activity() {
             if (Channels.isEnabled(this, Channel.VIWOODS)) "Viwoods channel settings"
             else "Enable the Viwoods channel to use these"
         ) { startActivity(Intent(this, ViwoodsActivity::class.java)) }
+
+        col.row(
+            "Key tester",
+            "See exactly which keys reach the filter on this device"
+        ) { startActivity(Intent(this, KeyTesterActivity::class.java)) }
 
         val t = Store.timing(this)
         col.row(

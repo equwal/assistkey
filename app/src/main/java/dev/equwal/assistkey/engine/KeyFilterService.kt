@@ -49,15 +49,19 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
-        if (!Channels.isEnabled(this, Channel.ACCESSIBILITY)) return false
-        val key = HwKey.fromCode(event.keyCode) ?: return false
-        if (!key.interceptable) return false
-
-        return when (event.action) {
-            KeyEvent.ACTION_DOWN -> engine.onDown(key, event.eventTime, event.repeatCount)
-            KeyEvent.ACTION_UP -> engine.onUp(key, event.eventTime)
+        val key = HwKey.fromCode(event.keyCode)
+        val consumed = when {
+            !Channels.isEnabled(this, Channel.ACCESSIBILITY) -> false
+            key == null || !key.interceptable -> false
+            event.action == KeyEvent.ACTION_DOWN ->
+                engine.onDown(key, event.eventTime, event.repeatCount)
+            event.action == KeyEvent.ACTION_UP -> engine.onUp(key, event.eventTime)
             else -> false
         }
+        // Every event, not just the ones we act on: the tester screen is the
+        // only way to find out whether a key reaches a filter on this firmware.
+        KeyLog.record(event, key?.label ?: ("Key " + event.keyCode), consumed)
+        return consumed
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) { /* not used */ }

@@ -69,7 +69,27 @@ Parity with the stock Viwoods key screen, plus everything it does not offer:
 
 ## Installing
 
-Grab `app-release.apk` from the release build and sideload it. Then, optionally:
+Grab `app-release.apk` from the release build and sideload it.
+
+### The accessibility switch will not stay on until you do this
+
+Android blocks **restricted settings** for anything installed outside an app
+store, and accessibility is one of them. The symptom is silent and confusing:
+the switch appears to turn on, then reverts a moment later with no message.
+
+*App info → three-dot menu → Allow restricted settings*, then enable the
+service. The app links straight to App info from the accessibility channel.
+
+Over adb the equivalent is:
+
+```bash
+adb shell appops set dev.equwal.assistkey ACCESS_RESTRICTED_SETTINGS allow
+```
+
+Note that `adb shell am force-stop` on this app disables its accessibility
+service again, so re-enable it after any force-stop or reinstall.
+
+### Optional: the firmware power switches
 
 ```bash
 adb shell pm grant dev.equwal.assistkey android.permission.WRITE_SECURE_SETTINGS
@@ -79,6 +99,19 @@ Without that grant everything still works except the firmware-level power
 switches (short press, hold duration, the double-press gesture toggles). The app
 detects the refusal and prints the exact `adb` command instead of failing
 silently.
+
+Note that this permission only unlocks *writes*. Since Android 12 those keys
+cannot be **read** by a non-system app at all — `Settings.Global.getInt` throws
+`SecurityException` — so the app shows their current values as "unknown". That
+is a platform restriction, not a bug.
+
+### Key tester
+
+*Advanced → Key tester* lists every key event that reaches the filter. It is the
+only reliable way to find out what a given device allows, because a key consumed
+upstream by the window manager never reaches any app and simply never appears.
+Note that events injected with `adb shell input keyevent` **bypass**
+accessibility input filters entirely, so only real presses tell you anything.
 
 ## Building
 

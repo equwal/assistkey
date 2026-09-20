@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import dev.equwal.assistkey.engine.KeyFilterService
+import dev.equwal.assistkey.route.ServiceHolder
 
 /**
  * Turning channels on and off, and telling the truth about whether the system
@@ -92,15 +93,34 @@ object Channels {
         }
     }
 
+    /**
+     * The running service is the authority when it is there - it lives in this
+     * process and sets the holder itself. The settings string is only a
+     * fallback for the window between "enabled" and "bound", and is read
+     * defensively because restricted settings can make it unreadable.
+     */
     fun isAccessibilityOn(c: Context): Boolean {
+        if (ServiceHolder.isRunning) return true
         val want = ComponentName(c.packageName, KeyFilterService::class.java.name)
-        val list = Settings.Secure.getString(
-            c.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        ) ?: return false
+        val list = runCatching {
+            Settings.Secure.getString(
+                c.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+            )
+        }.getOrNull() ?: return false
         return list.split(":").any {
             ComponentName.unflattenFromString(it.trim()) == want
         }
     }
+
+    /**
+     * Android silently reverts accessibility for apps installed outside an app
+     * store until the user clears the restriction in App info. There is no API
+     * to read that state, so the app cannot detect it - it can only say so.
+     */
+    fun appInfoIntent(c: Context): Intent = Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.parse("package:" + c.packageName)
+    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
     private fun roleManager(c: Context): RoleManager? =
         c.getSystemService(RoleManager::class.java)

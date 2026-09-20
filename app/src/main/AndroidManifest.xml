@@ -59,6 +59,7 @@
         <activity android:name=".ui.ChordActivity" android:exported="false" />
         <activity android:name=".ui.ViwoodsActivity" android:exported="false" />
         <activity android:name=".ui.TimingActivity" android:exported="false" />
+        <activity android:name=".ui.KeyTesterActivity" android:exported="false" />
 
         <!--
             The three impersonation entry points. Each starts disabled: the app
