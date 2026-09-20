@@ -1,0 +1,9 @@
+# Keep line endings sane across platforms. gradlew must stay LF or it will not
+# run on macOS or Linux after a Windows checkout.
+* text=auto eol=lf
+gradlew text eol=lf
+*.bat text eol=crlf
+*.jar binary
+*.apk binary
+*.jks binary
+*.png binary
