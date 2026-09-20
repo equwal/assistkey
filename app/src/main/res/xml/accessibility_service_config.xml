@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Deliberately minimal. We never inspect window content, so we do not request
-    canRetrieveWindowContent. The service exists purely to call performGlobalAction.
+    flagRequestFilterKeyEvents plus canRequestFilterKeyEvents is the whole
+    point: without both, onKeyEvent is never called and no key can be
+    intercepted. Window content is needed only for the scroll action, and
+    gesture dispatch only for the synthetic page-turn swipes.
 -->
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:accessibilityEventTypes="typeWindowStateChanged"
     android:accessibilityFeedbackType="feedbackGeneric"
-    android:accessibilityFlags="flagDefault"
-    android:canPerformGestures="false"
-    android:canRetrieveWindowContent="false"
+    android:accessibilityFlags="flagDefault|flagRequestFilterKeyEvents|flagReportViewIds"
+    android:canRequestFilterKeyEvents="true"
+    android:canPerformGestures="true"
+    android:canRetrieveWindowContent="true"
     android:description="@string/service_description"
-    android:notificationTimeout="100" />
+    android:notificationTimeout="100"
+    android:settingsActivity="dev.equwal.assistkey.ui.MainActivity" />

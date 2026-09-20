@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Required metadata for the wallet role. targetActivity is where the system
+    sends the user when the tile or the lock-screen button is used, which is
+    exactly the interception point we want.
+-->
+<quickaccesswallet-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:settingsActivity="dev.equwal.assistkey.ui.MainActivity"
+    android:shortcutLongLabel="@string/wallet_long"
+    android:shortcutShortLabel="@string/wallet_short"
+    android:targetActivity="dev.equwal.assistkey.channel.WalletActivity" />

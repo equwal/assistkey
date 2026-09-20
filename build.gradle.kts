@@ -1,5 +1,5 @@
-// Versions are pinned here and verified against the installed SDK at build time.
+// Versions are pinned so a clean clone builds the same APK.
 plugins {
-    id("com.android.application") version "8.9.0" apply false
-    id("org.jetbrains.kotlin.android") version "2.1.0" apply false
+    id("com.android.application") version "8.13.2" apply false
+    id("org.jetbrains.kotlin.android") version "2.2.21" apply false
 }

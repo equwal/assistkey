@@ -1,25 +1,24 @@
 # Build output
 build/
-app/build/
 .gradle/
 *.apk
 *.aab
 *.ap_
 *.dex
 
-# Local toolchain paths - machine specific
+# Local machine configuration
 local.properties
+build.ps1
 
-# IDE
-.idea/
-*.iml
-.vscode/
-
-# Signing material must never be committed
+# Signing material - the keystore and its passwords never go in the repo.
+# Losing assistkey-release.jks means shipped installs can never be upgraded,
+# so keep a backup somewhere outside this folder.
 *.jks
 *.keystore
 keystore.properties
 
-# OS
-Thumbs.db
+# Editors
+.idea/
+*.iml
+.vscode/
 .DS_Store

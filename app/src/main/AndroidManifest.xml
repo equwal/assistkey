@@ -1,16 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- User-grantable from a settings screen; drives the Viwoods channel. -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+
+    <!--
+        Not grantable at install. Declared so that `adb shell pm grant` can turn
+        it on for the power-gesture switches; without it those rows report the
+        refusal and print the command instead.
+    -->
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+
+    <!-- Required of any app that wants to be offered the wallet role. -->
+    <uses-permission android:name="android.permission.QUICK_ACCESS_WALLET" />
+
+    <!--
+        Package visibility. We need to see launchable apps to offer them as
+        targets, resolve the camera intent to tell whether we are the default,
+        and reach the Viwoods AI activities by explicit component.
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.media.action.STILL_IMAGE_CAMERA" />
+        </intent>
+        <package android:name="com.viwoods.launcher" />
+        <package android:name="com.viwoods.viwoodsai" />
+        <package android:name="com.viwoods.settings" />
+    </queries>
 
     <application
         android:allowBackup="true"
-        android:icon="@android:drawable/ic_menu_preferences"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.DeviceDefault.Light">
+        android:theme="@style/Theme.App">
 
-        <!-- Config UI -->
+        <!-- Configuration UI -->
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:label="@string/app_name">
             <intent-filter>
@@ -19,14 +53,27 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".ui.TriggerListActivity" android:exported="false" />
+        <activity android:name=".ui.ActionPickerActivity" android:exported="false" />
+        <activity android:name=".ui.PowerActivity" android:exported="false" />
+        <activity android:name=".ui.ChordActivity" android:exported="false" />
+        <activity android:name=".ui.ViwoodsActivity" android:exported="false" />
+        <activity android:name=".ui.TimingActivity" android:exported="false" />
+
         <!--
-            This is the whole trick. Long-pressing power fires ACTION_ASSIST at
-            whichever app holds the assistant role. We claim it with an invisible,
-            no-history activity that fires the action and immediately finishes,
-            so nothing is ever drawn on screen.
+            The three impersonation entry points. Each starts disabled: the app
+            must not show up as an assistant, camera or wallet candidate until
+            the user ticks that channel. Channels.syncComponents flips them.
+        -->
+
+        <!--
+            Long-pressing Power fires ACTION_ASSIST at whichever app holds the
+            assistant role. Invisible, no-history, no task affinity, so nothing
+            is drawn and nothing lands in Recents.
         -->
         <activity
-            android:name=".AssistActivity"
+            android:name=".channel.AssistActivity"
+            android:enabled="false"
             android:exported="true"
             android:excludeFromRecents="true"
             android:noHistory="true"
@@ -43,9 +90,70 @@
             </intent-filter>
         </activity>
 
-        <!-- Back and Recents are only reachable through global accessibility actions. -->
+        <!-- Double press Power, when the firmware target is the camera. -->
+        <activity
+            android:name=".channel.CameraShimActivity"
+            android:enabled="false"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Invisible">
+            <intent-filter>
+                <action android:name="android.media.action.STILL_IMAGE_CAMERA" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.media.action.STILL_IMAGE_CAMERA_SECURE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.media.action.IMAGE_CAPTURE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- Double press Power when the target is the wallet, plus the QS tile. -->
+        <activity
+            android:name=".channel.WalletActivity"
+            android:enabled="false"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Invisible">
+            <intent-filter>
+                <action android:name="android.service.quickaccesswallet.action.VIEW_WALLET" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            The wallet role is not offered to an app that cannot serve cards, so
+            this exists to satisfy the requirement. It serves none.
+        -->
         <service
-            android:name=".KeyAccessibilityService"
+            android:name=".channel.WalletService"
+            android:enabled="false"
+            android:exported="true"
+            android:label="@string/wallet_label"
+            android:permission="android.permission.BIND_QUICK_ACCESS_WALLET_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.quickaccesswallet.QuickAccessWalletService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.quickaccesswallet"
+                android:resource="@xml/quick_access_wallet" />
+        </service>
+
+        <!--
+            The accessibility channel. This is the only component that sees the
+            AI key and the volume keys; Power never reaches it.
+        -->
+        <service
+            android:name=".engine.KeyFilterService"
             android:exported="false"
             android:label="@string/service_label"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">

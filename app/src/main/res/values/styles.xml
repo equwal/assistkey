@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- E-ink: light, high contrast, no animation anywhere. -->
+    <style name="Theme.App" parent="@android:style/Theme.DeviceDefault.Light">
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
     <!--
-        The assist activity must never be seen. Translucent, no title, no window
-        animation - otherwise you get a visible flash every time you long-press power.
+        The impersonation entry points must never be seen. Translucent, no
+        title, no window animation - otherwise there is a visible flash every
+        time the power button is used.
     -->
     <style name="Theme.Invisible" parent="@android:style/Theme.Translucent.NoTitleBar">
         <item name="android:windowBackground">@android:color/transparent</item>

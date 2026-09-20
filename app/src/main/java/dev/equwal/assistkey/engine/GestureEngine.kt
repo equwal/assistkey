@@ -18,7 +18,7 @@ import dev.equwal.assistkey.model.Trigger
  */
 class GestureEngine(
     private val host: Host,
-    private val cfg: Config = Config()
+    var cfg: Config = Config()
 ) {
 
     data class Config(
