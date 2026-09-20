@@ -125,8 +125,10 @@ class MainActivity : Activity() {
     private fun powerSummary(): String {
         val b = Store.bindings(this)
         val parts = ArrayList<String>()
-        PowerNative.shortPress.firstOrNull { it.value == PowerNative.shortPressValue(this) }
-            ?.let { parts.add("short → " + it.label.lowercase()) }
+        PowerNative.shortPressValue(this)?.let { v ->
+            PowerNative.shortPress.firstOrNull { it.value == v }
+                ?.let { parts.add("short → " + it.label.lowercase()) }
+        }
         b[Channel.POWER_DOUBLE]?.let { parts.add("double → " + it.describe()) }
         b[Channel.POWER_HOLD]?.let { parts.add("hold → " + it.describe()) }
         return if (parts.isEmpty()) "Default behaviour" else parts.joinToString(", ")
