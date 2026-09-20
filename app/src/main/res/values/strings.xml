@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AssistKey</string>
+    <string name="service_label">AssistKey button actions</string>
+    <string name="service_description">Performs Back, Home, Recents and other navigation actions when triggered by the power button. No data is collected or transmitted.</string>
+
+    <string name="heading">Long-press power → action</string>
+    <string name="blurb">Pick what a long press of the power button should do. The power menu stays available on Power + Volume Up.</string>
+
+    <string name="action_back">Back</string>
+    <string name="action_home">Home</string>
+    <string name="action_recents">Recent apps</string>
+    <string name="action_notifications">Notification shade</string>
+    <string name="action_quick_settings">Quick settings</string>
+    <string name="action_screenshot">Screenshot</string>
+    <string name="action_lock">Lock screen</string>
+
+    <string name="setup_heading">Setup — both steps are required</string>
+    <string name="btn_accessibility">1. Enable the accessibility service</string>
+    <string name="btn_assistant">2. Set AssistKey as the digital assistant</string>
+    <string name="btn_test">Test the selected action</string>
+
+    <string name="status_ok">Ready</string>
+    <string name="status_no_service">Accessibility service is off — step 1 not done</string>
+    <string name="status_not_assistant">Not the default assistant — step 2 not done</string>
+    <string name="assistant_hint">Choose “Default digital assistant app”, then pick AssistKey.</string>
+    <string name="toast_no_service">Enable the accessibility service first.</string>
+</resources>

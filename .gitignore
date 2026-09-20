@@ -1,0 +1,25 @@
+# Build output
+build/
+app/build/
+.gradle/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Local toolchain paths - machine specific
+local.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Signing material must never be committed
+*.jks
+*.keystore
+keystore.properties
+
+# OS
+Thumbs.db
+.DS_Store
