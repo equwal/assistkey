@@ -41,12 +41,14 @@ class KeyTesterActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        KeyLog.recording = true
         build()
         handler.postDelayed(tick, 400L)
     }
 
     override fun onPause() {
         super.onPause()
+        KeyLog.recording = false
         handler.removeCallbacks(tick)
     }
 
@@ -69,8 +71,9 @@ class KeyTesterActivity : Activity() {
                 "window manager consumes it before any app can see it."
         )
         col.note(
-            "Only real presses count. Events injected over adb bypass " +
-                "accessibility input filters and will not show up."
+            "Only real presses count. Events injected with adb shell input " +
+                "bypass accessibility filters and will not show up. Keys are " +
+                "listed only while this screen is open, and never stored."
         )
 
         col.button("Clear") { KeyLog.clear(); build() }
@@ -79,9 +82,9 @@ class KeyTesterActivity : Activity() {
         col.header(if (recent.isEmpty()) "Nothing yet" else "Most recent first")
         if (recent.isEmpty()) {
             col.note(
-                "If a key never appears after pressing it, that key cannot be " +
-                    "remapped through the accessibility channel on this " +
-                    "firmware. Try the Viwoods native hooks instead."
+                "If a key never appears after pressing it, the firmware is " +
+                    "keeping it to itself. For a volume key that usually means " +
+                    "a firmware hook is set - see Firmware key hooks."
             )
             return
         }

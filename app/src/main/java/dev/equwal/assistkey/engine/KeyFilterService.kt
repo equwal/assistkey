@@ -8,11 +8,13 @@ import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import dev.equwal.assistkey.channel.Channel
 import dev.equwal.assistkey.channel.Channels
+import dev.equwal.assistkey.license.License
+import dev.equwal.assistkey.license.PlayBilling
 import dev.equwal.assistkey.model.ActionKind
 import dev.equwal.assistkey.model.ActionSpec
 import dev.equwal.assistkey.model.HwKey
-import dev.equwal.assistkey.model.Presets
 import dev.equwal.assistkey.model.Trigger
+import dev.equwal.assistkey.native.ViwoodsBridge
 import dev.equwal.assistkey.route.ActionRouter
 import dev.equwal.assistkey.route.ServiceHolder
 import dev.equwal.assistkey.store.Store
@@ -34,6 +36,9 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
         super.onServiceConnected()
         engine = GestureEngine(this, Store.timing(this))
         ServiceHolder.service = this
+        // The service starts at boot and may run for weeks without the settings
+        // screen ever opening, so it keeps the licence fresh on its own.
+        PlayBilling.refresh(this)
     }
 
     override fun onUnbind(intent: android.content.Intent?): Boolean {
@@ -52,6 +57,8 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
         val key = HwKey.fromCode(event.keyCode)
         val consumed = when {
             !Channels.isEnabled(this, Channel.ACCESSIBILITY) -> false
+            // Locked means inert, not broken: every key goes to the firmware.
+            !License.active(this) -> false
             key == null || !key.interceptable -> false
             event.action == KeyEvent.ACTION_DOWN ->
                 engine.onDown(key, event.eventTime, event.repeatCount)
@@ -60,6 +67,7 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
         }
         // Every event, not just the ones we act on: the tester screen is the
         // only way to find out whether a key reaches a filter on this firmware.
+        // KeyLog drops it on the floor unless that screen is open.
         KeyLog.record(event, key?.label ?: ("Key " + event.keyCode), consumed)
         return consumed
     }
@@ -105,9 +113,10 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
         when (keys.first()) {
             HwKey.VOL_UP -> adjust(AudioManager.ADJUST_RAISE)
             HwKey.VOL_DOWN -> adjust(AudioManager.ADJUST_LOWER)
+            // Whatever the firmware would have opened, not a guess at it.
             HwKey.AI -> ActionRouter.run(
                 this,
-                ActionSpec(ActionKind.LAUNCH_COMPONENT, Presets.STOCK_AI_KEY)
+                ActionSpec(ActionKind.LAUNCH_COMPONENT, ViwoodsBridge.aiTarget(this))
             )
             HwKey.POWER -> Unit
         }

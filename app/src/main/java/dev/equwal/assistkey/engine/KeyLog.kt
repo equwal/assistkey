@@ -38,8 +38,18 @@ object KeyLog {
 
     private val entries = ArrayDeque<Entry>(CAPACITY)
 
+    /**
+     * Only the tester screen turns this on, and only while it is in front. A
+     * key filter is handed every key on the device, a Bluetooth keyboard's
+     * included, and the app's promise is that it keeps none of them - so
+     * outside that screen nothing is remembered, even in memory.
+     */
+    @Volatile
+    var recording = false
+
     @Synchronized
     fun record(event: KeyEvent, label: String, consumed: Boolean) {
+        if (!recording) return
         if (entries.size >= CAPACITY) entries.removeFirst()
         entries.addLast(
             Entry(

@@ -75,7 +75,6 @@ object Channels {
         Channel.ASSISTANT -> isRoleHeld(c, RoleManager.ROLE_ASSISTANT)
         Channel.WALLET -> isRoleHeld(c, ROLE_WALLET)
         Channel.CAMERA -> isDefaultCamera(c)
-        Channel.VIWOODS -> Settings.System.canWrite(c)
     }
 
     /** One line for the UI, describing exactly what is missing. */
@@ -89,7 +88,6 @@ object Channels {
                 if (isRoleAvailable(c, ROLE_WALLET)) "Not the default wallet app"
                 else "No wallet role on this firmware"
             Channel.CAMERA -> "Not the default camera app"
-            Channel.VIWOODS -> "Needs permission to modify system settings"
         }
     }
 
@@ -154,11 +152,6 @@ object Channels {
             ?: defaultApps()
 
         Channel.CAMERA -> defaultApps()
-
-        Channel.VIWOODS -> Intent(
-            Settings.ACTION_MANAGE_WRITE_SETTINGS,
-            Uri.parse("package:" + c.packageName)
-        )
     }.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
     private fun roleRequest(c: Context, role: String): Intent? {

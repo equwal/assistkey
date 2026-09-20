@@ -2,10 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- User-grantable from a settings screen; drives the Viwoods channel. -->
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"
-        tools:ignore="ProtectedPermissions" />
-
     <!--
         Not grantable at install. Declared so that `adb shell pm grant` can turn
         it on for the power-gesture switches; without it those rows report the
@@ -60,6 +56,7 @@
         <activity android:name=".ui.ViwoodsActivity" android:exported="false" />
         <activity android:name=".ui.TimingActivity" android:exported="false" />
         <activity android:name=".ui.KeyTesterActivity" android:exported="false" />
+        <activity android:name=".ui.LicenseActivity" android:exported="false" />
 
         <!--
             The three impersonation entry points. Each starts disabled: the app

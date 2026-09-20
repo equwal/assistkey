@@ -27,7 +27,7 @@ enum class Channel(
         "accessibility",
         "Accessibility key filter",
         "Captures the AI key and both volume keys. Required for multi-tap, " +
-            "holds, chords, and for Back / Recents / swipe actions.",
+            "holds, combinations, and for Back / Recents / swipe actions.",
         listOf()
     ),
 
@@ -41,28 +41,21 @@ enum class Channel(
     CAMERA(
         "camera",
         "Camera app",
-        "Captures double-press Power when the gesture target is Camera. " +
-            "Needs this app set as the default camera app.",
+        "Captures double-press Power. The firmware opens the camera on a " +
+            "double press, so this app has to be the default camera app.",
         listOf("dev.equwal.assistkey.channel.CameraShimActivity")
     ),
 
     WALLET(
         "wallet",
         "Wallet app",
-        "Captures double-press Power when the gesture target is Wallet, plus " +
-            "the lock-screen wallet button and the quick-settings wallet tile.",
+        "Captures the quick-settings wallet tile and the lock-screen wallet " +
+            "button, and double-press Power on firmware that sends it to the " +
+            "wallet. This reader sends it to the camera instead.",
         listOf(
             "dev.equwal.assistkey.channel.WalletActivity",
             "dev.equwal.assistkey.channel.WalletService"
         )
-    ),
-
-    VIWOODS(
-        "viwoods",
-        "Viwoods native key hooks",
-        "Rebinds the firmware key settings directly. Works without the " +
-            "accessibility service, but single-action only - no multi-tap.",
-        listOf()
     );
 
     /**
@@ -74,7 +67,7 @@ enum class Channel(
         get() = when (this) {
             ASSISTANT -> POWER_HOLD
             CAMERA, WALLET -> POWER_DOUBLE
-            ACCESSIBILITY, VIWOODS -> null
+            ACCESSIBILITY -> null
         }
 
     companion object {

@@ -1,3 +1,6 @@
+import java.security.MessageDigest
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.Properties
 
 plugins {
@@ -16,6 +19,25 @@ val keystoreProps = Properties().apply {
 }
 val hasSigning = keystoreProps.getProperty("storeFile") != null
 
+fun prop(name: String): String =
+    (project.findProperty(name) as String?) ?: error("missing gradle property $name")
+
+/** Midnight UTC at the start of the given ISO date, as epoch millis. */
+fun epochMillis(isoDate: String): Long =
+    LocalDate.parse(isoDate)
+        .atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+
+fun sha256Hex(text: String): String =
+    MessageDigest.getInstance("SHA-256")
+        .digest(text.toByteArray(Charsets.UTF_8))
+        .joinToString("") { b -> "%02x".format(b) }
+
+// Only the digest of the tester code is compiled in. With no code configured
+// the digest is of the empty string, which no entered code can match.
+val testerCodeHash = sha256Hex(
+    (keystoreProps.getProperty("testerCode") ?: "").trim().uppercase()
+)
+
 android {
     namespace = "dev.equwal.assistkey"
     compileSdk = 36
@@ -25,8 +47,15 @@ android {
         // QuickAccessWalletService, which the wallet channel needs, is API 31.
         minSdk = 31
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = prop("assistkey.versionCode").toInt()
+        versionName = prop("assistkey.versionName")
+
+        buildConfigField(
+            "long", "BETA_EXPIRES_MS",
+            epochMillis(prop("assistkey.betaExpires")).toString() + "L"
+        )
+        buildConfigField("String", "BETA_EXPIRES_DATE", "\"" + prop("assistkey.betaExpires") + "\"")
+        buildConfigField("String", "TESTER_CODE_SHA256", "\"" + testerCodeHash + "\"")
     }
 
     signingConfigs {
@@ -54,6 +83,10 @@ android {
         }
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -70,6 +103,22 @@ android {
     }
 }
 
-// Framework APIs only, so the APK stays a couple of hundred KB and there is
-// nothing to audit but our own code.
-dependencies { }
+// One dependency, and only because there is no other way to sell on Play.
+// Everything else is framework API.
+//
+// The billing library talks to the Play Store app over IPC and needs no network
+// access of its own. What does want the network is its usage telemetry, which
+// rides on Google's datatransport runtime and would merge INTERNET and
+// ACCESS_NETWORK_STATE into the manifest. An accessibility service that sees
+// key presses should not also hold INTERNET, so that runtime is left out.
+//
+// This is safe by construction, not by luck: the only class in the library that
+// touches datatransport (zzdn in 8.3.0) initialises it inside a catch-all and
+// falls back to "Skipping logging since initialization failed". Re-check that
+// with javap before bumping the billing version, and re-check the merged
+// permissions with `aapt2 dump badging` after.
+dependencies {
+    implementation("com.android.billingclient:billing:8.3.0") {
+        exclude(group = "com.google.android.datatransport")
+    }
+}

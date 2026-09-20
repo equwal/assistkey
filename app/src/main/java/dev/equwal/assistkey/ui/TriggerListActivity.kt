@@ -9,6 +9,7 @@ import dev.equwal.assistkey.channel.Channels
 import dev.equwal.assistkey.model.GestureType
 import dev.equwal.assistkey.model.HwKey
 import dev.equwal.assistkey.model.Trigger
+import dev.equwal.assistkey.native.ViwoodsBridge
 import dev.equwal.assistkey.store.Store
 import dev.equwal.assistkey.ui.Ui.header
 import dev.equwal.assistkey.ui.Ui.note
@@ -42,6 +43,14 @@ class TriggerListActivity : Activity() {
             col.note(
                 "The accessibility key filter is not active, so nothing here " +
                     "will fire yet. Turn it on from the main screen."
+            )
+        }
+
+        keys.filter { ViwoodsBridge.hidesFromFilter(this, it) }.forEach { k ->
+            col.note(
+                "A firmware hook is set for " + k.label.lowercase() + ", so the " +
+                    "firmware keeps that key to itself and nothing bound here " +
+                    "can fire. Advanced > Firmware key hooks has the fix."
             )
         }
 

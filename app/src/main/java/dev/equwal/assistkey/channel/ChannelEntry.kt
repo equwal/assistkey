@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
+import dev.equwal.assistkey.license.License
 import dev.equwal.assistkey.route.ActionRouter
 import dev.equwal.assistkey.route.ServiceHolder
 import dev.equwal.assistkey.store.Store
@@ -24,6 +25,16 @@ object ChannelEntry {
      * activity launch restrictions would drop it.
      */
     fun handle(activity: Activity, channel: Channel) {
+        if (!License.active(activity)) {
+            Toast.makeText(
+                activity,
+                "AssistKey is locked - open the app to unlock it",
+                Toast.LENGTH_SHORT
+            ).show()
+            activity.finishAndVanish()
+            return
+        }
+
         val trigger = channel.trigger
         val spec = trigger?.let { Store.bindings(activity)[it] }
 
