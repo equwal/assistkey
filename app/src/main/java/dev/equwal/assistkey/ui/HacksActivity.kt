@@ -2,6 +2,7 @@ package dev.equwal.assistkey.ui
 
 import android.app.Activity
 import android.content.Intent
+import dev.equwal.assistkey.bundle.Bundled
 import dev.equwal.assistkey.channel.Channel
 import dev.equwal.assistkey.channel.Channels
 import dev.equwal.assistkey.device.Detect
@@ -65,5 +66,6 @@ class HacksActivity : Activity() {
                 state = if (hidden.isEmpty()) null else "Hiding a button"
             ) { startActivity(Intent(this, ViwoodsActivity::class.java)) }
         }
+        BundledRows.add(this, col, Bundled.HACKS)
     }
 }

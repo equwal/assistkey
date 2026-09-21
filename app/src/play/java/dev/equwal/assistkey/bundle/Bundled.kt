@@ -14,7 +14,7 @@ object Bundled {
     const val SUPPORTED = false
 
     class Item(
-        /** The screen that lists the app: HOME or VOICE. */
+        /** The screen that lists the app: HOME, VOICE, UPDATE or HACKS. */
         val group: String,
         val title: String,
         val hint: String,
@@ -26,6 +26,8 @@ object Bundled {
 
     const val HOME = "home"
     const val VOICE = "voice"
+    const val UPDATE = "update"
+    const val HACKS = "hacks"
 
     val items = listOf(
         Item(
@@ -43,6 +45,14 @@ object Bundled {
         Item(
             VOICE, "Whisper", "Speech to text on the device", "org.woheller69.whisper", "3.7", "MIT",
             "https://f-droid.org/packages/org.woheller69.whisper/"
+        ),
+        Item(
+            HACKS, "Ink Dim", "Tap an icon for the lowest light", "dev.equwal.inkdim", "0.1.0", "GPL-3.0",
+            "https://github.com/equwal/ink-dim"
+        ),
+        Item(
+            UPDATE, "Ink Update", "Finds new versions and tells you", "dev.equwal.inkupdate", "0.1.0", "GPL-3.0",
+            "https://github.com/equwal/ink-update"
         )
     )
 

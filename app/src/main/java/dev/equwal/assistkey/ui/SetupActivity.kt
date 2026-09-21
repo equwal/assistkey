@@ -3,6 +3,7 @@ package dev.equwal.assistkey.ui
 import android.app.Activity
 import android.content.Intent
 import android.widget.Toast
+import dev.equwal.assistkey.bundle.Bundled
 import dev.equwal.assistkey.channel.Channel
 import dev.equwal.assistkey.channel.Channels
 import dev.equwal.assistkey.license.License
@@ -58,6 +59,10 @@ class SetupActivity : Activity() {
             "Licence",
             state = Summary.licenceChip(s.tier, s.trialDaysLeft)
         ) { startActivity(Intent(this, LicenseActivity::class.java)) }
+
+        // Rebind has no internet permission, so it cannot look for a new version.
+        // Ink Update, an app of its own, does that and tells the user.
+        BundledRows.add(this, col, Bundled.UPDATE)
     }
 
     private fun claim(ch: Channel) {

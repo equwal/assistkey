@@ -1,6 +1,17 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-beta - 2026-09-21
+
+Version code 16. The first beta. The alpha versions end here.
+
+- **Updates: Ink Update.** Rebind has no internet permission, so it cannot
+  look for a new version. Ink Update, an open source app of its own, does
+  that: F-Droid first, then Google Play (it leaves an app that Google Play
+  installed to Google Play), then GitHub. It makes a notification and opens
+  the page. Setup has an "Updates" row that installs or opens it. The build
+  for direct install carries it.
+- The build for direct install carries Ink Dim too. Hardware hacks lists it.
+- The lists of carried apps are named "Extensions".
 
 - **Settings are safe across versions and across an uninstall.** An update
   always kept the settings: they are in the data of the app. An uninstall

@@ -27,3 +27,15 @@ org.woheller69.whisper_37.apk
   Source code: https://github.com/woheller69/whisperIME
   Release: https://f-droid.org/packages/org.woheller69.whisper/
   SHA-256: b7efb1f4377c7ecf870688b1f7d74ad201bff2bd8991a387316db3ab71353824
+
+ink-dim-0.1.0.apk
+  Ink Dim 0.1.0, by equwal
+  Licence: GNU General Public License v3.0 or later
+  Source code and releases: https://github.com/equwal/ink-dim
+  SHA-256: 251c028ceb0c15a1fb08fffef20e130a85f6ab1d092eeae49e7fb497361f3c39
+
+ink-update-0.1.0.apk
+  Ink Update 0.1.0, by equwal
+  Licence: GNU General Public License v3.0 or later
+  Source code and releases: https://github.com/equwal/ink-update
+  SHA-256: 57223b0ab1145727ebacb15e16bca0abb31a2d94c8ced37c696be2d8fb3aeaf3
