@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.0.14-alpha - 2026-09-21
+
+Version code 14.
 
 - **Permissions covers the extensions again.** New items, each only where it
   can apply: "Install apps from Rebind" (the build that carries apps), "Ink
