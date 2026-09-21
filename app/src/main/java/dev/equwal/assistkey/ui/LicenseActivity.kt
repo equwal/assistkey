@@ -1,12 +1,15 @@
 package dev.equwal.assistkey.ui
 
 import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.widget.LinearLayout
 import android.widget.Toast
 import dev.equwal.assistkey.BuildConfig
 import dev.equwal.assistkey.license.License
 import dev.equwal.assistkey.license.PlayBilling
 import dev.equwal.assistkey.license.Sku
+import dev.equwal.assistkey.license.Tip
 import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.header
 import dev.equwal.assistkey.ui.Ui.note
@@ -43,7 +46,23 @@ class LicenseActivity : Activity() {
             if (state.tier != License.Tier.LICENSED) buy(col, state)
             restore(col)
         }
+        tip(col)
         col.note("Version " + BuildConfig.VERSION_NAME)
+    }
+
+    /**
+     * A link to give a tip. It unlocks nothing. It is only in the build for
+     * direct install: Google Play does not allow a link to another way to pay
+     * in an app that it distributes.
+     */
+    private fun tip(col: LinearLayout) {
+        if (Tip.URL.isEmpty()) return
+        col.header("Say thanks")
+        col.row("Buy me a coffee", Tip.URL.removePrefix("https://") + " · unlocks nothing") {
+            runCatching {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Tip.URL)))
+            }.onFailure { Toast.makeText(this, "No browser on this device", Toast.LENGTH_LONG).show() }
+        }
     }
 
     // ---- status ---------------------------------------------------------------

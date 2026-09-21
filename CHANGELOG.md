@@ -1,11 +1,16 @@
 # Changelog
 
-## Unreleased
+## 0.0.10-alpha - 2026-09-21
+
+Version code 10.
 
 - **No Google Play, no lock.** On a device where the Google Play app is not
   installed or is turned off, the app is free and complete. There is no way
   to buy there, so there is nothing to lock. The licence screen says "Free on
   this device". A bought licence still comes first. Tests: `LicenseDecideTest`.
+- The build for direct install has a tip link on the Licence screen
+  (ko-fi.com/truex). A tip unlocks nothing. The Google Play build has no such
+  link, because Google Play does not allow it.
 - The reasons in the allow step are hints of three to seven words. The app
   says "double tap" for Power too.
 
