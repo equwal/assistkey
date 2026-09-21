@@ -19,19 +19,19 @@ object Route {
     enum class Need(val title: String, val why: String) {
         KEY_FILTER(
             "Let Rebind see the buttons",
-            "Android calls this an accessibility service."
+            "Turn on Button remapping"
         ),
         ASSISTANT(
-            "Let Rebind take the hold of Power",
-            "Rebind stands in for the assistant app."
+            "Let Rebind get the Power hold",
+            "Choose Rebind as assistant app"
         ),
         CAMERA(
-            "Let Rebind take the double press of Power",
-            "Rebind stands in for the camera app. Your camera still works."
+            "Let Rebind get the Power double tap",
+            "Choose Rebind as camera app"
         ),
         SHELL_POWER(
             "Open the full Power button",
-            "Shell access makes every Power press work."
+            "Needs shell access"
         )
     }
 
@@ -64,7 +64,7 @@ object Route {
         }
         val power = HwKey.POWER in trigger.keys
         if (power && trigger.keys.size > 1 && trigger != Trigger.powerThen((trigger.keys - HwKey.POWER).first())) {
-            return Plan(emptyList(), "With Power, one way works: hold Power, then press the other button.")
+            return Plan(emptyList(), "Hold Power, then press the other button.")
         }
         if (!power || env.powerIsDirect) return Plan(listOf(Need.KEY_FILTER))
 
@@ -77,7 +77,7 @@ object Route {
             // No door of Android leads here. Shell access does, where the build has it.
             else -> return if (env.shellSupported) Plan(listOf(Need.KEY_FILTER, Need.SHELL_POWER)) else Plan(
                 emptyList(),
-                "Android does not show this Power press to apps. Hold and double press work."
+                "Android hides this Power press. Hold and double tap work."
             )
         }
         val second = !alone

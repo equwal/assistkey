@@ -38,7 +38,7 @@ class RouteTest {
             val plan = Route.plan(Trigger(power, GestureType.TAP, n), true, sideDoors)
             assertFalse(plan.possible)
             assertTrue(plan.needs.isEmpty())
-            assertTrue(plan.blocked!!.contains("Hold and double press"))
+            assertTrue(plan.blocked!!.contains("Hold and double tap work"))
         }
     }
 

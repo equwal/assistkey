@@ -185,7 +185,7 @@ class GuidedSetupActivity : Activity() {
             HwKey.POWER in set && set.size > 1 ->
                 col.note("Hold Power, then press the other button.")
             HwKey.POWER in set && !env.powerIsDirect && !env.shellSupported ->
-                col.note("A tap cannot reach any app. Hold and double press work.")
+                col.note("A tap cannot reach any app. Hold and double tap work.")
         }
         if (HwKey.SCREEN !in set) {
             col.row("Advanced", "Every gesture of this button") {
@@ -201,7 +201,7 @@ class GuidedSetupActivity : Activity() {
         HwKey.POWER in t.keys && t.keys.size > 1 -> "Hold Power, then press " + (t.keys - HwKey.POWER).first().label
         t.type == GestureType.HOLD -> "Press and hold"
         t.count == 1 -> "Tap"
-        t.count == 2 -> if (HwKey.POWER in t.keys && !env.powerIsDirect) "Double press" else "Double tap"
+        t.count == 2 -> "Double tap"
         t.count == 3 -> "Triple tap"
         else -> t.count.toString() + " taps"
     }
@@ -313,7 +313,7 @@ class GuidedSetupActivity : Activity() {
         // Some firmware sends the double press of Power to the wallet app, not to the camera app.
         val powerDouble = t == Trigger(setOf(HwKey.POWER), GestureType.TAP, 2) && !env.powerIsDirect
         if (powerDouble && !Channels.isSatisfied(this, Channel.WALLET)) {
-            col.row("The double press does nothing?", "Take the wallet place too") {
+            col.row("The double tap does nothing?", "Take the wallet place too") {
                 Channels.setEnabled(this, Channel.WALLET, true)
                 Channels.safeStart(this, Channels.claimIntent(this, Channel.WALLET))
             }
