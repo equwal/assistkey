@@ -41,6 +41,10 @@ class ActionPickerActivity : Activity() {
         basics(col)
         viwoods(col)
         navigation(col)
+        col.header("Typing")
+        col.row("Voice typing", "Speak, and the words go where the cursor is") {
+            choose(ActionSpec(ActionKind.VOICE, "", "Voice typing"))
+        }
         own(col)
         reading(col)
         soundAndMedia(col)

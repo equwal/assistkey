@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.0.4-alpha - 2026-09-20
+
+Version code 4.
+
+- **Voice typing.** A new action. Press the key, speak, and the words go where
+  the cursor is. The app has no speech engine: it uses the Android
+  SpeechRecognizer interface, so any speech recognition app on the device does
+  the listening. The accessibility service puts the text into the focused
+  field. Password fields are never written to.
+- **Fix: Power always wakes and unlocks.** While the app manages the Power
+  button, a press on a sleeping or locked device is never a gesture. The app
+  also sends the wake and the keyguard dismissal through the shell, so waking
+  does not depend on the firmware. Regression test: `tools/e2e/power-wake.sh`.
+
+Known limits:
+
+- Voice typing needs a speech recognition app that has its own microphone
+  permission. The Viwoods voice prompt cannot be used: it sends audio to the
+  Viwoods cloud and has no interface for other apps.
+- The listening screen pauses the app behind it for a moment. An app that
+  clears its text field on resume loses what was typed before.
+
 ## 0.0.3-alpha - 2026-09-20
 
 Version code 3.

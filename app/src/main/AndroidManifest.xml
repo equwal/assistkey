@@ -18,6 +18,13 @@
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
 
+    <!--
+        Voice typing only. The speech recognition app does the recording; Android
+        still requires the app that asks for it to hold the permission. Requested
+        at run time, from the Voice typing screen, and never otherwise.
+    -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <!-- Required of any app that wants to be offered the wallet role. -->
     <uses-permission android:name="android.permission.QUICK_ACCESS_WALLET" />
 
@@ -33,6 +40,10 @@
         </intent>
         <intent>
             <action android:name="android.media.action.STILL_IMAGE_CAMERA" />
+        </intent>
+        <!-- Speech recognition apps, for voice typing. -->
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
         </intent>
         <package android:name="com.viwoods.launcher" />
         <package android:name="com.viwoods.viwoodsai" />
@@ -70,6 +81,16 @@
         <activity android:name=".ui.NavigationActivity" android:exported="false" />
         <activity android:name=".ui.ShellActivity" android:exported="false" />
         <activity android:name=".ui.DisplayActivity" android:exported="false" />
+        <activity android:name=".ui.VoiceActivity" android:exported="false" />
+        <!-- See-through and unfocusable: on top only so the microphone is allowed. -->
+        <activity
+            android:name=".voice.DictationActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Invisible" />
         <activity android:name=".home.HomeSettingsActivity" android:exported="false" />
         <activity
             android:name=".home.RecentsActivity"

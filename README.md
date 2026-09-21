@@ -66,6 +66,33 @@ every official route including `cmd display set-brightness`. Writing
 sticks until the system slider is moved. The node belongs to `system`, so it
 needs Shizuku running as root or a shell that may `su` (userdebug firmware).
 
+## Voice typing
+
+`voice/`. The action *Typing > Voice typing* turns a key into a dictation key.
+The app has no speech engine and no network access. It calls the Android
+`SpeechRecognizer` interface, so a speech recognition app on the device does
+the listening: the system one, an offline Whisper app, or any other app that
+offers a `RecognitionService`. `TextInsert` then puts the words into the field
+that has input focus, through the accessibility service: `ACTION_SET_TEXT` at
+the selection, with a clipboard paste as the fallback. It never writes into a
+password field.
+
+Two facts cost time:
+
+- Android gives the microphone to the app in front only, and an accessibility
+  service does not count (`RECORD_AUDIO` app-op mode is `foreground`). The
+  listening therefore runs in `DictationActivity`, which is see-through and
+  cannot take focus or touches.
+- The speech recognition app needs its own microphone permission too. If it has
+  none, the framework answers `ERROR_INSUFFICIENT_PERMISSIONS` and blames the
+  caller.
+
+The Viwoods voice prompt is not reusable. It uploads audio to the Viwoods cloud
+(`/api/v1/openAi/speechToTextGemini`) and offers no interface to other apps.
+
+Debug builds carry `FakeRecognitionService`, which hears a fixed sentence, so
+the whole chain can be tested on a bench with no voice.
+
 ## Home screen and recent apps
 
 `home/`. The home screen is a clock, a few chosen apps and a search line; the
@@ -342,6 +369,7 @@ device/    device profiles
 display/   the extra-dim light
 home/      the home screen and the recent-apps list
 shell/     shell access through Shizuku, and the managed Power button
+voice/     voice typing: recognizer choice, the listening screen, text insert
 license/   licence tiers and Google Play Billing
 native/    firmware settings: power gestures, and the read-only key hooks
 route/     turning an action spec into behaviour

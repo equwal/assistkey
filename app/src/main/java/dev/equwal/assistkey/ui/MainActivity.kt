@@ -224,6 +224,11 @@ class MainActivity : Activity() {
     // ---- everything else ---------------------------------------------------
 
     private fun extras(col: LinearLayout) {
+        col.header("Typing")
+        col.row("Voice typing", "Speak into any text field, from a key") {
+            startActivity(Intent(this, VoiceActivity::class.java))
+        }
+
         col.header("Display and home")
         col.row("Extra-dim light", "Below the lowest the system slider allows") {
             startActivity(Intent(this, DisplayActivity::class.java))

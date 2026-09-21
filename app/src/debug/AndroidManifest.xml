@@ -6,5 +6,14 @@
     release build.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application android:name=".debug.ShotApp" />
+    <application android:name=".debug.ShotApp">
+        <!-- Test hook: adb shell am broadcast -n <pkg>/dev.equwal.assistkey.debug.InsertReceiver -e text "..." -->
+        <receiver android:name=".debug.InsertReceiver" android:exported="true" />
+        <!-- A recognizer that hears a fixed sentence, so voice typing can be tested with no voice. -->
+        <service android:name=".debug.FakeRecognitionService" android:exported="true" android:label="Test bench recognizer">
+            <intent-filter>
+                <action android:name="android.speech.RecognitionService" />
+            </intent-filter>
+        </service>
+    </application>
 </manifest>

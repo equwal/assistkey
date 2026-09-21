@@ -1,7 +1,7 @@
 # App content declarations
 
 Answers for Play Console > Policy and programs > App content. Each is true of
-the build tagged `v0.0.3-alpha`; re-check them if the app changes.
+the build tagged `v0.0.4-alpha`; re-check them if the app changes.
 
 ## Privacy policy
 
@@ -63,13 +63,15 @@ disabilities)?** No. The manifest does not set `isAccessibilityTool`.
 ```
 AssistKey is a hardware key remapper for the Viwoods AiPaper Reader, an e-ink reading device. Remapping hardware keys is the app's only function, and the AccessibilityService API is the only public Android API that can do it.
 
-The service is used for two things:
+The service is used for three things:
 
 1. Key event filtering (flagRequestFilterKeyEvents / onKeyEvent). The service receives presses of the device's AI key and volume keys, recognises the gesture the user configured - single or multiple taps, press-and-hold, or a combination of keys - and consumes the press so that the user's chosen action runs instead of the default one.
 
 2. Performing the action the user bound to that gesture: performGlobalAction (Back, Home, Recents, notifications, quick settings, lock screen, screenshot), dispatchGesture (a swipe, used to turn pages in reading apps that accept only touch input), and ACTION_SCROLL_FORWARD / ACTION_SCROLL_BACKWARD on the scrollable node of the active window.
 
-Window content is retrieved only in case 2, only to locate a scrollable node, and only at the moment the user presses a key bound to the Scroll action. No window content, text, or key event is stored, logged or transmitted. The app does not request the INTERNET permission and cannot transmit anything.
+3. Voice typing, if the user binds that action: the service finds the text field that has input focus and inserts the recognised words at the cursor (ACTION_SET_TEXT, or ACTION_PASTE as the fallback). It never writes into password fields.
+
+Window content is retrieved only in cases 2 and 3: to locate a scrollable node at the moment the user presses a key bound to the Scroll action, and to read the one focused text field at the moment recognised words are inserted into it. No window content, text, or key event is stored, logged or transmitted. The app does not request the INTERNET permission and cannot transmit anything.
 
 Before the user is sent to the accessibility settings, the app shows a prominent in-app disclosure describing exactly this use, and proceeds only if the user taps Agree.
 ```
@@ -85,6 +87,7 @@ pointed at the reader - the reader cannot capture its own screen.
 |---|---|
 | `BIND_ACCESSIBILITY_SERVICE` | Above. |
 | `WRITE_SECURE_SETTINGS` | Cannot be granted to a Play install; it does nothing unless the owner grants it over adb. It then lets the app switch the firmware's power-button behaviour (short press, hold duration). Declared so that the grant is possible at all. |
+| `RECORD_AUDIO` | Voice typing only. Requested at run time from the Voice typing screen. The speech recognition app the user chose records the audio; Android requires the calling app to hold the permission too. AssistKey receives text only, and stores and sends nothing. |
 | `PACKAGE_USAGE_STATS` | Special access the user grants from a settings screen. Used only by the recent-apps list to order apps by last use, on the device; nothing is stored or sent. Not needed when shell access is on. |
 | `moe.shizuku.manager.permission.API_V23` | Lets the user connect AssistKey to Shizuku, a separate app they install and start themselves, for features that need the shell user. |
 | `QUICK_ACCESS_WALLET` | Required of any app offered as the wallet app. AssistKey serves an empty card list; it exists so a press of the wallet shortcut reaches the user's chosen action. |

@@ -26,6 +26,14 @@ can scroll it. It does not read, record or transmit what the window contains.
 channels are on are saved in the app's private storage on your device. They
 leave the device only through Android's own backup, if you have it on.
 
+**Voice typing.** If you bind the Voice typing action, AssistKey asks for the
+microphone permission. A speech recognition app on your device, which you
+choose, does the listening; how it handles audio is covered by that app's own
+policy. AssistKey receives only the recognised text, and puts it into the text
+field that has the cursor. To do that it reads the current text of that one
+field at that moment. It keeps and sends none of it, and never writes into
+password fields.
+
 **Recent apps.** If you use the recent-apps list without shell access, it
 reads the usage log Android keeps, with the usage access you grant, to put apps
 in order of last use. This happens on the device each time the list opens;

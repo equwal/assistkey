@@ -39,7 +39,10 @@ enum class ActionKind {
     SWIPE,
 
     /** payload = forward|backward; scrolls the focused scrollable node */
-    SCROLL;
+    SCROLL,
+
+    /** Speak, and the words go where the cursor is. The payload is not used. */
+    VOICE;
 
     companion object {
         fun fromName(n: String): ActionKind =

@@ -32,6 +32,8 @@ object ActionRouter {
                 ActionKind.BROADCAST -> broadcast(ctx, spec.payload)
                 ActionKind.SWIPE -> swipe(spec.payload)
                 ActionKind.SCROLL -> scroll(spec.payload)
+                ActionKind.VOICE -> ServiceHolder.service
+                    ?.let { dev.equwal.assistkey.voice.Dictation.toggle(it) } ?: false
             }
         } catch (e: Exception) {
             Log.w(TAG, "action " + spec.kind + "/" + spec.payload + " failed", e)
@@ -184,7 +186,7 @@ object ActionRouter {
 
     /** True when this action cannot run without the accessibility service. */
     fun requiresAccessibility(spec: ActionSpec): Boolean = when (spec.kind) {
-        ActionKind.GLOBAL, ActionKind.SWIPE, ActionKind.SCROLL -> true
+        ActionKind.GLOBAL, ActionKind.SWIPE, ActionKind.SCROLL, ActionKind.VOICE -> true
         else -> false
     }
 }

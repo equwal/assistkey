@@ -47,6 +47,9 @@ ACTIONS
 • Send an intent or a broadcast, for automation apps
 • Do nothing - disable a key you keep pressing by accident
 
+VOICE TYPING
+Bind a key to Voice typing: press, speak, and the words appear where the cursor is - in any app, with the keyboard you already have. AssistKey has no speech engine and no internet access; a speech recognition app on your device does the listening.
+
 MORE FOR E-INK
 • Extra-dim light: go below the lowest brightness the system allows (needs shell access with root)
 • A plain text home screen: a clock, a few apps, type to find the rest
