@@ -1,7 +1,7 @@
 # App content declarations
 
 Answers for Play Console > Policy and programs > App content. Each is true of
-the build tagged `v0.0.1-alpha`; re-check them if the app changes.
+the build tagged `v0.0.3-alpha`; re-check them if the app changes.
 
 ## Privacy policy
 
@@ -43,8 +43,11 @@ so it is not a financial feature.)
 | Do you provide a way for users to request that their data is deleted? | Not applicable |
 
 Why "No" is accurate: the app holds no `INTERNET` permission
-(`aapt2 dump badging` on the release shows only `WRITE_SECURE_SETTINGS`,
-`QUICK_ACCESS_WALLET` and `com.android.vending.BILLING`). Data that never
+(`aapt2 dump badging` on the release shows `WRITE_SECURE_SETTINGS`,
+`PACKAGE_USAGE_STATS`, `QUICK_ACCESS_WALLET`, `com.android.vending.BILLING` and
+Shizuku's `API_V23`, none of which is network access). The device report is
+composed on the device and leaves it only if the user sends it, through their
+own email or share target. Data that never
 leaves the device is not "collected" in Play's sense. Purchase handling by
 Google Play's own billing system does not have to be declared by the app.
 
@@ -82,6 +85,8 @@ pointed at the reader - the reader cannot capture its own screen.
 |---|---|
 | `BIND_ACCESSIBILITY_SERVICE` | Above. |
 | `WRITE_SECURE_SETTINGS` | Cannot be granted to a Play install; it does nothing unless the owner grants it over adb. It then lets the app switch the firmware's power-button behaviour (short press, hold duration). Declared so that the grant is possible at all. |
+| `PACKAGE_USAGE_STATS` | Special access the user grants from a settings screen. Used only by the recent-apps list to order apps by last use, on the device; nothing is stored or sent. Not needed when shell access is on. |
+| `moe.shizuku.manager.permission.API_V23` | Lets the user connect AssistKey to Shizuku, a separate app they install and start themselves, for features that need the shell user. |
 | `QUICK_ACCESS_WALLET` | Required of any app offered as the wallet app. AssistKey serves an empty card list; it exists so a press of the wallet shortcut reaches the user's chosen action. |
 | `com.android.vending.BILLING` | Play Billing. |
 

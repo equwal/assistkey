@@ -21,6 +21,19 @@ enum class HwKey(
     AI(KeyEvent.KEYCODE_F1, "AI key", true),
     VOL_UP(KeyEvent.KEYCODE_VOLUME_UP, "Volume up", true),
     VOL_DOWN(KeyEvent.KEYCODE_VOLUME_DOWN, "Volume down", true),
+
+    // Keys other devices have. They appear in the app once the device has
+    // actually produced one, so nobody is shown a Page up key they do not own.
+    PAGE_UP(KeyEvent.KEYCODE_PAGE_UP, "Page up", true),
+    PAGE_DOWN(KeyEvent.KEYCODE_PAGE_DOWN, "Page down", true),
+    CAMERA(KeyEvent.KEYCODE_CAMERA, "Camera key", true),
+    FOCUS(KeyEvent.KEYCODE_FOCUS, "Camera half-press", true),
+    ASSIST(KeyEvent.KEYCODE_ASSIST, "Assistant key", true),
+    HEADSET(KeyEvent.KEYCODE_HEADSETHOOK, "Headset button", true),
+    MUTE(KeyEvent.KEYCODE_VOLUME_MUTE, "Mute key", true),
+    F2(KeyEvent.KEYCODE_F2, "F2 key", true),
+    F3(KeyEvent.KEYCODE_F3, "F3 key", true),
+    F4(KeyEvent.KEYCODE_F4, "F4 key", true),
     POWER(KeyEvent.KEYCODE_POWER, "Power", false);
 
     /** Stable token used in persisted trigger ids. Never change these. */

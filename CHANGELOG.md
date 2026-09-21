@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.0.3-alpha - 2026-09-20
+
+Version code 3.
+
+- **Shell access** through Shizuku, set up on the device over wireless
+  debugging. No computer, no root.
+- **Power button, properly.** With shell access: tap, double tap, any number
+  of taps, hold, and true combinations. Defaults: tap Back, hold Home (closing
+  the keyboard first), double tap Recents, triple tap lock. The firmware is
+  told to do nothing on Power meanwhile, which is what stops a single tap from
+  swallowing a double tap, and gets the button back whenever shell access goes.
+- **Navigation applies itself.** Bar, gestures and Power key in any mix, applied
+  in-app through the shell; adb commands only as the fallback.
+- **One interface.** Assistant, camera and wallet are no longer "channels"
+  beside the key filter; they are the Power button's side doors for when there
+  is no shell access, and live on the Power screen.
+- **Any Android device.** Viwoods is now one device profile. More key types;
+  a key appears once the device has produced it.
+- **Extra-dim light**, below the system's brightness floor.
+- **Home screen** and **recent apps list**, text-only, made for e-ink.
+- **Device report**: what a tester can send to get a device supported. Shown in
+  full, sent only by the user.
+- New action: Home, closing the keyboard first.
+
+Known limits:
+
+- Shizuku started over wireless debugging stops at restart; Power reverts to
+  the system until it is started again.
+- Extra-dim needs a root-level shell.
+- Purchases are still untested.
+
 ## 0.0.2-alpha — 2026-09-20
 
 Version code 2.

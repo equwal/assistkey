@@ -92,7 +92,7 @@ class PowerActivity : Activity() {
         bindRow(col, "Press and hold", Trigger(power, GestureType.HOLD))
 
         col.header("Power held, plus another key")
-        HwKey.interceptable.forEach { key ->
+        dev.equwal.assistkey.device.Device.keys(this).forEach { key ->
             bindRow(col, "Power + " + key.label, Trigger.powerThen(key))
         }
 
@@ -140,7 +140,7 @@ class PowerActivity : Activity() {
         col.header("Hold - through the assistant door")
         door(col, Channel.ASSISTANT)
         bindRow(col, "Press and hold", Channel.POWER_HOLD)
-        HwKey.interceptable.forEach { key ->
+        dev.equwal.assistkey.device.Device.keys(this).forEach { key ->
             bindRow(col, "Power held, then " + Ui.inSentence(key), Trigger.powerThen(key))
         }
         col.note(

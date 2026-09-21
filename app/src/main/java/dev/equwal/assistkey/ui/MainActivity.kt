@@ -170,7 +170,7 @@ class MainActivity : Activity() {
     private fun buttons(col: LinearLayout) {
         col.header("Buttons")
 
-        listOf(HwKey.AI, HwKey.VOL_UP, HwKey.VOL_DOWN).forEach { key ->
+        dev.equwal.assistkey.device.Device.keys(this).forEach { key ->
             val summary =
                 if (ViwoodsBridge.hidesFromFilter(this, key)) {
                     "Hidden by a firmware hook - see Firmware key hooks below"
@@ -224,15 +224,33 @@ class MainActivity : Activity() {
     // ---- everything else ---------------------------------------------------
 
     private fun extras(col: LinearLayout) {
+        col.header("Display and home")
+        col.row("Extra-dim light", "Below the lowest the system slider allows") {
+            startActivity(Intent(this, DisplayActivity::class.java))
+        }
+        col.row("Home screen", "A plain, fast launcher made for e-ink") {
+            startActivity(Intent(this, dev.equwal.assistkey.home.HomeSettingsActivity::class.java))
+        }
+        col.row("Recent apps", "A plain app switcher, bindable to any key") {
+            startActivity(Intent(this, dev.equwal.assistkey.home.RecentsActivity::class.java))
+        }
+
         col.header("Advanced")
 
-        val hidden = ViwoodsBridge.keys().filter { ViwoodsBridge.hidesFromFilter(this, it) }
+        if (dev.equwal.assistkey.device.Device.hasFirmwareKeyHooks) {
+            val hidden = ViwoodsBridge.keys().filter { ViwoodsBridge.hidesFromFilter(this, it) }
+            col.row(
+                "Firmware key hooks",
+                if (hidden.isEmpty()) "What the firmware itself does with each key"
+                else "Hiding " + hidden.joinToString(" and ") { it.label.lowercase() } +
+                    " from this app - tap for the fix"
+            ) { startActivity(Intent(this, ViwoodsActivity::class.java)) }
+        }
+
         col.row(
-            "Firmware key hooks",
-            if (hidden.isEmpty()) "What the firmware itself does with each key"
-            else "Hiding " + hidden.joinToString(" and ") { it.label.lowercase() } +
-                " from this app - tap for the fix"
-        ) { startActivity(Intent(this, ViwoodsActivity::class.java)) }
+            "Device report",
+            "Help get this device fully supported - you see everything before it is sent"
+        ) { startActivity(Intent(this, ReportActivity::class.java)) }
 
         col.row(
             "Key tester",

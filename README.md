@@ -1,16 +1,78 @@
 # AssistKey
 
-Remaps the four hardware keys on a **Viwoods AiPaper Reader** — the AI key, both
-volume keys, and the power button — to arbitrary actions, including multi-tap,
-press-and-hold and key combinations.
+Remaps the hardware keys of an Android device - volume keys, the Power button,
+and whatever else the device has - to arbitrary actions, with multi-tap,
+press-and-hold and key combinations. Also: navigation in any mix of button bar,
+gestures and the Power key; a frontlight level below the system's floor; a
+plain text home screen and recent-apps list made for e-ink.
 
-Built against firmware 1.5.6 (Android 16, SDK 36). One dependency, Google's
-Play Billing Library, and only because there is no other way to sell on Play.
-The app holds no `INTERNET` permission.
+It runs on any Android 12+ device. The **Viwoods AiPaper Reader** is the first
+device profile, because that is where it was built; see *Device profiles*.
 
 Sold on Google Play as a free download with a one-time licence. Publishing,
 products, pricing and how the beta is run and ended are in
-[play/CHECKLIST.md](play/CHECKLIST.md).
+[play/CHECKLIST.md](play/CHECKLIST.md). The app holds no `INTERNET` permission.
+
+## Shell access
+
+Android keeps several things from every installed app: the Power key, the
+navigation bar, system gestures, a maker's own key settings, the backlight
+node. The shell user can reach them. [Shizuku](https://shizuku.rikka.app/)
+(MIT API, free app) gives the app that user from the device itself, through
+wireless debugging - no computer, no root. *Setup > Shell access* walks through
+it. Everything that depends on it degrades honestly without it.
+
+| With shell access | Without |
+|---|---|
+| Power: any taps, hold, true combinations, read from `/dev/input` | Hold (assistant role) and double press (default camera) only |
+| Bar and gestures switched in-app | The adb commands are shown |
+| Recent apps: the real task list, apps can be closed | Rebuilt from the usage log |
+| Extra-dim light (needs root-level shell) | Not available |
+
+Implementation notes that cost time:
+
+- Shizuku's bound *user service* cannot be used: its starter dies inside
+  `LoadedApk.makeApplication` on Android 16 before our class loads. `Shell`
+  uses Shizuku's remote-process call, and the key watcher is a pipe from
+  `getevent -q <node>` on the nodes that declare the key.
+- While Power is managed, `power_button_short_press`, `power_button_long_press`
+  and the double-tap camera gesture are set to nothing; the firmware values are
+  saved first and restored whenever shell access, the licence, the bindings or
+  the service stop justifying it. Restoring needs no shell: the app grants
+  itself `WRITE_SECURE_SETTINGS` through the shell on first contact. The press
+  that wakes the screen is never a gesture; Power + Volume up stays the power
+  menu.
+
+## Device profiles
+
+`device/Device.kt`. A profile adds only what a maker did differently: extra
+keys, its own key settings, a gesture switch, a brightness floor. Unknown
+devices get the generic profile plus any supported key the key filter has
+actually seen (a page-turn button appears the first time it is pressed).
+
+New profiles come from **device reports** (*Advanced > Device report*): model,
+firmware, input devices and the keys they declare, navigation overlays, a
+whitelist of key and navigation settings, the light's range. The user sees
+every line and sends it themselves by email or share sheet. There is no
+automatic telemetry, because there is no `INTERNET` permission; adding one is a
+deliberate product decision, not a code change.
+
+## Extra-dim light
+
+On the Viwoods reader the frontlight is a backlight LED whose driver accepts
+1-255 (2047 real steps), but the framework snaps anything under 5 to zero, by
+every official route including `cmd display set-brightness`. Writing
+`/sys/class/leds/lcd-backlight/brightness` directly gets under the floor and
+sticks until the system slider is moved. The node belongs to `system`, so it
+needs Shizuku running as root or a shell that may `su` (userdebug firmware).
+
+## Home screen and recent apps
+
+`home/`. The home screen is a clock, a few chosen apps and a search line; the
+app list is hidden until you type, and a single match opens itself. It is
+original code: the idea is shared with CLauncher/Olauncher, which are GPL-3.0
+and therefore cannot be copied into this app. Disabled in the manifest until
+switched on. Recent apps is a text list in place of the screenshot carousel.
 
 ## Why it is shaped like this
 
@@ -86,8 +148,9 @@ Android version, can see it. That leaves exactly three reachable slots:
   *Always*.
 - **Press and hold** — arrives as an assistant request.
 
-No multi-tap beyond two. Power cannot take part in an ordinary combination,
-but there is one way in: a held Power announces itself, because the firmware
+That is the position **without shell access**. With it, none of this section
+applies - see *Shell access*. Without it there is no multi-tap beyond two, and
+Power cannot take part in an ordinary combination, but there is one way in: a held Power announces itself, because the firmware
 fires the assistant at us, and a key pressed while it is still down reaches the
 filter. So **hold Power, then press** the AI key, Volume up or Volume down is
 three real combinations. While any is bound, the plain hold action waits one
@@ -274,7 +337,11 @@ the firmware power switches, which are ordinary system settings.
 ```
 model/     keys, triggers, action specs, the recovered Viwoods component list
 engine/    the gesture state machine and the accessibility service
-channel/   the four capture channels and their entry points
+channel/   the key filter switch and the Power side doors (assistant, camera, wallet)
+device/    device profiles
+display/   the extra-dim light
+home/      the home screen and the recent-apps list
+shell/     shell access through Shizuku, and the managed Power button
 license/   licence tiers and Google Play Billing
 native/    firmware settings: power gestures, and the read-only key hooks
 route/     turning an action spec into behaviour

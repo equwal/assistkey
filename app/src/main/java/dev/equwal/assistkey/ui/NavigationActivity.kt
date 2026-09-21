@@ -141,7 +141,8 @@ class NavigationActivity : Activity() {
             redrawnForInsets = true
             window.decorView.post { if (!isFinishing) build() } // insets need an attached window
         }
-        val gesturesNow = NavNative.gesturesOn(this)
+        // Stock Android has no separate gesture switch: gestures are on exactly when the bar is off.
+        val gesturesNow = NavNative.gesturesOn(this) ?: buttonsNow?.not()
 
         val wantButtons = wanted("buttons", buttonsNow ?: true)
         val wantGestures = wanted("gestures", gesturesNow ?: true)

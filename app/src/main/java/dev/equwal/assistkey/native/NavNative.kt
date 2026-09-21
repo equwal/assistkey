@@ -42,7 +42,12 @@ object NavNative {
 
     /** True if the swipe-up gesture is live, null if the setting cannot be read. */
     fun gesturesOn(c: Context): Boolean? {
-        val v = runCatching { Settings.System.getString(c.contentResolver, GESTURE_BOTTOM) }
+        val name = dev.equwal.assistkey.device.Device.bottomGestureSetting
+        if (name == null) {
+            // Stock Android: gestures exist exactly when the bar does not.
+            return null
+        }
+        val v = runCatching { Settings.System.getString(c.contentResolver, name) }
             .getOrElse { return null }
         return v?.trim() != "1"
     }
@@ -59,15 +64,17 @@ object NavNative {
         // Only meaningful without the bar, but harmless with it, and setting it
         // every time means a later switch to gestural mode cannot surprise.
         val scale = if (gestures) "0.6" else "0"
-        return listOf(
-            "cmd overlay enable-exclusive --category " + OVERLAY + (if (buttons) "threebutton" else "gestural"),
-            "sleep 4",
-            "settings put system $GESTURE_BOTTOM $nudge",
-            "sleep 1",
-            "settings put system $GESTURE_BOTTOM $off",
-            "settings put secure back_gesture_inset_scale_left $scale",
-            "settings put secure back_gesture_inset_scale_right $scale"
-        )
+        val out = ArrayList<String>()
+        out += "cmd overlay enable-exclusive --category " + OVERLAY + (if (buttons) "threebutton" else "gestural")
+        if (dev.equwal.assistkey.device.Device.bottomGestureSetting != null) {
+            out += "sleep 4"
+            out += "settings put system $GESTURE_BOTTOM $nudge"
+            out += "sleep 1"
+            out += "settings put system $GESTURE_BOTTOM $off"
+        }
+        out += "settings put secure back_gesture_inset_scale_left $scale"
+        out += "settings put secure back_gesture_inset_scale_right $scale"
+        return out
     }
 
     /** The same, for someone typing them at a computer. */

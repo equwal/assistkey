@@ -41,6 +41,7 @@ class ActionPickerActivity : Activity() {
         basics(col)
         viwoods(col)
         navigation(col)
+        own(col)
         reading(col)
         soundAndMedia(col)
         custom(col)
@@ -64,9 +65,30 @@ class ActionPickerActivity : Activity() {
     }
 
     private fun viwoods(col: LinearLayout) {
+        if (!dev.equwal.assistkey.device.Device.hasViwoodsActions) return
         col.header("Viwoods AI")
         Presets.viwoods.forEach { p ->
             col.row(p.label, null) { choose(p.toSpec()) }
+        }
+    }
+
+    private fun own(col: LinearLayout) {
+        col.header("AssistKey")
+        listOf(
+            "Recent apps (list)" to "dev.equwal.assistkey.home.RecentsActivity",
+            "App search" to "dev.equwal.assistkey.home.HomeActivity"
+        ).filter { (_, cls) ->
+            // The home screen is switched off until asked for; a disabled
+            // activity cannot be launched, so it is not offered.
+            packageManager.getComponentEnabledSetting(android.content.ComponentName(packageName, cls)) !=
+                android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED &&
+                (cls.endsWith("RecentsActivity") ||
+                    packageManager.getComponentEnabledSetting(android.content.ComponentName(packageName, cls)) ==
+                    android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
+        }.forEach { (label, cls) ->
+            col.row(label, null) {
+                choose(ActionSpec(ActionKind.LAUNCH_COMPONENT, packageName + "/" + cls, label))
+            }
         }
     }
 

@@ -57,7 +57,7 @@ class Bindings(private val map: Map<Trigger, ActionSpec>) {
     fun powerCombo(key: HwKey): ActionSpec? = active[Trigger.powerThen(key)]
 
     val hasPowerCombos: Boolean =
-        HwKey.interceptable.any { active.containsKey(Trigger.powerThen(it)) }
+        active.keys.any { it.keys.size == 2 && HwKey.POWER in it.keys }
 
     /** Including PASS_THROUGH entries, for the UI. */
     fun raw(trigger: Trigger): ActionSpec = map[trigger] ?: ActionSpec.PASS

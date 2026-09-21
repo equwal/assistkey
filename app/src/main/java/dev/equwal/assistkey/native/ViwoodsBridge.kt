@@ -74,7 +74,8 @@ object ViwoodsBridge {
      * made for it in this app can never fire.
      */
     fun hidesFromFilter(c: Context, key: HwKey): Boolean =
-        VOLUME_SLOT.containsKey(key) && read(c, key) != null
+        dev.equwal.assistkey.device.Device.hasFirmwareKeyHooks &&
+            VOLUME_SLOT.containsKey(key) && read(c, key) != null
 
     private const val AI_ENTRY = "dev.equwal.assistkey.channel.AiKeyActivity"
 
@@ -87,7 +88,7 @@ object ViwoodsBridge {
 
     /** True when the firmware sends the AI key straight to this app. */
     fun aiHookedToUs(c: Context): Boolean =
-        read(c, HwKey.AI)?.let { ComponentName.unflattenFromString(it) } ==
+        dev.equwal.assistkey.device.Device.hasFirmwareKeyHooks && read(c, HwKey.AI)?.let { ComponentName.unflattenFromString(it) } ==
             ComponentName(c.packageName, AI_ENTRY)
 
     fun aiHookCommand(c: Context): String =

@@ -10,6 +10,14 @@
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
 
+    <!--
+        Special access the user grants from a settings screen. Only the recent
+        apps list uses it, and only when there is no shell access to ask the
+        system directly.
+    -->
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+
     <!-- Required of any app that wants to be offered the wallet role. -->
     <uses-permission android:name="android.permission.QUICK_ACCESS_WALLET" />
 
@@ -61,6 +69,35 @@
         <activity android:name=".ui.LicenseActivity" android:exported="false" />
         <activity android:name=".ui.NavigationActivity" android:exported="false" />
         <activity android:name=".ui.ShellActivity" android:exported="false" />
+        <activity android:name=".ui.DisplayActivity" android:exported="false" />
+        <activity android:name=".home.HomeSettingsActivity" android:exported="false" />
+        <activity
+            android:name=".home.RecentsActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:taskAffinity="dev.equwal.assistkey.recents" />
+
+        <!--
+            The home screen. Disabled until the user asks for it, so the app is
+            not a launcher candidate on anybody's device by default.
+        -->
+        <activity
+            android:name=".home.HomeActivity"
+            android:enabled="false"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:stateNotNeeded="true"
+            android:taskAffinity="dev.equwal.assistkey.home"
+            android:windowSoftInputMode="stateHidden|adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".ui.ReportActivity" android:exported="false" />
 
         <!--
             The three impersonation entry points. Each starts disabled: the app

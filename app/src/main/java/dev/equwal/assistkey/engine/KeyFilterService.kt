@@ -61,6 +61,7 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
         override fun onReceive(c: android.content.Context?, i: android.content.Intent?) {
             powerIgnoredUntilUp = true
             if (::engine.isInitialized) engine.onCancel()
+            dev.equwal.assistkey.display.ExtraDim.reapply(this@KeyFilterService)
         }
     }
 
@@ -160,6 +161,9 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
         val key = HwKey.fromCode(event.keyCode)
+        if (key != null && event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+            dev.equwal.assistkey.device.Device.noteSeen(this, key)
+        }
         val consumed = when {
             !Channels.isEnabled(this, Channel.ACCESSIBILITY) -> false
             // Ahead of the licence check on purpose - see armPowerCombo.
@@ -176,6 +180,11 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
         // only way to find out whether a key reaches a filter on this firmware.
         // KeyLog drops it on the floor unless that screen is open.
         KeyLog.record(event, key?.label ?: ("Key " + event.keyCode), consumed)
+        if (key == null && KeyLog.recording && event.action == KeyEvent.ACTION_DOWN) {
+            dev.equwal.assistkey.device.Device.noteUnknown(
+                this, event.keyCode, event.scanCode, event.device?.name
+            )
+        }
         return consumed
     }
 
@@ -237,6 +246,10 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
             )
             // An unbound Power gesture does what Power always did.
             HwKey.POWER -> performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
+            // A swallowed press cannot be replayed to the app in front. Keys
+            // with a system-wide meaning are handled above; the rest are lost,
+            // which is why a key with nothing bound is never swallowed at all.
+            else -> Unit
         }
     }
 

@@ -26,6 +26,20 @@ can scroll it. It does not read, record or transmit what the window contains.
 channels are on are saved in the app's private storage on your device. They
 leave the device only through Android's own backup, if you have it on.
 
+**Recent apps.** If you use the recent-apps list without shell access, it
+reads the usage log Android keeps, with the usage access you grant, to put apps
+in order of last use. This happens on the device each time the list opens;
+nothing from it is stored or sent.
+
+**Shell access.** If you connect AssistKey to Shizuku, it runs commands on your
+device as the shell user to read the Power button, switch the navigation bar
+and gestures, and set the light. These act on your device only.
+
+**Device report.** The report you can create under Advanced lists your device
+model, firmware, input devices, navigation options and a short list of key and
+navigation settings. It does not include your apps, accounts or identifiers.
+It is shown to you in full and goes nowhere unless you send it yourself.
+
 **Licence state.** The app saves, on your device, the date it was first
 opened, whether it was used during the beta, and which AssistKey products
 Google Play reports your account as owning.
