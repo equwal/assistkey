@@ -11,8 +11,8 @@ import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.check
 import dev.equwal.assistkey.ui.Ui.header
 import dev.equwal.assistkey.ui.Ui.note
+import dev.equwal.assistkey.ui.Ui.primaryButton
 import dev.equwal.assistkey.ui.Ui.row
-import dev.equwal.assistkey.ui.Ui.title
 
 /**
  * Switching the AssistKey home screen on, and tuning it.
@@ -40,13 +40,8 @@ class HomeSettingsActivity : Activity() {
     }
 
     private fun build() {
-        val col = Ui.page(this)
-        col.title("Home screen")
-        col.note(
-            "A home screen with nothing on it: a clock, the few apps you choose, and " +
-                "a line to type in. Apps stay out of sight until you type, and when " +
-                "one match is left it opens. No icons, no grid, nothing to redraw."
-        )
+        val col = Ui.page(this, "Home screen")
+        col.note("A clock, the few apps you choose, and a line to type in.")
 
         col.check("Offer AssistKey as a home screen", null, enabled()) { on ->
             packageManager.setComponentEnabledSetting(
@@ -60,11 +55,13 @@ class HomeSettingsActivity : Activity() {
         if (!enabled()) return
 
         col.row(
-            "Status: " + if (isDefault()) "This is your home screen" else "Not your home screen yet",
-            null, enabled = false
+            "Home screen",
+            if (isDefault()) "This is your home screen" else "Not your home screen yet",
+            enabled = false,
+            state = if (isDefault()) "In use" else "Ready"
         )
         if (!isDefault()) {
-            col.button("Make it the home screen") {
+            col.primaryButton("Make it the home screen") {
                 val rm = getSystemService(RoleManager::class.java)
                 val i = if (rm != null && rm.isRoleAvailable(RoleManager.ROLE_HOME)) {
                     rm.createRequestRoleIntent(RoleManager.ROLE_HOME)

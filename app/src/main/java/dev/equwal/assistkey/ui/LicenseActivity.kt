@@ -10,8 +10,8 @@ import dev.equwal.assistkey.license.Sku
 import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.header
 import dev.equwal.assistkey.ui.Ui.note
+import dev.equwal.assistkey.ui.Ui.primaryButton
 import dev.equwal.assistkey.ui.Ui.row
-import dev.equwal.assistkey.ui.Ui.title
 
 /**
  * Where the licence is shown, bought and restored.
@@ -36,8 +36,7 @@ class LicenseActivity : Activity() {
 
     private fun build() {
         val state = License.state(this)
-        val col = Ui.page(this)
-        col.title("Licence")
+        val col = Ui.page(this, "Licence")
         status(col, state)
         if (state.tier != License.Tier.LICENSED) buy(col, state)
         restore(col)
@@ -116,11 +115,11 @@ class LicenseActivity : Activity() {
                         "You took part in the beta, so the licence is " + testerPrice +
                             (if (fullPrice != null) " instead of " + fullPrice else "") + "."
                     )
-                    col.button("Buy at the tester price - " + testerPrice) {
+                    col.primaryButton("Buy at the tester price - " + testerPrice) {
                         purchase(Sku.PRO_TESTER)
                     }
                 } else if (fullPrice != null) {
-                    col.button("Buy AssistKey - " + fullPrice) { purchase(Sku.PRO) }
+                    col.primaryButton("Buy AssistKey - " + fullPrice) { purchase(Sku.PRO) }
                 }
                 col.note("One payment through Google Play. No subscription, no account.")
             }

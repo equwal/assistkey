@@ -82,6 +82,13 @@
         <activity android:name=".ui.VoiceActivity" android:exported="false" />
         <activity android:name=".ui.BackupActivity" android:exported="false" />
         <activity android:name=".ui.PermissionsActivity" android:exported="false" />
+        <!-- The hub's sub-screens. -->
+        <activity android:name=".ui.KeysActivity" android:exported="false" />
+        <activity android:name=".ui.SetupActivity" android:exported="false" />
+        <activity android:name=".ui.HomeHubActivity" android:exported="false" />
+        <activity android:name=".ui.AdvancedActivity" android:exported="false" />
+        <!-- The guided flow the hub opens first. -->
+        <activity android:name=".setup.GuidedSetupActivity" android:exported="false" />
         <activity android:name=".menu.MenuEditActivity" android:exported="false" />
         <!-- The action menu: a box over the app in front, in a task of its own. -->
         <activity

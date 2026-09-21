@@ -19,9 +19,9 @@ import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.check
 import dev.equwal.assistkey.ui.Ui.code
 import dev.equwal.assistkey.ui.Ui.header
+import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
-import dev.equwal.assistkey.ui.Ui.title
 
 /**
  * The Power button.
@@ -53,8 +53,7 @@ class PowerActivity : Activity() {
     }
 
     private fun build() {
-        val col = Ui.page(this)
-        col.title("Power button")
+        val col = Ui.page(this, "Power button")
         val direct = Shell.ready && PowerControl.wanted(this)
         if (direct) direct(col) else sideDoors(col)
         emergencySos(col)
@@ -92,11 +91,7 @@ class PowerActivity : Activity() {
     // ---- with shell access ----------------------------------------------------------------
 
     private fun direct(col: LinearLayout) {
-        col.note(
-            "AssistKey is reading the Power button directly. While anything is " +
-                "bound here the system's own reactions are switched off, so a " +
-                "gesture you leave unbound locks the screen, as Power always did."
-        )
+        col.note("AssistKey is reading the Power button directly.")
 
         col.header("Taps")
         bindRow(col, "Tap", Trigger(power, GestureType.TAP, 1))
@@ -104,10 +99,6 @@ class PowerActivity : Activity() {
         bindRow(col, "Triple tap", Trigger(power, GestureType.TAP, 3))
         bindRow(col, "4 taps", Trigger(power, GestureType.TAP, 4))
         bindRow(col, "5 taps", Trigger(power, GestureType.TAP, 5))
-        col.note(
-            "A tap waits a moment for a second one only if double tap or more is " +
-                "bound. The wait is set under Gesture timing."
-        )
 
         col.header("Hold")
         bindRow(col, "Press and hold", Trigger(power, GestureType.HOLD))
@@ -118,12 +109,8 @@ class PowerActivity : Activity() {
         }
 
         col.header("Safety")
-        col.note(
-            "Power + Volume up always opens the power menu. The press that wakes " +
-                "the screen is never treated as a gesture. If shell access is lost - " +
-                "after a restart, say - the button goes back to the system until it " +
-                "returns."
-        )
+        col.note("Power + Volume up always opens the power menu.")
+        col.more("The Power button, read directly", DIRECT_ABOUT)
         col.check(
             "Let AssistKey handle the Power button",
             "Untick to give it back to the system and use the side doors instead",
@@ -142,30 +129,22 @@ class PowerActivity : Activity() {
     // ---- without it --------------------------------------------------------------------------
 
     private fun sideDoors(col: LinearLayout) {
-        col.note(
-            "Android does not show the Power button to apps. Two side doors are " +
-                "open: press and hold, and double press."
-        )
+        col.note("Android does not show the Power button to apps. Two side doors are open.")
+        col.more("The two side doors", SIDE_DOORS_ABOUT)
+
         col.header("Hold - through the assistant door")
         door(col, Channel.ASSISTANT)
         bindRow(col, "Press and hold", Channel.POWER_HOLD)
         dev.equwal.assistkey.device.Device.keys(this).forEach { key ->
             bindRow(col, "Power held, then " + Ui.inSentence(key), Trigger.powerThen(key))
         }
-        col.note(
-            "While a held-then-key combination is bound, plain hold waits a second " +
-                "to see whether a key follows."
-        )
 
         col.header("Double press - through the camera door")
         door(col, Channel.CAMERA)
         bindRow(col, "Double press", Channel.POWER_DOUBLE)
 
         col.header("Tap")
-        col.note(
-            "A single tap cannot reach any app this way. The system's own choices " +
-                "are all there is:"
-        )
+        col.note("A single tap cannot reach any app this way. The system's own choices are all there is.")
         firmware(col)
 
         col.header("Wallet door")
@@ -251,5 +230,31 @@ class PowerActivity : Activity() {
     private fun applied(ok: Boolean) {
         Toast.makeText(this, if (ok) "Applied" else "The system refused", Toast.LENGTH_SHORT).show()
         build()
+    }
+
+    private companion object {
+
+        const val DIRECT_ABOUT =
+            "While anything is bound here, the system's own reactions to the " +
+                "Power button are switched off. A gesture you leave unbound " +
+                "locks the screen, as Power always did.\n\n" +
+                "A tap waits a moment for a second one only if double tap or " +
+                "more is bound. The wait is set under Advanced > Gesture " +
+                "timing.\n\n" +
+                "Power + Volume up always opens the power menu. The press that " +
+                "wakes the screen is never treated as a gesture.\n\n" +
+                "If shell access is lost - after a restart, say - the button " +
+                "goes back to the system until it returns."
+
+        const val SIDE_DOORS_ABOUT =
+            "The window manager takes the Power key before any app can see it, " +
+                "so no accessibility service reaches it on any Android " +
+                "version. Two side doors are left.\n\n" +
+                "Press and hold arrives as an assistant request, so it works " +
+                "once AssistKey holds the digital assistant role.\n\n" +
+                "Double press arrives as a camera launch, so it works once " +
+                "AssistKey is the default camera app.\n\n" +
+                "While a held-then-key combination is bound, plain hold waits " +
+                "one second to see whether a key follows."
     }
 }

@@ -9,9 +9,9 @@ import dev.equwal.assistkey.channel.Channels
 import dev.equwal.assistkey.shell.Shell
 import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.header
+import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
-import dev.equwal.assistkey.ui.Ui.title
 
 /**
  * Getting shell access, from the device itself.
@@ -39,18 +39,10 @@ class ShellActivity : Activity() {
 
     private fun build() {
         val state = Shell.state(this)
-        val col = Ui.page(this)
-        col.title("Shell access")
-        col.row("Status: " + Shell.describe(this), null, enabled = false)
-
-        col.note(
-            "Android keeps a few things from every installed app: the Power " +
-                "button, the navigation bar, the system gestures, a device maker's " +
-                "own key settings. The shell user - the one a computer gets over " +
-                "USB debugging - can reach all of them. Shizuku, a free app, gives " +
-                "AssistKey that same access from the device itself, with no " +
-                "computer and no root."
-        )
+        val col = Ui.page(this, "Shell access")
+        col.row("Status", null, enabled = false, state = Shell.describe(this))
+        col.note("Shizuku, a free app, gives AssistKey the shell user from the device itself.")
+        col.more("Shell access", ABOUT)
 
         if (state == Shell.State.READY) {
             col.header("What this unlocks")
@@ -61,11 +53,7 @@ class ShellActivity : Activity() {
                     "gestures, from inside the app.\n" +
                     "Device key settings that would otherwise need a computer."
             )
-            col.note(
-                "Shizuku started over wireless debugging stops when the device " +
-                    "restarts. Until it is started again AssistKey gives the Power " +
-                    "button back to the system, so it always works."
-            )
+            col.more("After a restart", RESTART)
             return
         }
 
@@ -119,4 +107,24 @@ class ShellActivity : Activity() {
 
     private fun tryStart(i: Intent): Boolean =
         runCatching { startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); true }.getOrDefault(false)
+
+    private companion object {
+
+        const val ABOUT =
+            "Android keeps a few things from every installed app: the Power " +
+                "button, the navigation bar, the system gestures, a device " +
+                "maker's own key settings.\n\n" +
+                "The shell user - the one a computer gets over USB debugging - " +
+                "can reach all of them. Shizuku is a free app that pairs with " +
+                "Android's own wireless debugging and then runs a small server " +
+                "as that user. So AssistKey gets the same access from the " +
+                "device itself, with no computer and no root.\n\n" +
+                "Everything that depends on shell access falls back by itself " +
+                "when there is none."
+
+        const val RESTART =
+            "Shizuku started over wireless debugging stops when the device " +
+                "restarts. Until it is started again, AssistKey gives the Power " +
+                "button back to the system, so the button always works."
+    }
 }

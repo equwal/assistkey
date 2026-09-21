@@ -10,9 +10,9 @@ import dev.equwal.assistkey.channel.Channels
 import dev.equwal.assistkey.engine.KeyLog
 import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.header
+import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
-import dev.equwal.assistkey.ui.Ui.title
 
 /**
  * Shows every key event the filter receives.
@@ -54,27 +54,19 @@ class KeyTesterActivity : Activity() {
 
     private fun build() {
         lastCount = KeyLog.count()
-        val col = Ui.page(this)
-        col.title("Key tester")
+        val col = Ui.page(this, "Key tester")
 
         if (!Channels.isSatisfied(this, Channel.ACCESSIBILITY)) {
-            col.note(
-                "The accessibility key filter is not running, so nothing will " +
-                    "appear here. Turn it on from the main screen first."
-            )
+            col.row(
+                "Key remapping is off",
+                "Nothing will appear here until it is on",
+                state = "Off"
+            ) { startActivity(android.content.Intent(this, SetupActivity::class.java)) }
             return
         }
 
-        col.note(
-            "Press a key. Anything that reaches the filter is listed below, " +
-                "whether or not it has a binding. Power will never appear: the " +
-                "window manager consumes it before any app can see it."
-        )
-        col.note(
-            "Only real presses count. Events injected with adb shell input " +
-                "bypass accessibility filters and will not show up. Keys are " +
-                "listed only while this screen is open, and never stored."
-        )
+        col.note("Press a key. Anything that reaches the filter is listed below.")
+        col.more("Key tester", ABOUT)
 
         col.button("Clear") { KeyLog.clear(); build() }
 
@@ -91,5 +83,17 @@ class KeyTesterActivity : Activity() {
         recent.forEach { e ->
             col.row(e.describe(), "keycode " + e.keyCode, enabled = false)
         }
+    }
+
+    private companion object {
+        const val ABOUT =
+            "Every key that reaches the filter is listed, whether or not it " +
+                "has a binding.\n\n" +
+                "Power will never appear. The window manager takes it before " +
+                "any app can see it, on every Android device.\n\n" +
+                "Only real presses count. Events injected with adb shell input " +
+                "bypass accessibility filters entirely and will not show up.\n\n" +
+                "Keys are listed only while this screen is open, and are never " +
+                "stored."
     }
 }

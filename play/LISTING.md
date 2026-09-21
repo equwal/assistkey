@@ -28,6 +28,8 @@ AssistKey remaps your device's hardware keys: volume keys, the power button, pag
 
 Turn pages with the volume keys. Hold the power button for Home, double press it for Recents. Put three different actions on one key with a tap, a double tap and a hold.
 
+Setup is three taps: tap the button in a drawing of your device, choose tap, double tap or hold, choose what it does. AssistKey asks only for what that needs.
+
 Built for e-ink readers, and it works on any Android 12+ phone or tablet.
 
 WHAT EACH KEY CAN DO

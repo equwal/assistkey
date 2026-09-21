@@ -18,7 +18,7 @@ import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.code
 import dev.equwal.assistkey.ui.Ui.header
 import dev.equwal.assistkey.ui.Ui.note
-import dev.equwal.assistkey.ui.Ui.title
+import dev.equwal.assistkey.ui.Ui.primaryButton
 
 /**
  * A description of this device, for getting it supported.
@@ -49,14 +49,12 @@ class ReportActivity : Activity() {
     }
 
     private fun build(text: String) {
-        val col = Ui.page(this)
-        col.title("Device report")
+        val col = Ui.page(this, "Device report")
         col.note(
-            "Help get " + Device.name + " fully supported. This is everything the " +
-                "report contains - nothing is sent unless you send it, and AssistKey " +
-                "has no internet permission to send it with."
+            "Help get " + Device.name + " fully supported. Nothing is sent unless " +
+                "you send it, and AssistKey has no internet permission to send it with."
         )
-        col.button("Send by email") {
+        col.primaryButton("Send by email") {
             val i = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:" + to))
                 .putExtra(Intent.EXTRA_SUBJECT, "AssistKey device report: " + Device.name)
                 .putExtra(Intent.EXTRA_TEXT, report)

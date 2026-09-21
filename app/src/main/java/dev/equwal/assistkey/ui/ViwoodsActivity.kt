@@ -8,7 +8,6 @@ import dev.equwal.assistkey.ui.Ui.code
 import dev.equwal.assistkey.ui.Ui.header
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
-import dev.equwal.assistkey.ui.Ui.title
 
 /**
  * Shows what the firmware itself has bound to each key.
@@ -26,8 +25,7 @@ class ViwoodsActivity : Activity() {
     }
 
     private fun build() {
-        val col = Ui.page(this)
-        col.title("Firmware key hooks")
+        val col = Ui.page(this, "Firmware key hooks")
         col.note(
             "The firmware has its own setting for each key. Android does not allow " +
                 "apps to change these, so they are shown here for information, " +
@@ -38,7 +36,12 @@ class ViwoodsActivity : Activity() {
 
     private fun keyBlock(col: LinearLayout, key: HwKey) {
         col.header(key.label)
-        col.row("Firmware setting: " + ViwoodsBridge.describe(this, key), null, enabled = false)
+        col.row(
+            "Firmware setting",
+            ViwoodsBridge.describe(this, key),
+            enabled = false,
+            state = if (ViwoodsBridge.hidesFromFilter(this, key)) "Hiding" else "Clear"
+        )
 
         if (key == HwKey.AI) {
             if (ViwoodsBridge.aiHookedToUs(this)) {

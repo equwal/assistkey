@@ -13,8 +13,8 @@ import dev.equwal.assistkey.ui.Ui
 import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.header
 import dev.equwal.assistkey.ui.Ui.note
+import dev.equwal.assistkey.ui.Ui.primaryButton
 import dev.equwal.assistkey.ui.Ui.row
-import dev.equwal.assistkey.ui.Ui.title
 import org.json.JSONObject
 
 /** Builds the menu that one gesture opens: add actions, order them, save. */
@@ -38,12 +38,8 @@ class MenuEditActivity : Activity() {
     }
 
     private fun build() {
-        val col = Ui.page(this)
-        col.title("Menu for " + trigger.label())
-        col.note(
-            "One gesture opens a menu, and the menu holds as many actions as you " +
-                "want. That gives you more actions than you have keys."
-        )
+        val col = Ui.page(this, "Menu for " + trigger.label())
+        col.note("One gesture opens a menu, so you get more actions than you have keys.")
 
         col.header(if (items.isEmpty()) "No actions yet" else "Actions, in menu order")
         items.forEachIndexed { i, spec ->
@@ -64,7 +60,7 @@ class MenuEditActivity : Activity() {
         }
 
         col.header("Finish")
-        col.button(if (items.isEmpty()) "Remove the menu" else "Save the menu") {
+        col.primaryButton(if (items.isEmpty()) "Remove the menu" else "Save the menu") {
             Store.bind(this, trigger, if (items.isEmpty()) ActionSpec.PASS else Menu.spec(items))
             setResult(RESULT_OK)
             finish()

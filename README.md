@@ -13,6 +13,16 @@ Sold on Google Play as a free download with a one-time licence. Publishing,
 products, pricing and how the beta is run and ended are in
 [play/CHECKLIST.md](play/CHECKLIST.md). The app holds no `INTERNET` permission.
 
+## Set up a button
+
+The main screen starts with **Set up a button**. Tap the button in the drawing
+of the device. Choose tap, double tap or hold. Choose what it does. The app
+finds what Android must allow for that, and asks for only that. The app does
+not ask you to press a key to find it.
+
+The same bindings are under **Advanced > Full control**, with every key, every
+gesture, the Power button and two-key combinations.
+
 ## Two builds
 
 One app, one id, one signature, two flavours:

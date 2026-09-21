@@ -1,36 +1,50 @@
 package dev.equwal.assistkey.ui
 
 import android.app.Activity
-import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
+import android.graphics.Typeface
 import android.os.Bundle
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
-import android.widget.Toast
+import android.widget.TextView
 import dev.equwal.assistkey.channel.Channel
 import dev.equwal.assistkey.channel.Channels
+import dev.equwal.assistkey.home.HomeActivity
 import dev.equwal.assistkey.license.License
 import dev.equwal.assistkey.license.PlayBilling
 import dev.equwal.assistkey.model.GestureType
 import dev.equwal.assistkey.model.HwKey
 import dev.equwal.assistkey.model.Trigger
-import dev.equwal.assistkey.native.PowerNative
-import dev.equwal.assistkey.native.ViwoodsBridge
+import dev.equwal.assistkey.native.NavNative
 import dev.equwal.assistkey.store.Store
-import dev.equwal.assistkey.ui.Ui.button
-import dev.equwal.assistkey.ui.Ui.check
+import dev.equwal.assistkey.ui.Ui.dp
 import dev.equwal.assistkey.ui.Ui.header
 import dev.equwal.assistkey.ui.Ui.note
+import dev.equwal.assistkey.ui.Ui.primaryButton
 import dev.equwal.assistkey.ui.Ui.row
-import dev.equwal.assistkey.ui.Ui.title
+import dev.equwal.assistkey.ui.Ui.rule
+import dev.equwal.assistkey.ui.Ui.tiles
+import dev.equwal.assistkey.voice.Dictation
 
 /**
- * The whole configuration surface.
+ * The hub, and the only screen the app opens on.
+ *
+ * It fits on one screen at 412 x 824 dp and says three things: what the licence
+ * is, the one action that sets up a button, and what is bound now. Everything
+ * else is a tile that leads to a screen of its own.
  *
  * Rebuilt in onResume rather than onCreate, because almost every setup step
  * happens in another app - Settings, a role dialog - and the user comes back
- * expecting the status lines to have caught up.
+ * expecting the state lines to have caught up.
  */
 class MainActivity : Activity() {
+
+    /** How many bindings the hub lists before it points at Advanced. */
+    private val listed = 4
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,227 +65,150 @@ class MainActivity : Activity() {
 
     private fun build() {
         val col = Ui.page(this)
-        col.title("AssistKey")
-        col.note(
-            "Remaps this device's hardware keys, the Power button included."
-        )
-        licence(col)
-        channels(col)
-        buttons(col)
-        extras(col)
+        appBar(col)
+        col.rule()
+        callToAction(col)
+        yourButtons(col)
+        hubTiles(col)
     }
 
-    // ---- licence -----------------------------------------------------------
+    // ---- app bar -----------------------------------------------------------
 
-    private fun licence(col: LinearLayout) {
+    /** The name, and the licence state beside it. The whole bar opens Licence. */
+    private fun appBar(col: LinearLayout) {
         val s = License.state(this)
-        val (title, subtitle) = when (s.tier) {
-            License.Tier.LICENSED -> "Unlocked" to "Thank you for buying AssistKey"
-            License.Tier.BETA ->
-                "Beta - free for now" to "Everything works while the beta is open"
-            License.Tier.TRIAL ->
-                ("Trial - " + s.trialDaysLeft + (if (s.trialDaysLeft == 1) " day" else " days") +
-                    " left") to "Tap to buy a licence"
-            License.Tier.LOCKED ->
-                "Locked - remapping is off" to "Tap to unlock. Your bindings are kept."
+        val bar = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = dp(56)
+            isClickable = true
+            setOnClickListener { startActivity(Intent(this@MainActivity, LicenseActivity::class.java)) }
         }
-        col.row(title, subtitle) { startActivity(Intent(this, LicenseActivity::class.java)) }
+        bar.addView(TextView(this).apply {
+            text = "AssistKey"
+            setTextColor(Ui.INK)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
+            setTypeface(Typeface.DEFAULT_BOLD)
+        }, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
+        bar.addView(Ui.chip(this, Summary.licenceChip(s.tier, s.trialDaysLeft)))
+        col.addView(bar, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
     }
 
-    // ---- channels ----------------------------------------------------------
-
-    private fun channels(col: LinearLayout) {
-        col.header("Setup")
-
-        // The key filter is the one switch everything depends on: it sees the
-        // keys, and it is what carries out Back, Home and the rest.
-        val ch = Channel.ACCESSIBILITY
-        val on = Channels.isEnabled(this, ch)
-        val ok = Channels.isSatisfied(this, ch)
-        col.check("Key remapping", "Uses the accessibility key filter - " + Channels.status(this, ch).lowercase(), on) { checked ->
-            Channels.setEnabled(this, ch, checked)
-            if (checked && !Channels.isSatisfied(this, ch)) claim(ch)
-            build()
-        }
-        if (on && !ok) {
-            col.button("Turn on the key filter") { claim(ch) }
-            restrictedSettingsHint(col)
-        }
-
-        col.row("Permissions", "Everything the app can be allowed to do, and a way to grant it all again") {
-            startActivity(Intent(this, PermissionsActivity::class.java))
-        }
-
-    }
+    // ---- the one action ----------------------------------------------------
 
     /**
-     * Sideloaded apps cannot be given accessibility access until the user
-     * clears Android's restricted-settings block, and the symptom is that the
-     * toggle appears to work and then quietly reverts. Nothing can detect this,
-     * so it gets called out wherever it would bite.
+     * Press a button, choose what it does. The flow finds the way in by itself,
+     * so nobody has to know what a channel or a role is.
      */
-    private fun restrictedSettingsHint(col: LinearLayout) {
-        col.note(
-            "If the switch turns itself back off, Android is blocking it " +
-                "because this app was installed outside an app store. Open " +
-                "App info, tap the three-dot menu, choose Allow restricted " +
-                "settings, then try again."
+    private fun callToAction(col: LinearLayout) {
+        col.primaryButton("Set up a button") {
+            startActivity(
+                Intent().setClassName(this, "dev.equwal.assistkey.setup.GuidedSetupActivity")
+            )
+        }
+        col.note("Pick a button, choose what it does, and AssistKey does the rest.")
+    }
+
+    // ---- what is bound now -------------------------------------------------
+
+    private fun yourButtons(col: LinearLayout) {
+        col.header("Your buttons")
+        val all = Store.bindings(this).all().entries
+            .sortedWith(
+                compareBy(
+                    { t -> t.key.keys.minOf { it.ordinal } },
+                    { t -> t.key.keys.size },
+                    { t -> t.key.type.ordinal },
+                    { t -> t.key.count }
+                )
+            )
+        if (all.isEmpty()) {
+            col.note("Nothing is bound yet. Set up a button to make a start.")
+            return
+        }
+        val overflow = all.size > listed
+        val shown = all.take(if (overflow) listed - 1 else listed)
+        shown.forEach { (trigger, spec) ->
+            col.row(Summary.binding(plainGesture(trigger), spec.describe())) {
+                startActivity(ActionPickerActivity.intent(this, trigger))
+            }
+        }
+        if (overflow) {
+            col.row(
+                (all.size - shown.size).toString() + " more",
+                "See them all under Advanced > Full control"
+            ) { startActivity(Intent(this, AdvancedActivity::class.java)) }
+        }
+    }
+
+    private fun plainGesture(t: Trigger): String = Summary.gesture(
+        t.keys.sortedBy { it.ordinal }.map { it.label },
+        t.type == GestureType.HOLD,
+        t.count
+    )
+
+    // ---- tiles -------------------------------------------------------------
+
+    private fun hubTiles(col: LinearLayout) {
+        col.tiles(
+            listOf(
+                Ui.Tile("Navigation", navigationSummary()) {
+                    startActivity(Intent(this, NavigationActivity::class.java))
+                },
+                Ui.Tile("Voice typing", voiceSummary()) {
+                    startActivity(Intent(this, VoiceActivity::class.java))
+                },
+                Ui.Tile("Home and recents", homeSummary()) {
+                    startActivity(Intent(this, HomeHubActivity::class.java))
+                },
+                Ui.Tile("Setup", setupSummary()) {
+                    startActivity(Intent(this, SetupActivity::class.java))
+                },
+                Ui.Tile("Advanced", "Every key, the Power button, testing and backup") {
+                    startActivity(Intent(this, AdvancedActivity::class.java))
+                }
+            )
         )
-        col.button("Open App info") {
-            Channels.safeStart(this, Channels.appInfoIntent(this))
-        }
     }
 
-    /**
-     * Google Play requires that an app using the accessibility API for anything
-     * other than assistive technology says so, in the app, in plain words, and
-     * gets a yes before sending anyone to the switch. It is also simply the
-     * right thing to do with a permission this broad.
-     */
-    private fun claim(ch: Channel) {
-        if (ch != Channel.ACCESSIBILITY) return claimNow(ch)
-        AccessibilityDisclosure.show(this, onAgree = { claimNow(ch) })
+    private fun navigationSummary(): String {
+        val p = getSharedPreferences("assistkey_nav", Context.MODE_PRIVATE)
+        val buttonsNow = NavNative.buttonsShowing(this)
+        val gesturesNow = NavNative.gesturesOn(this) ?: buttonsNow?.not()
+        val power = setOf(HwKey.POWER)
+        return Summary.navigation(
+            p.getBoolean("buttons", buttonsNow ?: true),
+            p.getBoolean("gestures", gesturesNow ?: true),
+            p.getBoolean("keys", Store.bindings(this).all().keys.any { it.keys == power })
+        )
     }
 
-    private fun claimNow(ch: Channel) {
-        if (ch == Channel.CAMERA) {
-            Toast.makeText(
-                this,
-                "Choose Camera app, then pick AssistKey",
-                Toast.LENGTH_LONG
-            ).show()
-        }
-        if (!Channels.safeStart(this, Channels.claimIntent(this, ch))) {
-            Toast.makeText(this, "No settings screen for that on this firmware", Toast.LENGTH_LONG)
-                .show()
-        }
+    private fun voiceSummary(): String {
+        val engines = Dictation.engines(this)
+        return Summary.voice(
+            Dictation.hasMicrophone(this),
+            engines.size,
+            engines.any(Dictation::isOnDevice)
+        )
     }
 
-    // ---- bindings ----------------------------------------------------------
-
-    private fun buttons(col: LinearLayout) {
-        col.header("Buttons")
-
-        dev.equwal.assistkey.device.Device.keys(this).forEach { key ->
-            val summary =
-                if (ViwoodsBridge.hidesFromFilter(this, key)) {
-                    "Hidden by a firmware hook - see Firmware key hooks below"
-                } else {
-                    boundSummary(setOf(key))
-                }
-            col.row(key.label, summary) {
-                startActivity(TriggerListActivity.intent(this, setOf(key)))
-            }
-        }
-
-        col.row("Power", powerSummary()) { startActivity(Intent(this, PowerActivity::class.java)) }
-
-        col.row(
-            "Navigation",
-            if (dev.equwal.assistkey.shell.Shell.SUPPORTED) "Button bar, swipe gestures, the Power key - in any mix"
-            else "The Power key, and how to switch the button bar and gestures"
-        ) { startActivity(Intent(this, NavigationActivity::class.java)) }
-
-        col.row(
-            "Two-key combinations",
-            "Hold one key and press another - any pair or larger set"
-        ) { startActivity(Intent(this, ChordActivity::class.java)) }
+    private fun homeSummary(): String {
+        val cn = android.content.ComponentName(this, HomeActivity::class.java)
+        val offered = packageManager.getComponentEnabledSetting(cn) ==
+            android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+        val isDefault = packageManager.resolveActivity(
+            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME),
+            android.content.pm.PackageManager.MATCH_DEFAULT_ONLY
+        )?.activityInfo?.packageName == packageName
+        return Summary.homeAndRecents(offered, isDefault)
     }
 
-    private fun boundSummary(keys: Set<HwKey>): String {
-        val b = Store.bindings(this)
-        val bound = Trigger.allFor(keys).filter { b.isBound(it) }
-        if (bound.isEmpty()) return "Default behaviour"
-        return bound.joinToString(", ") { t ->
-            shortGesture(t) + " → " + b.raw(t).describe()
-        }
-    }
-
-    private fun shortGesture(t: Trigger): String = when {
-        t.type == GestureType.HOLD -> "hold"
-        t.count == 1 -> "tap"
-        t.count == 2 -> "double"
-        t.count == 3 -> "triple"
-        else -> t.count.toString() + " taps"
-    }
-
-    private fun powerSummary(): String {
-        val bound = Store.bindings(this).all().filterKeys { HwKey.POWER in it.keys }
-        if (bound.isEmpty()) return "Default behaviour"
-        return bound.entries.joinToString(", ") { (t, spec) ->
-            val what = if (t.keys.size > 1) "+" + (t.keys - HwKey.POWER).first().label.lowercase() else shortGesture(t)
-            what + " → " + spec.describe()
-        }
-    }
-
-    // ---- everything else ---------------------------------------------------
-
-    private fun extras(col: LinearLayout) {
-        col.header("Typing")
-        col.row("Voice typing", "Speak into any text field, from a key") {
-            startActivity(Intent(this, VoiceActivity::class.java))
-        }
-
-        col.header("Display and home")
-        col.row("Home screen", "A plain, fast launcher made for e-ink") {
-            startActivity(Intent(this, dev.equwal.assistkey.home.HomeSettingsActivity::class.java))
-        }
-        col.row("Recent apps", "Card switcher made for e-ink, bindable to any key") {
-            startActivity(Intent(this, dev.equwal.assistkey.home.RecentsActivity::class.java))
-        }
-
-        col.header("Advanced")
-
-        if (dev.equwal.assistkey.device.Device.hasFirmwareKeyHooks) {
-            val hidden = ViwoodsBridge.keys().filter { ViwoodsBridge.hidesFromFilter(this, it) }
-            col.row(
-                "Firmware key hooks",
-                if (hidden.isEmpty()) "What the firmware itself does with each key"
-                else "Hiding " + hidden.joinToString(" and ") { it.label.lowercase() } +
-                    " from this app - tap for the fix"
-            ) { startActivity(Intent(this, ViwoodsActivity::class.java)) }
-        }
-
-        // For the few who have Shizuku or root. It is kept out of the way on
-        // purpose: most people never need it, and the app is complete without it.
-        if (dev.equwal.assistkey.shell.Shell.SUPPORTED) {
-            col.row(
-                "Shell access: " + dev.equwal.assistkey.shell.Shell.describe(this),
-                "For devices with Shizuku or root. More Power button gestures, and system switches"
-            ) { startActivity(Intent(this, ShellActivity::class.java)) }
-            if (dev.equwal.assistkey.shell.Shell.ready) {
-                col.row("Extra-dim light", "Below the lowest the system slider allows") {
-                    startActivity(Intent(this, DisplayActivity::class.java))
-                }
-            }
-        }
-
-        col.row("Export and import", "Save your settings to a file, or share them") {
-            startActivity(Intent(this, BackupActivity::class.java))
-        }
-
-        col.row(
-            "Device report",
-            "Help get this device fully supported - you see everything before it is sent"
-        ) { startActivity(Intent(this, ReportActivity::class.java)) }
-
-        col.row(
-            "Key tester",
-            "See exactly which keys reach the filter on this device"
-        ) { startActivity(Intent(this, KeyTesterActivity::class.java)) }
-
-        val t = Store.timing(this)
-        col.row(
-            "Gesture timing",
-            "Multi-tap " + t.multiTapMs + " ms · hold " + t.holdMs +
-                " ms · chord " + t.chordMs + " ms"
-        ) { startActivity(Intent(this, TimingActivity::class.java)) }
-
-        col.header("If you get stuck")
-        col.note(
-            "Power + Volume up opens the power menu, whatever else is bound. " +
-                "Uninstalling the app restores every key to its firmware " +
-                "behaviour; nothing it does outlives it."
+    private fun setupSummary(): String {
+        val granted = PermissionsActivity.granted(this)
+        return Summary.setup(
+            Channels.isSatisfied(this, Channel.ACCESSIBILITY),
+            granted.count { it },
+            granted.size
         )
     }
 }

@@ -13,9 +13,9 @@ import dev.equwal.assistkey.native.ViwoodsBridge
 import dev.equwal.assistkey.store.Store
 import dev.equwal.assistkey.ui.Ui.check
 import dev.equwal.assistkey.ui.Ui.header
+import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
-import dev.equwal.assistkey.ui.Ui.title
 
 /** Every gesture available on one key or chord, with what it currently does. */
 class TriggerListActivity : Activity() {
@@ -35,16 +35,16 @@ class TriggerListActivity : Activity() {
     }
 
     private fun build() {
-        val col = Ui.page(this)
-        col.title(keys.sortedBy { it.ordinal }.joinToString(" + ") { it.label })
+        val col = Ui.page(this, keys.sortedBy { it.ordinal }.joinToString(" + ") { it.label })
 
         if (!Channels.isEnabled(this, Channel.ACCESSIBILITY) ||
             !Channels.isSatisfied(this, Channel.ACCESSIBILITY)
         ) {
-            col.note(
-                "The accessibility key filter is not active, so nothing here " +
-                    "will fire yet. Turn it on from the main screen."
-            )
+            col.row(
+                "Key remapping is off",
+                "Nothing here will fire yet",
+                state = "Off"
+            ) { startActivity(Intent(this, SetupActivity::class.java)) }
         }
 
         keys.filter { ViwoodsBridge.hidesFromFilter(this, it) }.forEach { k ->
@@ -86,12 +86,7 @@ class TriggerListActivity : Activity() {
         val hold = Trigger(keys, GestureType.HOLD)
         col.row("Press and hold", b.raw(hold).describe()) { edit(hold) }
 
-        col.header("Note")
-        col.note(
-            "Binding a double tap adds a short delay to the single tap, " +
-                "because the app has to wait and see. Leave the higher tap " +
-                "counts on default behaviour if you want the key to feel instant."
-        )
+        col.more("Taps and delay", DELAY)
     }
 
     private fun tapLabel(n: Int) = when (n) {
@@ -105,6 +100,13 @@ class TriggerListActivity : Activity() {
 
     companion object {
         private const val EXTRA_KEYS = "keys"
+
+        private const val DELAY =
+            "Binding a double tap adds a short delay to the single tap, " +
+                "because the app has to wait and see whether a second tap " +
+                "follows. Leave the higher tap counts on default behaviour if " +
+                "you want the key to feel instant.\n\n" +
+                "The wait is set under Advanced > Gesture timing."
 
         fun intent(c: Context, keys: Set<HwKey>): Intent =
             Intent(c, TriggerListActivity::class.java).putExtra(

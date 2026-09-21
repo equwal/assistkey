@@ -5,12 +5,12 @@ import android.widget.LinearLayout
 import dev.equwal.assistkey.model.HwKey
 import dev.equwal.assistkey.model.Trigger
 import dev.equwal.assistkey.store.Store
-import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.check
 import dev.equwal.assistkey.ui.Ui.header
+import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.note
+import dev.equwal.assistkey.ui.Ui.primaryButton
 import dev.equwal.assistkey.ui.Ui.row
-import dev.equwal.assistkey.ui.Ui.title
 
 /**
  * Builds a key set, then hands it to the ordinary gesture list.
@@ -28,13 +28,8 @@ class ChordActivity : Activity() {
     }
 
     private fun build() {
-        val col = Ui.page(this)
-        col.title("Key combinations")
-        col.note(
-            "Hold one key and press the others within the chord window. Every " +
-                "gesture that works on a single key works on a combination too, " +
-                "including multi-tap and hold."
-        )
+        val col = Ui.page(this, "Key combinations")
+        col.note("Hold one key and press the others within the chord window.")
 
         col.header("Pick the keys")
         HwKey.entries.filter { it.interceptable }.forEach { key ->
@@ -45,7 +40,7 @@ class ChordActivity : Activity() {
         }
 
         if (picked.size >= 2) {
-            col.button("Configure " + picked.joinToString(" + ") { it.label }) {
+            col.primaryButton("Configure " + picked.joinToString(" + ") { it.label }) {
                 startActivity(TriggerListActivity.intent(this, picked.toSet()))
             }
         } else {
@@ -54,12 +49,7 @@ class ChordActivity : Activity() {
 
         existing(col)
 
-        col.header("Why no Power")
-        col.note(
-            "The power key is consumed by the system before any app can see it, " +
-                "so it cannot take part in a combination. Power + Volume up is " +
-                "reserved by the firmware for the power menu."
-        )
+        col.more("Key combinations", ABOUT)
     }
 
     /** Anything already bound, so a chord is easy to find again. */
@@ -78,5 +68,16 @@ class ChordActivity : Activity() {
                 n.toString() + (if (n == 1) " gesture bound" else " gestures bound")
             ) { startActivity(TriggerListActivity.intent(this, keys)) }
         }
+    }
+
+    private companion object {
+        const val ABOUT =
+            "Every gesture that works on a single key works on a combination " +
+                "too, including multi-tap and hold.\n\n" +
+                "Power is absent on purpose. The system takes the Power key " +
+                "before any app can see it, so it can never be half of an " +
+                "ordinary combination.\n\n" +
+                "Power + Volume up is reserved by the firmware for the power " +
+                "menu, and AssistKey leaves it alone as a way out."
     }
 }

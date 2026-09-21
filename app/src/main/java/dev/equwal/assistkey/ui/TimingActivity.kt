@@ -8,7 +8,6 @@ import dev.equwal.assistkey.store.Store
 import dev.equwal.assistkey.ui.Ui.header
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
-import dev.equwal.assistkey.ui.Ui.title
 
 /**
  * The three windows the gesture engine runs on. Exposed because the right
@@ -23,8 +22,7 @@ class TimingActivity : Activity() {
     }
 
     private fun build() {
-        val col = Ui.page(this)
-        col.title("Gesture timing")
+        val col = Ui.page(this, "Gesture timing")
         val cfg = Store.timing(this)
 
         section(
@@ -71,7 +69,7 @@ class TimingActivity : Activity() {
     ) {
         col.header(title)
         col.note(blurb)
-        col.row(current.toString() + " ms", "Tap to change") {
+        col.row(title, "Tap to change", state = current.toString() + " ms") {
             val labels = options.map { v ->
                 (if (v == current) "* " else "   ") + v + " ms"
             }

@@ -10,9 +10,9 @@ import dev.equwal.assistkey.channel.Channels
 import dev.equwal.assistkey.voice.Dictation
 import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.header
+import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
-import dev.equwal.assistkey.ui.Ui.title
 
 /** Setup for the Voice typing action: microphone, speech app, language. */
 class VoiceActivity : Activity() {
@@ -28,21 +28,13 @@ class VoiceActivity : Activity() {
     }
 
     private fun build() {
-        val col = Ui.page(this)
-        col.title("Voice typing")
-        col.note(
-            "Bind the Voice typing action to a key. Press the key, speak, and the " +
-                "words go where the cursor is. Press the key again to stop early."
-        )
-        col.note(
-            "AssistKey has no speech engine and no internet access. A speech " +
-                "recognition app on this device does the listening, and AssistKey " +
-                "only receives the text."
-        )
+        val col = Ui.page(this, "Voice typing")
+        col.note("Press a key, speak, and the words go where the cursor is.")
+        col.more("Voice typing", ABOUT)
 
         col.header("1. Microphone")
         if (Dictation.hasMicrophone(this)) {
-            col.row("Allowed", null, enabled = false)
+            col.row("Microphone", null, enabled = false, state = "Allowed")
         } else {
             col.button("Allow the microphone") {
                 requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), 1)
@@ -61,9 +53,9 @@ class VoiceActivity : Activity() {
         val engines = Dictation.engines(this)
         val current = Dictation.engine(this)
         engines.forEach { e ->
-            val mark = if (e.component == current) "* " else "   "
-            val where = if (Dictation.isOnDevice(e)) "Recognises on this device" else "May send speech to its own server"
-            col.row(mark + e.title, where) {
+            val where = if (Dictation.isOnDevice(e)) "Recognises on this device"
+            else "May send speech to its own server"
+            col.row(e.title, where, state = if (e.component == current) "In use" else null) {
                 Dictation.setEngine(this, e.component)
                 build()
             }
@@ -71,8 +63,7 @@ class VoiceActivity : Activity() {
         if (engines.none(Dictation::isOnDevice)) {
             col.note(
                 "No app on this device recognises speech offline. Whisper, from " +
-                    "F-Droid, is free, works with no connection after its model is " +
-                    "downloaded, and detects the language by itself."
+                    "F-Droid, is free and works with no connection."
             )
             col.button("Get Whisper") {
                 val pages = listOf(
@@ -91,21 +82,37 @@ class VoiceActivity : Activity() {
 
         col.header("3. Language")
         val lang = Dictation.language(this)
-        col.note(
-            "Leave this empty to let the speech app detect the language. Whisper " +
-                "detects it from what you say, so you can change language from one " +
-                "sentence to the next."
-        )
-        col.row(if (lang.isEmpty()) "Detect the language" else lang, "Or force one: a tag such as en-US or de-DE") {
+        col.row(
+            if (lang.isEmpty()) "Detect the language" else lang,
+            "Or force one: a tag such as en-US or de-DE"
+        ) {
             Ui.textInput(this, "Language tag", "en-US", lang) { Dictation.setLanguage(this, it); build() }
         }
         if (lang.isNotEmpty()) col.button("Clear the language") { Dictation.setLanguage(this, ""); build() }
 
         col.header("4. Key")
-        col.note("Open a key on the main screen, choose a gesture, then Typing > Voice typing.")
+        col.note("Set up a button, choose a gesture, then Typing > Voice typing.")
         if (!Channels.isSatisfied(this, Channel.ACCESSIBILITY)) {
-            col.note("Key remapping is off. Voice typing needs it to reach the text field.")
+            col.row(
+                "Key remapping is off",
+                "Voice typing needs it to reach the text field",
+                state = "Off"
+            ) { startActivity(Intent(this, SetupActivity::class.java)) }
         }
         col.note("Voice typing never writes into password fields.")
+    }
+
+    private companion object {
+        const val ABOUT =
+            "Bind the Voice typing action to a key. Press the key, speak, and " +
+                "the words go where the cursor is. Press the key again to stop " +
+                "early.\n\n" +
+                "AssistKey has no speech engine and no internet access. A " +
+                "speech recognition app on this device does the listening, and " +
+                "AssistKey only receives the text.\n\n" +
+                "Leave the language empty to let the speech app detect it. " +
+                "Whisper detects it from what you say, so you can change " +
+                "language from one sentence to the next.\n\n" +
+                "Voice typing never writes into a password field."
     }
 }

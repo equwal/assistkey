@@ -23,9 +23,9 @@ import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.check
 import dev.equwal.assistkey.ui.Ui.code
 import dev.equwal.assistkey.ui.Ui.header
+import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
-import dev.equwal.assistkey.ui.Ui.title
 
 /**
  * How you get around: the button bar, swipe gestures, the Power key - any mix.
@@ -148,8 +148,7 @@ class NavigationActivity : Activity() {
         val wantGestures = wanted("gestures", gesturesNow ?: true)
         val wantKeys = wanted("keys", keysOn())
 
-        val col = Ui.page(this)
-        col.title("Navigation")
+        val col = Ui.page(this, "Navigation")
         col.note("The button bar, swipe gestures and the Power key, in any mix.")
 
         col.check("Button bar", "Back, Home and Recents along the bottom edge", wantButtons) {
@@ -207,15 +206,17 @@ class NavigationActivity : Activity() {
             startActivity(Intent(this, PowerActivity::class.java))
         }
         if (!Channels.isSatisfied(this, Channel.ACCESSIBILITY)) {
-            col.note("Actions like Back and Home are carried out by the accessibility key filter, which is off. Turn it on from the main screen.")
+            col.row("Key remapping is off", "Back and Home cannot fire yet", state = "Off") {
+                startActivity(Intent(this, SetupActivity::class.java))
+            }
         }
         if (!direct) {
             col.note(
-                (if (Shell.SUPPORTED) "Without shell access a tap cannot reach any app. " else "A tap cannot reach any app. ") +
-                    "Hold works once AssistKey is the digital assistant, and double " +
-                    "press once it is the default camera app - both are set up on the " +
-                    "Power button screen."
+                (if (Shell.SUPPORTED) "Without shell access a tap cannot reach any app. "
+                else "A tap cannot reach any app. ") +
+                    "Hold and double press still work."
             )
+            col.more("The Power key as navigation", POWER_KEY_ABOUT)
         }
     }
 
@@ -227,8 +228,8 @@ class NavigationActivity : Activity() {
         gesturesNow: Boolean?
     ) {
         col.header("Button bar and gestures")
-        col.row("Button bar: " + now(buttonsNow, "showing", "hidden"), null, enabled = false)
-        col.row("Swipe-up gesture: " + now(gesturesNow, "on", "off"), null, enabled = false)
+        col.row("Button bar", null, enabled = false, state = now(buttonsNow, "Showing", "Hidden"))
+        col.row("Swipe-up gesture", null, enabled = false, state = now(gesturesNow, "On", "Off"))
 
         if (applying) {
             col.note("Applying... the screen may redraw once.")
@@ -242,9 +243,11 @@ class NavigationActivity : Activity() {
         }
         if (Shell.SUPPORTED) {
             col.note("Android does not let apps switch these. Shell access lets AssistKey do it from here:")
-            col.row("Shell access: " + Shell.describe(this), "Set it up once, on the device, with no computer") {
-                startActivity(Intent(this, ShellActivity::class.java))
-            }
+            col.row(
+                "Shell access",
+                "Set it up once, on the device, with no computer",
+                state = Shell.describe(this)
+            ) { startActivity(Intent(this, ShellActivity::class.java)) }
             col.note("Or, with a computer and USB debugging:")
         } else {
             col.note(
@@ -258,6 +261,20 @@ class NavigationActivity : Activity() {
     private fun now(v: Boolean?, yes: String, no: String): String = when (v) {
         true -> yes
         false -> no
-        null -> "unknown"
+        null -> "Unknown"
+    }
+
+    private companion object {
+        const val POWER_KEY_ABOUT =
+            "The window manager takes the Power key before any app can see it, " +
+                "so a single tap cannot reach AssistKey.\n\n" +
+                "Press and hold arrives as an assistant request, so it works " +
+                "once AssistKey is the digital assistant.\n\n" +
+                "Double press arrives as a camera launch, so it works once " +
+                "AssistKey is the default camera app.\n\n" +
+                "Both are set up on the Power button screen.\n\n" +
+                "Back, Home and Recents on a Power gesture keep working when " +
+                "the app is locked, so a reader with no bar and no gestures is " +
+                "never left without a way to navigate."
     }
 }

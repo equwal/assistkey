@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.0.8-alpha - 2026-09-21
+
+Version code 8.
+
+- **Set up a button.** The main screen starts with one large button. The user
+  taps a button in a drawing of the device, chooses tap, double tap or hold,
+  and chooses what the button does. The app then works out what that needs
+  (key filter, assistant role, camera role, microphone) and asks only for
+  that, by what it does. The app never asks the user to press a key to find
+  it. A button that is not in the drawing is chosen from a list of names.
+- **New main screen.** A top bar with the licence state, "Your buttons" with
+  the bindings in use, and five tiles: Navigation, Voice typing, Home and
+  recents, Setup, Advanced. It fits on one screen with no scroll.
+- **Advanced > Full control.** The screens from before (every key and gesture,
+  the Power button, two-key combinations) are all still there. Guided setup
+  and full control edit the same bindings.
+- All screens use one look: title bar with a back arrow, state chips, one
+  filled main button for each screen, less text, details behind "More".
+- Tests: `RouteTest` (what a wish needs, which gestures a button can have) and
+  `SummaryTest` (the one-line states on the main screen).
+
 ## 0.0.7-alpha - 2026-09-21
 
 Version code 7.

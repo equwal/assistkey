@@ -14,7 +14,6 @@ import dev.equwal.assistkey.store.Store
 import dev.equwal.assistkey.ui.Ui.header
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
-import dev.equwal.assistkey.ui.Ui.title
 
 /**
  * Everything a gesture can be bound to, in one list.
@@ -44,10 +43,9 @@ class ActionPickerActivity : Activity() {
     }
 
     private fun build() {
-        val col = Ui.page(this)
-        col.title(if (pickOnly) "Add to the menu" else trigger.label())
+        val col = Ui.page(this, if (pickOnly) "Add to the menu" else trigger.label())
         if (!pickOnly) {
-            col.note("Currently: " + Store.bindings(this).raw(trigger).describe())
+            col.row("Now", Store.bindings(this).raw(trigger).describe(), enabled = false)
             col.header("More than one")
             col.row("Build a menu", "This gesture opens a menu, and the menu holds as many actions as you want") {
                 startActivityForResult(dev.equwal.assistkey.menu.MenuEditActivity.intent(this, trigger), MENU)
