@@ -46,7 +46,12 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
 
         Shell.onChange(shellChanged)
         Store.onBindingsChanged = { syncPower() }
-        registerReceiver(screenOn, android.content.IntentFilter(android.content.Intent.ACTION_SCREEN_ON))
+        registerReceiver(
+            screenState,
+            android.content.IntentFilter(android.content.Intent.ACTION_SCREEN_ON).apply {
+                addAction(android.content.Intent.ACTION_SCREEN_OFF)
+            }
+        )
         Shell.connect(this)
         syncPower()
     }
@@ -56,32 +61,61 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
     private val shellChanged: () -> Unit = { syncPower() }
     private var powerIgnoredUntilUp = false
 
-    /** A press that wakes the reader is not a gesture. */
-    private val screenOn = object : android.content.BroadcastReceiver() {
+    /**
+     * True from the moment the screen goes off until it is on again. The
+     * broadcast for "off" arrives before the device sleeps, so this is a better
+     * witness than PowerManager.isInteractive, which the firmware may already
+     * have flipped by the time a Power press reaches this process.
+     */
+    private var screenOff = false
+    private var wokeAt = 0L
+
+    private val screenState = object : android.content.BroadcastReceiver() {
         override fun onReceive(c: android.content.Context?, i: android.content.Intent?) {
+            if (i?.action == android.content.Intent.ACTION_SCREEN_OFF) {
+                screenOff = true
+            } else {
+                screenOff = false
+                wokeAt = SystemClock.uptimeMillis()
+                dev.equwal.assistkey.display.ExtraDim.reapply(this@KeyFilterService)
+            }
             powerIgnoredUntilUp = true
             if (::engine.isInitialized) engine.onCancel()
-            dev.equwal.assistkey.display.ExtraDim.reapply(this@KeyFilterService)
         }
     }
 
     fun syncPower() = PowerControl.sync(this, serviceRunning = ServiceHolder.service === this, ::onRawPower)
 
+    /**
+     * A Power press on a sleeping or locked device has one job: wake it and
+     * unlock it. It is never a gesture. The firmware normally wakes the device
+     * by itself, but the button is ours now, so this does not rely on that: the
+     * wake and the keyguard dismissal are sent through the shell as well.
+     */
     private fun onRawPower(down: Boolean, at: Long) {
         if (!::engine.isInitialized) return
-        if (down) {
-            val awake = getSystemService(android.os.PowerManager::class.java)?.isInteractive != false
-            powerIgnoredUntilUp = !awake
-            if (awake) engine.onDown(HwKey.POWER, at, 0)
-        } else {
+        if (!down) {
             if (powerIgnoredUntilUp) powerIgnoredUntilUp = false else engine.onUp(HwKey.POWER, at)
+            return
         }
+        val asleep = screenOff ||
+            getSystemService(android.os.PowerManager::class.java)?.isInteractive == false
+        val locked = getSystemService(android.app.KeyguardManager::class.java)?.isKeyguardLocked == true
+        val justWoke = SystemClock.uptimeMillis() - wokeAt < WAKE_GRACE_MS
+        if (asleep || locked || justWoke) {
+            powerIgnoredUntilUp = true
+            engine.onCancel()
+            if (asleep || locked) Shell.run("input keyevent KEYCODE_WAKEUP; wm dismiss-keyguard")
+            return
+        }
+        powerIgnoredUntilUp = false
+        engine.onDown(HwKey.POWER, at, 0)
     }
 
     private fun stopPower() {
         Shell.removeOnChange(shellChanged)
         Store.onBindingsChanged = null
-        runCatching { unregisterReceiver(screenOn) }
+        runCatching { unregisterReceiver(screenState) }
         ServiceHolder.service = null
         syncPower() // with no service running this hands Power back to the firmware
     }
@@ -219,6 +253,9 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
     companion object {
         /** How long after a Power hold a key press still counts as a combination. */
         const val POWER_COMBO_WINDOW_MS = 1000L
+
+        /** A press this soon after the screen came on is the press that woke it. */
+        private const val WAKE_GRACE_MS = 1000L
 
         private val LIFELINE = setOf(
             GlobalAction.BACK.name, GlobalAction.HOME.name, GlobalAction.RECENTS.name
