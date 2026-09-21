@@ -65,8 +65,32 @@ object ExtraDim {
      */
     fun toggled(level: Int, levels: List<Int>): Int = if (level > 0) 0 else levels.lastOrNull() ?: 0
 
-    /** Runs a key action: "darker", "brighter" or "toggle". */
+    /**
+     * One step of the system brightness, 0..255. A step is a quarter of the
+     * present value and at least 5, so steps are fine where the light is low and
+     * coarse where it is high. The result stays between [floor] and 255.
+     */
+    fun systemStep(value: Int, up: Boolean, floor: Int): Int {
+        val step = maxOf(5, value / 4)
+        return (if (up) value + step else value - step).coerceIn(floor, 255)
+    }
+
+    private fun systemBrightness(c: Context, up: Boolean, done: (Boolean) -> Unit) {
+        // Brighter from an extra-dim level means: leave extra-dim first.
+        if (up && level(c) > 0) return set(c, 0, done)
+        Shell.run("settings get system screen_brightness") { r ->
+            val now = r.output.trim().toIntOrNull() ?: return@run done(false)
+            val next = systemStep(now, up, Device.brightnessFloor ?: 1)
+            Shell.run("settings put system screen_brightness_mode 0; settings put system screen_brightness $next") {
+                done(it.ok)
+            }
+        }
+    }
+
+    /** Runs a key action: "toggle", "darker", "brighter", "system_up" or "system_down". */
     fun act(c: Context, what: String, done: (Boolean) -> Unit = {}) {
+        if (what == "system_up") return systemBrightness(c, true, done)
+        if (what == "system_down") return systemBrightness(c, false, done)
         val now = level(c)
         val next = when (what) {
             "darker" -> darker(now, levels())

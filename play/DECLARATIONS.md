@@ -64,13 +64,15 @@ disabilities)?** No. The manifest does not set `isAccessibilityTool`.
 ```
 AssistKey is a hardware key remapper for the Viwoods AiPaper Reader, an e-ink reading device. Remapping hardware keys is the app's only function, and the AccessibilityService API is the only public Android API that can do it.
 
-The service is used for three things:
+The service is used for four things:
 
 1. Key event filtering (flagRequestFilterKeyEvents / onKeyEvent). The service receives presses of the device's AI key and volume keys, recognises the gesture the user configured - single or multiple taps, press-and-hold, or a combination of keys - and consumes the press so that the user's chosen action runs instead of the default one.
 
 2. Performing the action the user bound to that gesture: performGlobalAction (Back, Home, Recents, notifications, quick settings, lock screen, screenshot), dispatchGesture (a swipe, used to turn pages in reading apps that accept only touch input), and ACTION_SCROLL_FORWARD / ACTION_SCROLL_BACKWARD on the scrollable node of the active window.
 
 3. Voice typing, if the user binds that action: the service finds the text field that has input focus and inserts the recognised words at the cursor (ACTION_SET_TEXT, or ACTION_PASTE as the fallback). It never writes into password fields.
+
+4. Going back to the app that was in use, on Viwoods readers: the service reads the package name of the window in front from window-state events, keeps the latest one in memory only, and uses it to return from the maker's AI screen when the user presses the AI key there.
 
 Window content is retrieved only in cases 2 and 3: to locate a scrollable node at the moment the user presses a key bound to the Scroll action, and to read the one focused text field at the moment recognised words are inserted into it. No window content, text, or key event is stored, logged or transmitted. The app does not request the INTERNET permission and cannot transmit anything.
 

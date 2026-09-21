@@ -9,6 +9,8 @@ class ActionSpecNameTest {
         assertEquals("Extra dim toggle", ActionSpec(ActionKind.DIM, "toggle", "").describe())
         assertEquals("Extra dim darker", ActionSpec(ActionKind.DIM, "darker", "").describe())
         assertEquals("Extra dim brighter", ActionSpec(ActionKind.DIM, "brighter", "").describe())
+        assertEquals("Brightness up", ActionSpec(ActionKind.DIM, "system_up", "").describe())
+        assertEquals("Brightness down", ActionSpec(ActionKind.DIM, "system_down", "").describe())
     }
 
     // A binding made by 0.0.6 stored the old label. It must show the new name.

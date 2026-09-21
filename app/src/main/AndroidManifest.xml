@@ -81,6 +81,7 @@
         <activity android:name=".ui.DisplayActivity" android:exported="false" />
         <activity android:name=".ui.VoiceActivity" android:exported="false" />
         <activity android:name=".ui.BackupActivity" android:exported="false" />
+        <activity android:name=".ui.PermissionsActivity" android:exported="false" />
         <activity android:name=".menu.MenuEditActivity" android:exported="false" />
         <!-- The action menu: a box over the app in front, in a task of its own. -->
         <activity

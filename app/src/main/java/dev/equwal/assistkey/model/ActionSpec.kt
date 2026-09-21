@@ -74,6 +74,8 @@ data class ActionSpec(
     private fun dimName(): String = when (payload) {
         "darker" -> "Extra dim darker"
         "brighter" -> "Extra dim brighter"
+        "system_up" -> "Brightness up"
+        "system_down" -> "Brightness down"
         else -> "Extra dim toggle"
     }
 

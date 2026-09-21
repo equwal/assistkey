@@ -46,7 +46,12 @@ class RecentsActivity : Activity() {
 
     private var row: LinearLayout? = null
     private var scroller: HorizontalScrollView? = null
+    private var strip: LinearLayout? = null
+    private var heading: TextView? = null
+    private var closeOthers: android.widget.Button? = null
+    private var names: List<String> = emptyList()
     private var cardStep = 0
+    private var index = 0
 
     override fun onResume() {
         super.onResume()
@@ -70,10 +75,12 @@ class RecentsActivity : Activity() {
     private fun show(recents: List<Apps.Recent>, closable: Boolean) {
         val screenW = resources.displayMetrics.widthPixels
         val screenH = resources.displayMetrics.heightPixels
-        val cardW = (screenW * 0.72f).toInt()
-        val cardH = (screenH * 0.62f).toInt()
+        val cardW = (screenW * 0.70f).toInt()
+        val cardH = (screenH * 0.56f).toInt()
         val gap = dp(16)
         cardStep = cardW + gap
+        names = recents.map { it.app.label }
+        index = index.coerceIn(0, maxOf(0, recents.size - 1))
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -84,13 +91,15 @@ class RecentsActivity : Activity() {
                 insets
             }
         }
-        root.addView(TextView(this).apply {
+        heading = TextView(this).apply {
             text = if (recents.isEmpty()) "Nothing recent" else "Recent apps"
             setTextColor(Color.BLACK)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
             typeface = Typeface.DEFAULT_BOLD
+            setSingleLine()
             setPadding(dp(20), dp(16), dp(20), dp(12))
-        })
+        }
+        root.addView(heading)
 
         val cards = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -107,9 +116,27 @@ class RecentsActivity : Activity() {
         row = cards
 
         val scroll = object : HorizontalScrollView(this) {
+            private var startX = 0
+
+            override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+                if (ev.actionMasked == MotionEvent.ACTION_DOWN) startX = scrollX
+                return super.onInterceptTouchEvent(ev)
+            }
+
+            /**
+             * One swipe, one card. The row follows the finger, and on release it
+             * goes to the next card in the direction of the swipe, however far
+             * or fast the swipe was. A very short drag goes back where it was.
+             */
             override fun onTouchEvent(ev: MotionEvent): Boolean {
+                if (ev.actionMasked == MotionEvent.ACTION_DOWN) startX = scrollX
                 val handled = super.onTouchEvent(ev)
-                if (ev.actionMasked == MotionEvent.ACTION_UP || ev.actionMasked == MotionEvent.ACTION_CANCEL) snap()
+                if (ev.actionMasked == MotionEvent.ACTION_UP || ev.actionMasked == MotionEvent.ACTION_CANCEL) {
+                    val moved = scrollX - startX
+                    val from = Math.round(startX / cardStep.toFloat())
+                    val turn = if (abs(moved) < cardStep / 8) 0 else if (moved > 0) 1 else -1
+                    show(from + turn)
+                }
                 return handled
             }
 
@@ -123,34 +150,89 @@ class RecentsActivity : Activity() {
         scroller = scroll
         root.addView(scroll, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
 
-        root.addView(TextView(this).apply {
-            text = if (closable) "Tap a card to open it. Swipe a card up to close it."
-            else "Tap a card to open it."
-            setTextColor(Color.rgb(70, 70, 70))
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+        // Every recent app at once, as icons. The one in the middle is marked,
+        // and a tap on an icon brings its card to the middle.
+        val icons = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(dp(20), dp(14), dp(20), dp(6))
-        })
-        if (closable && recents.isNotEmpty()) {
-            root.addView(
-                android.widget.Button(this).apply {
-                    text = "Close all"
-                    setOnClickListener {
-                        Shell.runAll(recents.mapNotNull { it.taskId }.map { "am stack remove $it" }) { load() }
-                    }
+            setPadding(dp(12), dp(14), dp(12), dp(4))
+        }
+        recents.forEachIndexed { i, r ->
+            icons.addView(
+                ImageView(this).apply {
+                    setImageDrawable(runCatching { packageManager.getApplicationIcon(r.app.pkg) }.getOrNull())
+                    contentDescription = r.app.label
+                    val p = dp(6)
+                    setPadding(p, p, p, p)
+                    setOnClickListener { show(i) }
                 },
-                LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { gravity = Gravity.CENTER_HORIZONTAL }
+                LinearLayout.LayoutParams(dp(52), dp(52)).apply { marginEnd = dp(4) }
             )
         }
+        strip = icons
+        root.addView(
+            HorizontalScrollView(this).apply {
+                isHorizontalScrollBarEnabled = false
+                addView(icons, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
+            },
+            LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+        )
+
+        root.addView(TextView(this).apply {
+            text = if (closable) "Tap a card to open it.  Swipe a card up to close it."
+            else "Tap a card to open it."
+            setTextColor(Color.BLACK)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(dp(20), dp(14), dp(20), dp(8))
+        })
+        closeOthers = null
+        if (closable && recents.isNotEmpty()) {
+            val buttons = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_HORIZONTAL
+            }
+            buttons.addView(android.widget.Button(this).apply {
+                text = "Close all"
+                setOnClickListener { close(recents.mapNotNull { it.taskId }) }
+            })
+            if (recents.size > 1) {
+                closeOthers = android.widget.Button(this).apply {
+                    // The name is filled in by show(i): it is the card in the middle.
+                    setOnClickListener {
+                        close(recents.filterIndexed { i, _ -> i != index }.mapNotNull { it.taskId })
+                    }
+                }
+                buttons.addView(closeOthers)
+            }
+            root.addView(buttons, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+        }
         setContentView(root)
+        scroll.post { show(index) }
     }
 
-    /** Puts the nearest card in the middle, in one step. */
-    private fun snap() {
+    private fun close(taskIds: List<Int>) {
+        index = 0
+        Shell.runAll(taskIds.map { "am stack remove $it" }) { load() }
+    }
+
+    /** Puts card [i] in the middle, in one step, and says which one it is. */
+    private fun show(i: Int) {
         val s = scroller ?: return
-        if (cardStep <= 0) return
-        val index = ((s.scrollX + cardStep / 2) / cardStep).coerceIn(0, (row?.childCount ?: 1) - 1)
+        val count = row?.childCount ?: 0
+        if (cardStep <= 0 || count == 0) return
+        index = i.coerceIn(0, count - 1)
         s.scrollTo(index * cardStep, 0)
+        heading?.text = names.getOrElse(index) { "" } + "   " + (index + 1) + " of " + count
+        closeOthers?.text = "Close all but " + names.getOrElse(index) { "this one" }
+        strip?.let { icons ->
+            for (n in 0 until icons.childCount) {
+                icons.getChildAt(n).background = if (n != index) null else GradientDrawable().apply {
+                    setStroke(dp(2), Color.BLACK)
+                    cornerRadius = dp(10).toFloat()
+                }
+            }
+        }
     }
 
     private fun card(r: Apps.Recent, closable: Boolean): View {
@@ -190,6 +272,16 @@ class RecentsActivity : Activity() {
             setPadding(p, p, p, p)
         }
         box.addView(body, LinearLayout.LayoutParams(MATCH_PARENT, 0, 1f))
+        if (closable && r.taskId != null) {
+            box.addView(View(this).apply { setBackgroundColor(Color.BLACK) }, LinearLayout.LayoutParams(MATCH_PARENT, dp(1)))
+            box.addView(TextView(this).apply {
+                text = "\u2191  Swipe up to close"
+                setTextColor(Color.BLACK)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+                gravity = Gravity.CENTER_HORIZONTAL
+                setPadding(0, dp(8), 0, dp(8))
+            })
+        }
         r.taskId?.let { id ->
             Apps.snapshot(id) { picture ->
                 if (picture != null && !isFinishing) {

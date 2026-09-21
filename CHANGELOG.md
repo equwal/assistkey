@@ -11,6 +11,29 @@ Version code 7.
   presses, which collides with a 5-tap binding. The Power screen now has a
   switch for it (`emergency_gesture_enabled`). The app never turns it off by
   itself. The switch shows only where the app can write the setting.
+- **Permissions screen.** Every grant the app can use, with what it is for and
+  whether it is granted. "Set up what is missing" opens the grant screens one
+  after the other. It opens once by itself on the first run and can be run
+  again at any time from Setup > Permissions.
+- The accessibility disclosure is one shared text now, and it names voice
+  typing and the app-in-front note, which the old text did not.
+- Recent apps: each card says "Swipe up to close", and there is "Close all but
+  <app>" beside "Close all".
+- Store listing: title is now "AssistKey: E-Ink Key Remap", with no maker name
+  in the title and a not-affiliated line in the description.
+- Shell access and the extra-dim light are under Advanced now, and are not
+  counted as missing permissions. They are for the few devices with Shizuku or
+  root; the app is complete without them.
+- **Ready-made menus.** The action list offers menus that can be bound in one
+  tap: Brightness (`full` build), Navigation, System, Sound and media, Page
+  turning, and Viwoods AI on Viwoods devices. Each is an ordinary menu after it
+  is bound, and the menu editor can change it.
+- **Brightness up and down.** Two more light actions, for the system
+  brightness. A step is a quarter of the present value and at least 5.
+- **Recent apps: easier to read, nicer to scroll.** One swipe moves one card, in
+  the direction of the swipe. A row of icons under the cards shows every recent
+  app at once and marks the one in the middle; a tap on an icon goes to its
+  card. The heading says which app and "2 of 12".
 - The three light actions are now named Extra dim toggle, Extra dim darker and
   Extra dim brighter. A binding made by 0.0.6 shows the new name with no change.
 

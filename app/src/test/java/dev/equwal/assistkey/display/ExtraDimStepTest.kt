@@ -32,6 +32,23 @@ class ExtraDimStepTest {
         levels.forEach { assertEquals(0, ExtraDim.toggled(it, levels)) }
     }
 
+    @Test fun `system brightness steps are fine when low, coarse when high, and stay in range`() {
+        assertEquals(10, ExtraDim.systemStep(5, up = true, floor = 5))
+        assertEquals(5, ExtraDim.systemStep(8, up = false, floor = 5))
+        assertEquals(250, ExtraDim.systemStep(200, up = true, floor = 5))
+        assertEquals(255, ExtraDim.systemStep(250, up = true, floor = 5))
+        assertEquals(5, ExtraDim.systemStep(5, up = false, floor = 5))
+    }
+
+    @Test fun `system brightness never leaves the range and never moves the wrong way`() {
+        (0..255).forEach { v ->
+            val down = ExtraDim.systemStep(v, up = false, floor = 5)
+            val up = ExtraDim.systemStep(v, up = true, floor = 5)
+            assert(down in 5..255 && up in 5..255) { "value $v gave $down and $up" }
+            assert(down <= maxOf(v, 5) && up >= v) { "value $v moved the wrong way" }
+        }
+    }
+
     @Test fun `a device with no levels stays off`() {
         assertEquals(0, ExtraDim.toggled(0, emptyList()))
         assertEquals(0, ExtraDim.darker(0, emptyList()))

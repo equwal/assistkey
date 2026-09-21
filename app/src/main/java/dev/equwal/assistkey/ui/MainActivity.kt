@@ -36,6 +36,7 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         Channels.syncComponents(this)
         dev.equwal.assistkey.shell.Shell.connect(this)
+        PermissionsActivity.showOnce(this)
     }
 
     override fun onResume() {
@@ -97,12 +98,10 @@ class MainActivity : Activity() {
             restrictedSettingsHint(col)
         }
 
-        if (dev.equwal.assistkey.shell.Shell.SUPPORTED) {
-            col.row(
-                "Shell access: " + dev.equwal.assistkey.shell.Shell.describe(this),
-                "Optional. Unlocks the Power button, the navigation bar and system gestures"
-            ) { startActivity(Intent(this, ShellActivity::class.java)) }
+        col.row("Permissions", "Everything the app can be allowed to do, and a way to grant it all again") {
+            startActivity(Intent(this, PermissionsActivity::class.java))
         }
+
     }
 
     /**
@@ -131,26 +130,7 @@ class MainActivity : Activity() {
      */
     private fun claim(ch: Channel) {
         if (ch != Channel.ACCESSIBILITY) return claimNow(ch)
-        AlertDialog.Builder(this)
-            .setTitle("Accessibility service")
-            .setMessage(
-                "AssistKey uses Android's AccessibilityService API for one purpose: " +
-                    "remapping this device's hardware keys.\n\n" +
-                    "With the service switched on, AssistKey:\n\n" +
-                    "- receives presses of the AI key and the volume keys, so that it " +
-                    "can recognise taps, holds and combinations;\n\n" +
-                    "- performs the action you chose - Back, Home, Recents, a swipe, " +
-                    "a scroll - on your behalf;\n\n" +
-                    "- looks at the window in front only to find its scrollable area, " +
-                    "and only when you use the Scroll action.\n\n" +
-                    "It does not record what you type or what is on your screen. It " +
-                    "collects nothing, stores nothing and sends nothing: the app has no " +
-                    "internet permission.\n\n" +
-                    "Agree to continue to Android's accessibility settings."
-            )
-            .setPositiveButton("Agree") { _, _ -> claimNow(ch) }
-            .setNegativeButton("Not now", null)
-            .show()
+        AccessibilityDisclosure.show(this, onAgree = { claimNow(ch) })
     }
 
     private fun claimNow(ch: Channel) {
@@ -233,11 +213,6 @@ class MainActivity : Activity() {
         }
 
         col.header("Display and home")
-        if (dev.equwal.assistkey.shell.Shell.SUPPORTED) {
-            col.row("Extra-dim light", "Below the lowest the system slider allows") {
-                startActivity(Intent(this, DisplayActivity::class.java))
-            }
-        }
         col.row("Home screen", "A plain, fast launcher made for e-ink") {
             startActivity(Intent(this, dev.equwal.assistkey.home.HomeSettingsActivity::class.java))
         }
@@ -255,6 +230,20 @@ class MainActivity : Activity() {
                 else "Hiding " + hidden.joinToString(" and ") { it.label.lowercase() } +
                     " from this app - tap for the fix"
             ) { startActivity(Intent(this, ViwoodsActivity::class.java)) }
+        }
+
+        // For the few who have Shizuku or root. It is kept out of the way on
+        // purpose: most people never need it, and the app is complete without it.
+        if (dev.equwal.assistkey.shell.Shell.SUPPORTED) {
+            col.row(
+                "Shell access: " + dev.equwal.assistkey.shell.Shell.describe(this),
+                "For devices with Shizuku or root. More Power button gestures, and system switches"
+            ) { startActivity(Intent(this, ShellActivity::class.java)) }
+            if (dev.equwal.assistkey.shell.Shell.ready) {
+                col.row("Extra-dim light", "Below the lowest the system slider allows") {
+                    startActivity(Intent(this, DisplayActivity::class.java))
+                }
+            }
         }
 
         col.row("Export and import", "Save your settings to a file, or share them") {

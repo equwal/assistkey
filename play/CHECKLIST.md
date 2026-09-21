@@ -27,7 +27,7 @@ Play Console > **Create app**
 
 | Field | Value |
 |---|---|
-| App name | `AssistKey: Key Remapper` |
+| App name | `AssistKey: E-Ink Key Remap` |
 | Default language | English (United States) |
 | App or game | App |
 | Free or paid | **Free** (the licence is an in-app product; a paid app could not give testers a discount) |
@@ -89,6 +89,12 @@ to other currencies.
 
 `assistkey_beta_open` is never offered by the app. It is only a switch - see
 section 9.
+
+Price review, 2026-09-21: the market check advises **US$4.99**, not US$2.99.
+Reason: US$2.99 is the exact price of Button Mapper Pro, which has 5M+ installs,
+so a price match cannot win; the e-ink features have no paid competitor. At
+US$4.99 the margin is US$4.24 per sale, and US$1,000 a month needs 236 sales
+and not 394. The owner has not decided. A price is a Console edit, not a release.
 
 Pricing: Button Mapper Pro, the nearest comparable app, is US$2.99. AssistKey
 serves a far smaller audience but does more on the hardware it targets, so it

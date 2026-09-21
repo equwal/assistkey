@@ -49,8 +49,13 @@ class ActionPickerActivity : Activity() {
         if (!pickOnly) {
             col.note("Currently: " + Store.bindings(this).raw(trigger).describe())
             col.header("More than one")
-            col.row("Menu of actions", "This gesture opens a menu, and the menu holds as many actions as you want") {
+            col.row("Build a menu", "This gesture opens a menu, and the menu holds as many actions as you want") {
                 startActivityForResult(dev.equwal.assistkey.menu.MenuEditActivity.intent(this, trigger), MENU)
+            }
+            dev.equwal.assistkey.menu.Menu.presets(this).forEach { (name, items) ->
+                col.row(name + " menu", items.joinToString(", ") { it.describe() }) {
+                    choose(dev.equwal.assistkey.menu.Menu.spec(items))
+                }
             }
         }
 
@@ -59,7 +64,7 @@ class ActionPickerActivity : Activity() {
         navigation(col)
         if (dev.equwal.assistkey.shell.Shell.SUPPORTED) {
             col.header("Light")
-            listOf("toggle", "darker", "brighter").forEach { what ->
+            listOf("toggle", "darker", "brighter", "system_up", "system_down").forEach { what ->
                 val spec = ActionSpec(ActionKind.DIM, what, "")
                 col.row(spec.describe(), if (what == "toggle") "On is the lowest level. Off is your system brightness." else null) {
                     choose(spec)

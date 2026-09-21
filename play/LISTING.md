@@ -5,13 +5,20 @@ Paste into Play Console > Store presence > Main store listing.
 ## App name (30 max)
 
 ```
-AssistKey: Key Remapper
+AssistKey: E-Ink Key Remap
 ```
+
+26 characters. Keep "AssistKey" as the brand and put no device maker's name in
+the title. A maker's name at the front of a title ("Viwoods ...") reads as an
+official app: Play can suspend it as impersonation, and the maker can remove it
+with one trademark complaint. It also tells every Boox owner the app is not for
+them, and Boox is the larger market by a wide margin. Maker names belong in the
+long description, as plain compatibility facts, with the disclaimer below.
 
 ## Short description (80 max)
 
 ```
-Remap volume keys, the power button and more. Made for e-ink readers.
+Remap keys, page turn and voice type on E-Ink readers and any Android.
 ```
 
 ## Full description (4000 max)
@@ -46,6 +53,7 @@ ACTIONS
 • Open any app, or any screen inside an app
 • Send an intent or a broadcast, for automation apps
 • A menu of actions: one gesture opens a menu with as many actions as you want, so you have more actions than keys
+• Ready-made menus for navigation, system, sound and media, and page turning
 • Do nothing - disable a key you keep pressing by accident
 • Export and import your setup as a file, to move it to another device or share it
 
@@ -74,6 +82,11 @@ GOOD TO KNOW
 • Android does not let any app see the power button directly, so power gestures are limited to short press, double press and hold.
 • Hiding the navigation bar, switching system gestures off, and giving AssistKey sole control of the AI key are one-time steps done from a computer over USB. Android does not allow any app to change them. The app shows the exact commands.
 • If a volume key does not respond, the device's own key settings may be holding on to it. The built-in key tester shows exactly which keys AssistKey can see, and the Firmware key hooks screen shows the fix.
+
+COMPATIBILITY
+Works on Android 12 and later. Built and tested on the Viwoods AiPaper Reader; key remapping, page turning, voice typing and the home screen work on Boox, Bigme, Meebook and ordinary phones and tablets too. Search terms people use for this: button mapper, key remapper, remap buttons, volume key page turn, double tap, long press, key combination.
+
+AssistKey is not affiliated with, or endorsed by, Viwoods, Onyx Boox, Bigme or Meebook.
 
 PRICE
 

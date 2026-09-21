@@ -143,28 +143,9 @@ class PowerActivity : Activity() {
 
     private fun sideDoors(col: LinearLayout) {
         col.note(
-            if (Shell.SUPPORTED) {
-                "Android does not show the Power button to apps. With shell access " +
-                    "AssistKey can read it anyway and every gesture becomes available."
-            } else {
-                "Android does not show the Power button to apps. Two side doors are " +
-                    "open: press and hold, and double press."
-            }
+            "Android does not show the Power button to apps. Two side doors are " +
+                "open: press and hold, and double press."
         )
-        if (!Shell.SUPPORTED) {
-            // No shell access in this build: the side doors are everything.
-        } else if (Shell.ready) {
-            col.check("Let AssistKey handle the Power button", "Tap, double tap, hold and more", false) {
-                PowerControl.setWanted(this, it)
-                (ServiceHolder.service as? KeyFilterService)?.syncPower()
-                build()
-            }
-        } else {
-            col.row("Shell access: " + Shell.describe(this), "Unlocks tap, double tap, more taps and combinations") {
-                startActivity(Intent(this, ShellActivity::class.java))
-            }
-        }
-
         col.header("Hold - through the assistant door")
         door(col, Channel.ASSISTANT)
         bindRow(col, "Press and hold", Channel.POWER_HOLD)
@@ -190,6 +171,22 @@ class PowerActivity : Activity() {
         col.header("Wallet door")
         door(col, Channel.WALLET)
         col.note("Runs the double-press action from the wallet tile and lock-screen button.")
+
+        if (Shell.SUPPORTED) col.header("With Shizuku or root")
+        if (!Shell.SUPPORTED) {
+            // No shell access in this build: the side doors are everything.
+        } else if (Shell.ready) {
+            col.check("Let AssistKey handle the Power button", "Tap, double tap, hold and more", false) {
+                PowerControl.setWanted(this, it)
+                (ServiceHolder.service as? KeyFilterService)?.syncPower()
+                build()
+            }
+        } else {
+            col.row("Shell access: " + Shell.describe(this), "Unlocks tap, double tap, more taps and combinations") {
+                startActivity(Intent(this, ShellActivity::class.java))
+            }
+        }
+
     }
 
     /** One side door: its switch, what state it is in, and how to open it. */
