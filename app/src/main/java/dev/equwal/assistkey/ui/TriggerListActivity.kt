@@ -54,6 +54,19 @@ class TriggerListActivity : Activity() {
             )
         }
 
+        if (HwKey.AI in keys) {
+            col.note(
+                if (ViwoodsBridge.aiHookedToUs(this)) {
+                    "The firmware sends the AI key straight to AssistKey, so only " +
+                        "taps of the AI key on its own can fire."
+                } else {
+                    "The firmware also opens its AI screen on every AI key press, " +
+                        "underneath whatever is bound here. Advanced > Firmware key " +
+                        "hooks shows how to stop that."
+                }
+            )
+        }
+
         val b = Store.bindings(this)
         col.header("Taps")
         (1..Trigger.MAX_TAPS).forEach { n ->

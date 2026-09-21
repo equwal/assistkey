@@ -65,7 +65,7 @@ class ChordActivity : Activity() {
     /** Anything already bound, so a chord is easy to find again. */
     private fun existing(col: LinearLayout) {
         val sets = Store.bindings(this).all().keys
-            .filter { it.isChord }
+            .filter { it.isChord && dev.equwal.assistkey.model.HwKey.POWER !in it.keys }
             .map { it.keys }
             .distinct()
         if (sets.isEmpty()) return

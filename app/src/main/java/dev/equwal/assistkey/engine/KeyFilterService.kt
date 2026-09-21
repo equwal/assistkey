@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.media.AudioManager
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import dev.equwal.assistkey.channel.Channel
@@ -12,6 +13,7 @@ import dev.equwal.assistkey.license.License
 import dev.equwal.assistkey.license.PlayBilling
 import dev.equwal.assistkey.model.ActionKind
 import dev.equwal.assistkey.model.ActionSpec
+import dev.equwal.assistkey.model.GlobalAction
 import dev.equwal.assistkey.model.HwKey
 import dev.equwal.assistkey.model.Trigger
 import dev.equwal.assistkey.native.ViwoodsBridge
@@ -53,10 +55,73 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
         super.onDestroy()
     }
 
+    // ---- hold Power, then press a key --------------------------------------
+
+    private var armedUntil = 0L
+    private var lifelineOnly = false
+    private var holdFallback: Runnable? = null
+    private val swallowed = HashSet<HwKey>()
+
+    /**
+     * Called when the firmware reports a Power hold. For [POWER_COMBO_WINDOW_MS]
+     * the next key press is read as a Power combination. If none comes, the
+     * plain hold action runs - late by exactly that window, which is the price
+     * of having combinations at all and is only paid when one is bound.
+     *
+     * [lifeline] is the locked state. A reader set up with no button bar and no
+     * gestures is navigated entirely from here, and must not become a brick
+     * because a trial ran out: Back, Home and Recents always work.
+     */
+    fun armPowerCombo(plainHold: ActionSpec?, lifeline: Boolean) {
+        holdFallback?.let { handler.removeCallbacks(it) }
+        armedUntil = SystemClock.uptimeMillis() + POWER_COMBO_WINDOW_MS
+        lifelineOnly = lifeline
+        val r = Runnable {
+            armedUntil = 0L
+            holdFallback = null
+            if (!lifeline) plainHold?.let { ActionRouter.run(this, it) }
+        }
+        holdFallback = r
+        handler.postDelayed(r, POWER_COMBO_WINDOW_MS)
+    }
+
+    private fun powerCombo(event: KeyEvent, key: HwKey): Boolean {
+        if (event.action == KeyEvent.ACTION_UP) return swallowed.remove(key)
+        if (event.action != KeyEvent.ACTION_DOWN) return false
+        if (key in swallowed) return true // auto-repeat of a press already taken
+        if (!takePowerCombo(key)) return false
+        swallowed.add(key)
+        return true
+    }
+
+    /**
+     * If a Power hold is waiting for its second key and [key] is bound as one,
+     * run it and report true. Public because the AI key, once its firmware hook
+     * points at this app, arrives as an activity launch rather than a key event.
+     */
+    fun takePowerCombo(key: HwKey): Boolean {
+        if (SystemClock.uptimeMillis() >= armedUntil) return false
+        val spec = bindings().powerCombo(key) ?: return false
+        if (lifelineOnly && !isLifeline(spec)) return false
+
+        armedUntil = 0L
+        holdFallback?.let { handler.removeCallbacks(it) }
+        holdFallback = null
+        // A beat, so that whichever invisible window of ours is in front has
+        // gone before Back or Home lands on it.
+        handler.postDelayed({ ActionRouter.run(this, spec) }, 150L)
+        return true
+    }
+
+    private fun isLifeline(spec: ActionSpec): Boolean =
+        spec.kind == ActionKind.GLOBAL && spec.payload in LIFELINE
+
     override fun onKeyEvent(event: KeyEvent): Boolean {
         val key = HwKey.fromCode(event.keyCode)
         val consumed = when {
             !Channels.isEnabled(this, Channel.ACCESSIBILITY) -> false
+            // Ahead of the licence check on purpose - see armPowerCombo.
+            key != null && key.interceptable && powerCombo(event, key) -> true
             // Locked means inert, not broken: every key goes to the firmware.
             !License.active(this) -> false
             key == null || !key.interceptable -> false
@@ -98,6 +163,15 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
     override fun isBound(trigger: Trigger): Boolean = bindings().isBound(trigger)
 
     override fun chordPartners(key: HwKey): Set<HwKey> = bindings().chordPartners(key)
+
+    companion object {
+        /** How long after a Power hold a key press still counts as a combination. */
+        const val POWER_COMBO_WINDOW_MS = 1000L
+
+        private val LIFELINE = setOf(
+            GlobalAction.BACK.name, GlobalAction.HOME.name, GlobalAction.RECENTS.name
+        )
+    }
 
     override fun fire(trigger: Trigger) {
         val spec = bindings()[trigger] ?: return

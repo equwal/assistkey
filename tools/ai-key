@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Points the firmware's AI key hook at AssistKey, or hands it back.
+#
+# With the stock hook the firmware opens its AI screen on every press, whether
+# or not an app acted on the key. Hooked, each press goes straight to AssistKey
+# and nothing else opens. Android lets no app change this setting, hence adb.
+#
+#   tools/ai-key hook      AssistKey owns the AI key (taps; Power, then AI key)
+#   tools/ai-key unhook    back to the firmware default (AI crop)
+#   tools/ai-key status
+set -euo pipefail
+export MSYS_NO_PATHCONV=1
+OURS=dev.equwal.assistkey/dev.equwal.assistkey.channel.AiKeyActivity
+STOCK=com.viwoods.launcher/com.viwoods.libfloating.activity.ScreenCaptureActivity   # factory default; pick another in the reader's own key settings
+case "${1:-}" in
+  hook)   adb shell settings put system CustomAiKey "$OURS";;
+  unhook) adb shell settings put system CustomAiKey "$STOCK";;
+  status) ;;
+  *) sed -n '2,11p' "$0"; exit 2;;
+esac
+echo "CustomAiKey = $(adb shell settings get system CustomAiKey | tr -d '\r')"

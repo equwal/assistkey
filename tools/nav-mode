@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Switches the reader's system navigation: the three-button bar and the swipe
+# gestures. Android lets no app do this, so it is done over adb, once; it
+# survives restarts. Power key combinations are set inside AssistKey instead.
+#
+#   tools/nav-mode buttons   nogestures     three-button bar, no gestures at all
+#   tools/nav-mode nobuttons gestures       gestures only
+#   tools/nav-mode nobuttons nogestures     neither: Power key combinations only
+#   tools/nav-mode buttons   gestures       both
+#   tools/nav-mode status
+#
+# Order matters: switching the overlay makes SystemUI forget
+# disable_gesture_bottom, so the overlay goes first and the setting after.
+set -euo pipefail
+export MSYS_NO_PATHCONV=1
+OVERLAY=com.android.internal.systemui.navbar
+
+status() {
+  local mode gest
+  mode=$(adb shell settings get secure navigation_mode | tr -d '\r')
+  gest=$(adb shell settings get system disable_gesture_bottom | tr -d '\r')
+  echo "button bar:       $([ "$mode" = "2" ] && echo hidden || echo showing)"
+  echo "swipe-up gesture: $([ "$gest" = "1" ] && echo off || echo on)"
+  echo "edge-swipe back:  $([ "$mode" = "2" ] && echo "inset scale $(adb shell settings get secure back_gesture_inset_scale_left | tr -d '\r')" || echo "n/a with the bar")"
+}
+
+[ "${1:-}" = "status" ] && { status; exit 0; }
+[ $# -eq 2 ] || { sed -n '2,14p' "$0"; exit 2; }
+
+case "$1" in buttons) cat=threebutton;; nobuttons) cat=gestural;; *) echo "first argument: buttons | nobuttons"; exit 2;; esac
+case "$2" in gestures) off=0; scale=0.6;; nogestures) off=1; scale=0;; *) echo "second argument: gestures | nogestures"; exit 2;; esac
+
+if [ "$cat" = gestural ] && [ "$off" = 1 ]; then
+  echo "No bar and no gestures: make sure AssistKey's Power key combinations work first."
+  echo "To undo from a computer: tools/nav-mode buttons gestures"
+fi
+
+adb shell cmd overlay enable-exclusive --category "$OVERLAY.$cat"
+sleep 5
+adb shell settings put system disable_gesture_bottom $((1 - off))   # nudge the observer
+sleep 1
+adb shell settings put system disable_gesture_bottom "$off"
+adb shell settings put secure back_gesture_inset_scale_left "$scale"
+adb shell settings put secure back_gesture_inset_scale_right "$scale"
+sleep 1
+status

@@ -43,6 +43,14 @@ data class Trigger(
     companion object {
         const val MAX_TAPS = 5
 
+        /**
+         * "Hold Power, then press [key]". Power cannot take part in an ordinary
+         * combination, but a held Power announces itself - the firmware fires
+         * the assistant at us - and a key pressed while it is still down
+         * reaches the filter. See KeyFilterService.armPowerCombo.
+         */
+        fun powerThen(key: HwKey): Trigger = Trigger(setOf(HwKey.POWER, key), GestureType.TAP, 1)
+
         fun parse(id: String): Trigger? {
             val parts = id.split(":")
             if (parts.size != 3) return null

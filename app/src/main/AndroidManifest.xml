@@ -57,6 +57,7 @@
         <activity android:name=".ui.TimingActivity" android:exported="false" />
         <activity android:name=".ui.KeyTesterActivity" android:exported="false" />
         <activity android:name=".ui.LicenseActivity" android:exported="false" />
+        <activity android:name=".ui.NavigationActivity" android:exported="false" />
 
         <!--
             The three impersonation entry points. Each starts disabled: the app
@@ -87,6 +88,21 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <!--
+            Target for the firmware's own AI key hook (Settings.System
+            CustomAiKey), which only the shell can set. No intent filter: it is
+            reached by explicit component, and only by the firmware. Always
+            enabled, because the hook outlives any switch inside the app.
+        -->
+        <activity
+            android:name=".channel.AiKeyActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Invisible" />
 
         <!-- Double press Power, when the firmware target is the camera. -->
         <activity

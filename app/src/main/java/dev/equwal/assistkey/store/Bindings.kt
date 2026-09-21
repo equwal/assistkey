@@ -15,17 +15,26 @@ class Bindings(private val map: Map<Trigger, ActionSpec>) {
     private val active: Map<Trigger, ActionSpec> =
         map.filterValues { it.kind != ActionKind.PASS_THROUGH }
 
+    /**
+     * What the gesture engine may know about. Anything involving Power is kept
+     * from it: Power never reaches the key filter, so an engine that believed
+     * in a Power chord would hold every volume press back waiting for a
+     * partner that cannot arrive. Power triggers are served by the channels
+     * and by [powerCombo] instead.
+     */
+    private val engine: Set<Trigger> = active.keys.filter { HwKey.POWER !in it.keys }.toSet()
+
     private val tapsByKeys: Map<Set<HwKey>, Int> =
-        active.keys.filter { it.type == GestureType.TAP }
+        engine.filter { it.type == GestureType.TAP }
             .groupBy { it.keys }
             .mapValues { (_, v) -> v.maxOf { it.count } }
 
     private val holdKeys: Set<Set<HwKey>> =
-        active.keys.filter { it.type == GestureType.HOLD }.map { it.keys }.toSet()
+        engine.filter { it.type == GestureType.HOLD }.map { it.keys }.toSet()
 
     /** For each key, the other keys it forms a bound chord with. */
     private val partners: Map<HwKey, Set<HwKey>> = buildMap {
-        active.keys.filter { it.isChord }.forEach { t ->
+        engine.filter { it.isChord }.forEach { t ->
             t.keys.forEach { k -> merge(k, t.keys - k) { a, b -> a + b } }
         }
     }
@@ -35,6 +44,12 @@ class Bindings(private val map: Map<Trigger, ActionSpec>) {
     fun chordPartners(key: HwKey): Set<HwKey> = partners[key] ?: emptySet()
 
     operator fun get(trigger: Trigger): ActionSpec? = active[trigger]
+
+    /** The action for "hold Power, then press [key]", if there is one. */
+    fun powerCombo(key: HwKey): ActionSpec? = active[Trigger.powerThen(key)]
+
+    val hasPowerCombos: Boolean =
+        HwKey.interceptable.any { active.containsKey(Trigger.powerThen(it)) }
     fun isBound(trigger: Trigger): Boolean = trigger in active
 
     /** Including PASS_THROUGH entries, for the UI. */

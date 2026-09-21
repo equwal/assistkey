@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
+import dev.equwal.assistkey.engine.KeyFilterService
 import dev.equwal.assistkey.license.License
 import dev.equwal.assistkey.route.ActionRouter
 import dev.equwal.assistkey.route.ServiceHolder
@@ -25,7 +26,21 @@ object ChannelEntry {
      * activity launch restrictions would drop it.
      */
     fun handle(activity: Activity, channel: Channel) {
-        if (!License.active(activity)) {
+        val licensed = License.active(activity)
+
+        // A Power hold with combinations bound does not act yet: it opens a
+        // short window in which the next key press decides what happens.
+        if (channel == Channel.ASSISTANT && Store.bindings(activity).hasPowerCombos) {
+            val svc = ServiceHolder.service as? KeyFilterService
+            if (svc != null) {
+                val plain = channel.trigger?.let { Store.bindings(activity)[it] }
+                svc.armPowerCombo(plain, lifeline = !licensed)
+                activity.finishAndVanish()
+                return
+            }
+        }
+
+        if (!licensed) {
             Toast.makeText(
                 activity,
                 "AssistKey is locked - open the app to unlock it",

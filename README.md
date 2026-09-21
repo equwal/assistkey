@@ -35,7 +35,9 @@ enters the pipeline exactly where the hardware does.
 
 | Press | Node | Result |
 |---|---|---|
-| AI key (`KEY_F1`) | `event5` "AI KEY" | Reaches the accessibility filter, whatever `CustomAiKey` holds |
+| AI key (`KEY_F1`), stock or unset hook | `event5` "AI KEY" | Reaches the filter, **and the firmware opens its AI screen anyway**, consumed or not |
+| AI key, hook set to anything else | `event5` | Firmware launches that component; the filter never sees the key |
+| Power held, then another key | `event1` + key | The second key reaches the filter; no screenshot or power-menu chord fires |
 | Volume up / down | `event1` / `event2` | Reaches the filter **only while its firmware hook is unset** |
 | Power, held 700 ms | `event1` | Firmware fires `ACTION_ASSIST` at the assistant role holder — us |
 | Power, twice within 300 ms | `event1` | `GestureLauncherService` fires `STILL_IMAGE_CAMERA`; never the wallet |
@@ -47,6 +49,16 @@ The firmware has its own per-key settings in `Settings.System`:
 holds **any** value — even its default token, `volume_up` — the firmware deals
 with that key before the filter stage and no app ever sees it. Unset, the key
 arrives normally. The device's own key-settings screen sets them.
+
+The AI key is worse. With the stock hook the filter does see it, but the
+firmware opens its AI screen on every press regardless, so a binding fires on
+top of that screen. The only clean route is to point the hook at this app's
+`AiKeyActivity`: every press then arrives as a launch, which is enough to count
+taps (but not to see a release, so no hold and no volume combinations):
+
+```bash
+tools/ai-key hook      # or: unhook, status
+```
 
 An ordinary app cannot write these. `SettingsProvider` rejects any
 `Settings.System` name outside its public list unless the caller is a
@@ -74,7 +86,12 @@ Android version, can see it. That leaves exactly three reachable slots:
   *Always*.
 - **Press and hold** — arrives as an assistant request.
 
-No multi-tap beyond two, and Power can never be half of a combination.
+No multi-tap beyond two. Power cannot take part in an ordinary combination,
+but there is one way in: a held Power announces itself, because the firmware
+fires the assistant at us, and a key pressed while it is still down reaches the
+filter. So **hold Power, then press** the AI key, Volume up or Volume down is
+three real combinations. While any is bound, the plain hold action waits one
+second to see whether a key follows.
 `Power + Volume up` is reserved by the firmware for the power menu, which the
 app deliberately leaves alone as an escape hatch.
 
@@ -90,6 +107,37 @@ matters for feel: *a key with no bindings is never consumed, and a key whose
 highest bound tap count is 1 fires on key-up without waiting out the multi-tap
 window.* You only pay multi-tap latency on keys where you actually asked for a
 double tap.
+
+## Navigation
+
+*Navigation* on the main screen mixes three ways of getting around: the
+three-button bar, swipe gestures, and Power key combinations (defaults: Power
+then Volume up = Back, the AI key = Home, Volume down = Recents). Five named
+setups, or tick any mix.
+
+The combinations are the app's own. The bar and the gestures are the system's,
+and Android lets no app switch them, so the screen shows the current state and
+the commands, and `tools/nav-mode` runs them:
+
+```bash
+tools/nav-mode buttons   nogestures    # bar only, no gestures at all
+tools/nav-mode nobuttons gestures      # gestures only
+tools/nav-mode nobuttons nogestures    # neither: Power combinations only
+tools/nav-mode status
+```
+
+| Piece | Switch |
+|---|---|
+| Button bar | overlay `com.android.internal.systemui.navbar.threebutton` / `.gestural` (gestural removes the bar outright on this firmware) |
+| Swipe up for Home (Viwoods' own, both modes) | `Settings.System disable_gesture_bottom` |
+| Edge swipe for Back (gestural mode only) | `Settings.Secure back_gesture_inset_scale_left/right` = 0 |
+
+Order matters: changing the overlay makes SystemUI forget
+`disable_gesture_bottom`, so the overlay goes first.
+
+Back, Home and Recents on a Power combination keep working when the app is
+locked. A reader with no bar and no gestures is navigated entirely by them, and
+an expired trial must not turn it into a brick.
 
 ## Actions
 
@@ -233,6 +281,7 @@ route/     turning an action spec into behaviour
 store/     persistence, with the key-event hot path precomputed
 ui/        the configuration screens, built in code
 
+tools/     adb helpers: nav-mode (bar and gestures), ai-key (the AI key hook)
 play/      everything for the Play Console: checklist, listing, policy, graphics
 src/debug/ a debug-only hook that renders each screen to a PNG, because the
            e-ink panel defeats `adb shell screencap`

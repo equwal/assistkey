@@ -184,6 +184,11 @@ class MainActivity : Activity() {
         col.row("Power", powerSummary()) { startActivity(Intent(this, PowerActivity::class.java)) }
 
         col.row(
+            "Navigation",
+            "Button bar, swipe gestures, Power key combinations - in any mix"
+        ) { startActivity(Intent(this, NavigationActivity::class.java)) }
+
+        col.row(
             "Two-key combinations",
             "Hold one key and press another - any pair or larger set"
         ) { startActivity(Intent(this, ChordActivity::class.java)) }

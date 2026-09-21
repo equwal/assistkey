@@ -32,6 +32,10 @@ object Ui {
     val DIM = Color.rgb(90, 90, 90)
     val RULE = Color.rgb(200, 200, 200)
 
+    /** A key's name mid-sentence: "volume up", but never "ai key". */
+    fun inSentence(key: dev.equwal.assistkey.model.HwKey): String =
+        if (key == dev.equwal.assistkey.model.HwKey.AI) "the AI key" else key.label.lowercase()
+
     fun Context.dp(v: Int): Int = TypedValue.applyDimension(
         TypedValue.COMPLEX_UNIT_DIP, v.toFloat(), resources.displayMetrics
     ).toInt()

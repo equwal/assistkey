@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.0.2-alpha — 2026-09-20
+
+Version code 2.
+
+- **Navigation screen.** Button bar, swipe gestures and Power key combinations
+  in any mix, with five named setups. The system half cannot be switched by an
+  app, so the screen reports the live state and gives the commands;
+  `tools/nav-mode` runs them.
+- **Power key combinations.** Hold Power, then press the AI key, Volume up or
+  Volume down. Defaults to Home, Back and Recents. These three keep working
+  when the app is locked, so a reader with no bar and no gestures always has a
+  way out.
+- **AI key hook.** Found that the firmware opens its AI screen on every AI key
+  press whether or not an app consumed it. `tools/ai-key hook` points the
+  firmware at a new entry point instead; taps then work cleanly. The app says
+  which state it is in and what that costs.
+- Fixed: "ai key" in labels.
+
+Known limits:
+
+- The notification-shade action does nothing on this firmware.
+- With the AI key hooked, that key has taps only: no hold, no volume
+  combinations.
+
 ## 0.0.1-alpha — 2026-09-20
 
 First alpha. Version code 1.

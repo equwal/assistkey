@@ -5,6 +5,8 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import dev.equwal.assistkey.channel.Channel
 import dev.equwal.assistkey.channel.Channels
+import dev.equwal.assistkey.model.HwKey
+import dev.equwal.assistkey.model.Trigger
 import dev.equwal.assistkey.native.PowerNative
 import dev.equwal.assistkey.store.Store
 import dev.equwal.assistkey.ui.Ui.code
@@ -58,7 +60,28 @@ class PowerActivity : Activity() {
         shortPress(col)
         doublePress(col)
         longPress(col)
+        powerThen(col)
         escapeHatch(col)
+    }
+
+    // ---- hold Power, then press a key ---------------------------------------
+
+    private fun powerThen(col: LinearLayout) {
+        col.header("Hold Power, then press a key")
+        col.note(
+            "Keep Power held for a moment, then press another key before letting " +
+                "go. It needs the digital assistant channel and the accessibility " +
+                "key filter, both on. While any of these is bound, the plain " +
+                "press-and-hold action above waits a second to see whether a key " +
+                "follows."
+        )
+        val b = Store.bindings(this)
+        HwKey.interceptable.forEach { key ->
+            val t = Trigger.powerThen(key)
+            col.row("Power, then " + Ui.inSentence(key), b.raw(t).describe()) {
+                startActivity(ActionPickerActivity.intent(this, t))
+            }
+        }
     }
 
     // ---- short press: firmware only ---------------------------------------

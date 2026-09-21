@@ -41,10 +41,28 @@ class ViwoodsActivity : Activity() {
         col.row("Firmware setting: " + ViwoodsBridge.describe(this, key), null, enabled = false)
 
         if (key == HwKey.AI) {
-            col.note(
-                "AssistKey sees the AI key whatever this says. The setting only " +
-                    "decides what opens when a press is not bound to anything."
-            )
+            if (ViwoodsBridge.aiHookedToUs(this)) {
+                col.note(
+                    "The firmware hands every AI key press straight to AssistKey. " +
+                        "Taps, and Power then the AI key, work cleanly. Press-and-hold " +
+                        "and combinations with the volume keys are not available this " +
+                        "way. To give the key back to the firmware:"
+                )
+                col.code(ViwoodsBridge.aiUnhookCommand())
+            } else {
+                col.note(
+                    "With this setting the firmware opens its own AI screen on every " +
+                        "press, whether or not AssistKey acted on it - so a binding " +
+                        "fires on top of that screen. To own the key cleanly, point " +
+                        "the hook at AssistKey once from a computer:"
+                )
+                col.code(ViwoodsBridge.aiHookCommand(this))
+                col.note(
+                    "Taps then work without the AI screen appearing. Press-and-hold " +
+                        "and combinations with the volume keys stop working for this " +
+                        "key, because the firmware no longer lets apps see it."
+                )
+            }
             return
         }
 

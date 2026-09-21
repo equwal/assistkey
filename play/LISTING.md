@@ -30,6 +30,7 @@ AI key and volume keys
 • A key with only a single-tap binding fires instantly - you only wait out a double-tap window on keys where you asked for a double tap
 
 Power button
+• Hold Power, then press another key: three extra combinations - Back, Home and Recents by default, so you can hide the navigation bar and keep the whole screen for reading
 • Press and hold: run any action (AssistKey becomes your digital assistant app)
 • Double press: run any action (AssistKey becomes your default camera app)
 • Short press: choose the firmware behaviour
@@ -60,6 +61,7 @@ GOOD TO KNOW
 
 • Made for the Viwoods AiPaper Reader. The volume and power features work on most Android 12+ devices; the AI key and Viwoods actions are specific to Viwoods hardware.
 • Android does not let any app see the power button directly, so power gestures are limited to short press, double press and hold.
+• Hiding the navigation bar, switching system gestures off, and giving AssistKey sole control of the AI key are one-time steps done from a computer over USB. Android does not allow any app to change them. The app shows the exact commands.
 • If a volume key does not respond, the device's own key settings may be holding on to it. The built-in key tester shows exactly which keys AssistKey can see, and the Firmware key hooks screen shows the fix.
 
 PRICE

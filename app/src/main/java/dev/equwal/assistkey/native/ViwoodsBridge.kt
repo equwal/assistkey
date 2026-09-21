@@ -76,8 +76,25 @@ object ViwoodsBridge {
     fun hidesFromFilter(c: Context, key: HwKey): Boolean =
         VOLUME_SLOT.containsKey(key) && read(c, key) != null
 
-    /** What the firmware does with the AI key when nothing consumes the press. */
-    fun aiTarget(c: Context): String = read(c, HwKey.AI) ?: Presets.STOCK_AI_KEY
+    private const val AI_ENTRY = "dev.equwal.assistkey.channel.AiKeyActivity"
+
+    /**
+     * What should open when an AI press is handed back to the firmware. Never
+     * our own entry point: that would be a loop.
+     */
+    fun aiTarget(c: Context): String =
+        read(c, HwKey.AI)?.takeUnless { aiHookedToUs(c) } ?: Presets.STOCK_AI_KEY
+
+    /** True when the firmware sends the AI key straight to this app. */
+    fun aiHookedToUs(c: Context): Boolean =
+        read(c, HwKey.AI)?.let { ComponentName.unflattenFromString(it) } ==
+            ComponentName(c.packageName, AI_ENTRY)
+
+    fun aiHookCommand(c: Context): String =
+        "adb shell settings put system " + AI_KEY + " " + c.packageName + "/" + AI_ENTRY
+
+    fun aiUnhookCommand(): String =
+        "adb shell settings put system " + AI_KEY + " " + Presets.STOCK_AI_KEY
 
     /** The command that hands a volume key back to the input pipeline. */
     fun unsetCommand(key: HwKey): String? =
@@ -86,7 +103,7 @@ object ViwoodsBridge {
     /** Human description of whatever the firmware currently has bound. */
     fun describe(c: Context, key: HwKey): String {
         val v = read(c, key) ?: return "Not set"
-        if (key == HwKey.AI) return shortName(c, v)
+        if (key == HwKey.AI) return if (aiHookedToUs(c)) "AssistKey" else shortName(c, v)
 
         val label = volumeTokens[v] ?: return shortName(c, v)
         if (v != TOKEN_APP) return label
