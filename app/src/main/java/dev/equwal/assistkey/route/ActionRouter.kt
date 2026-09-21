@@ -115,9 +115,11 @@ object ActionRouter {
      * the internal Viwoods AI activities get reached.
      */
     private fun launchComponent(ctx: Context, flat: String): Boolean {
-        val cn = ComponentName.unflattenFromString(flat) ?: return false
+        val parts = dev.equwal.assistkey.model.ComponentPayload.parse(flat)
+        val cn = ComponentName.unflattenFromString(parts.component) ?: return false
         val i = Intent()
         i.component = cn
+        parts.extras.forEach { (key, value) -> i.putExtra(key, value) }
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         ctx.startActivity(i)
         return true

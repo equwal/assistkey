@@ -5,6 +5,11 @@
 - **Change a button from the Done step.** "Change what it does" and "Change
   how you press it" go back to those steps with the button kept. Back on the
   Done step goes to the actions too. Tests: `Route.back`.
+- **AI voice prompt** is an action of its own (Viwoods). It is what the
+  firmware does on a hold of the AI key: the Viwoods AI screen, told to start
+  its voice prompt. It needs the Viwoods AI account, as the stock hold does.
+  A component launch can now carry text extras (`pkg/class?key=value`).
+  Tests: `ComponentPayloadTest`.
 - **Ask when the user tries it.** The first run asks for every grant once.
   After that the app asks at the moment something is missing: after a menu is
   saved, after the Power switch on the Navigation screen, when a Power press

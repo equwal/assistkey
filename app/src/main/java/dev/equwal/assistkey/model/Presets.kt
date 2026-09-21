@@ -23,6 +23,8 @@ object Presets {
         Preset("AI quick prompt (transparent)", AI + "/com.wisky.wiskyai.AiTransparentActivity"),
         Preset("AI lookup", AI + "/com.wisky.wiskyai.AIActivity"),
         Preset("AI assistant (full UI)", AI + "/com.wisky.wiskyai.WebViewAiActivity"),
+        // What the firmware does on a hold of the AI key: the same screen, told to start the voice prompt.
+        Preset("AI voice prompt", AI + "/com.wisky.wiskyai.WebViewAiActivity?recodeKey=recode_key_start"),
         Preset("AI history", AI + "/com.wisky.wiskyai.HistroyActivity"),
         Preset("AI repository", AI + "/com.wisky.wiskyai.RepositoryActivity"),
         Preset("Viwoods home", LAUNCHER + "/com.viwoods.launcher.main.LauncherMainActivity")
