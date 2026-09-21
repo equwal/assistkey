@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Permissions covers the extensions again.** New items, each only where it
+  can apply: "Install apps from Rebind" (the build that carries apps), "Ink
+  Recents: app usage data" (when Ink Recents is installed), and "Home screen"
+  to choose inkOS or ThinkLauncher (when one is installed). "Set up what is
+  missing" walks through them too. The main screen still counts only the
+  grants of Rebind itself.
 - **Fix: voice typing said "The microphone is not allowed" although it was
   allowed.** Android gives the microphone to an app only while that app is in
   use. The Viwoods firmware does not count a speech app as in use while it

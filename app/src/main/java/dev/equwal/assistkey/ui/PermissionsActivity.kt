@@ -4,6 +4,9 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import dev.equwal.assistkey.bundle.Bundled
+import android.net.Uri
+import android.content.pm.PackageManager
 import android.provider.Settings
 import android.widget.LinearLayout
 import dev.equwal.assistkey.channel.Channel
@@ -70,8 +73,63 @@ class PermissionsActivity : Activity() {
             "For Voice typing",
             state[2]
         ) { requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), 1) }
+        return list + extensions()
+    }
+
+    /**
+     * What the apps that go with Rebind need. Each one is a switch in the
+     * settings of Android that only the user can set. An item shows only when
+     * it can apply: the install switch in the build that carries apps, the
+     * others when their app is installed.
+     */
+    private fun extensions(): List<Item> {
+        val list = ArrayList<Item>()
+        if (Bundled.SUPPORTED) {
+            list += Item(
+                "Install apps from Rebind",
+                "For the apps that Rebind carries",
+                packageManager.canRequestPackageInstalls()
+            ) {
+                start(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + packageName)))
+            }
+        }
+        if (installed(INK_RECENTS)) {
+            list += Item(
+                "Ink Recents: app usage data",
+                "Puts the recent apps in order",
+                usageAccess(INK_RECENTS)
+            ) {
+                val page = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+                // Straight to the switch of that app, where the settings app can. Else the list.
+                val direct = Intent(page).setData(Uri.parse("package:" + INK_RECENTS))
+                if (!Channels.safeStart(this, direct)) start(page)
+            }
+        }
+        val homes = Bundled.items.filter { it.group == Bundled.HOME && it.pkg != INK_RECENTS }.map { it.pkg }
+        if (homes.any(::installed)) {
+            val home = packageManager.resolveActivity(
+                Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME),
+                PackageManager.MATCH_DEFAULT_ONLY
+            )?.activityInfo?.packageName
+            list += Item(
+                "Home screen",
+                "Choose inkOS or ThinkLauncher",
+                home in homes
+            ) { start(Intent(Settings.ACTION_HOME_SETTINGS)) }
+        }
         return list
     }
+
+    private fun installed(pkg: String): Boolean =
+        runCatching { packageManager.getPackageInfo(pkg, 0) }.isSuccess
+
+    /** Whether another app has usage access. False where Android does not tell. */
+    private fun usageAccess(pkg: String): Boolean = runCatching {
+        val uid = packageManager.getApplicationInfo(pkg, 0).uid
+        getSystemService(android.app.AppOpsManager::class.java)
+            .unsafeCheckOpNoThrow(android.app.AppOpsManager.OPSTR_GET_USAGE_STATS, uid, pkg) ==
+            android.app.AppOpsManager.MODE_ALLOWED
+    }.getOrDefault(false)
 
     override fun onResume() {
         super.onResume()
@@ -146,6 +204,7 @@ class PermissionsActivity : Activity() {
     companion object {
         private const val PREFS = "assistkey_setup"
         private const val K_SHOWN = "permissions_shown"
+        private const val INK_RECENTS = "dev.equwal.inkrecents"
 
         /**
          * Whether each grant is in place, in the order this screen lists them.
