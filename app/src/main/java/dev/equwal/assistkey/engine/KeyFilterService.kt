@@ -200,6 +200,7 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
         }
         val consumed = when {
             !Channels.isEnabled(this, Channel.ACCESSIBILITY) -> false
+            key != null && License.active(this) && aiKeyReturn(event, key) -> true
             // Ahead of the licence check on purpose - see armPowerCombo.
             key != null && key.interceptable && powerCombo(event, key) -> true
             // Locked means inert, not broken: every key goes to the firmware.
@@ -222,7 +223,77 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
         return consumed
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) { /* not used */ }
+    // ---- the AI key, inside an AI screen ------------------------------------------
+
+    /** True while the Viwoods AI screen or crop screen is in front. */
+    var inAiScreen = false
+        private set
+
+    /** The package in front before the AI screen opened. Held in memory only. */
+    private var lastApp: String? = null
+    private val aiSwallowed = HashSet<HwKey>()
+
+    /**
+     * Window changes are watched for one purpose: to know which app to go back
+     * to. Only the package name is kept, only the latest one, and only in
+     * memory.
+     */
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
+        val pkg = event.packageName?.toString() ?: return
+        val cls = event.className?.toString()
+        when {
+            pkg == packageName || pkg == "android" || pkg == "com.android.systemui" -> Unit
+            dev.equwal.assistkey.device.Device.isAiScreen(pkg, cls) -> inAiScreen = true
+            // Dialogs and keyboards report window changes too; only activities count.
+            cls != null && isActivity(pkg, cls) -> {
+                inAiScreen = false
+                lastApp = pkg
+            }
+        }
+    }
+
+    private fun isActivity(pkg: String, cls: String): Boolean = runCatching {
+        packageManager.getActivityInfo(android.content.ComponentName(pkg, cls), 0); true
+    }.getOrDefault(false)
+
+    /**
+     * Leaves the AI screen for the app that was in use before it. The firmware
+     * reacts to the AI key by itself and may open its AI screen again, so this
+     * waits for that to land first.
+     */
+    fun returnFromAiScreen() {
+        handler.postDelayed({
+            val pkg = lastApp
+            val launch = pkg?.let { packageManager.getLaunchIntentForPackage(it) }
+            val isHome = pkg != null && packageManager.resolveActivity(
+                android.content.Intent(android.content.Intent.ACTION_MAIN)
+                    .addCategory(android.content.Intent.CATEGORY_HOME),
+                0
+            )?.activityInfo?.packageName == pkg
+            if (launch == null || isHome) {
+                performGlobalAction(GLOBAL_ACTION_HOME)
+            } else {
+                // The same intent the launcher sends: it brings the task back as it was.
+                startActivity(
+                    launch.addFlags(
+                        android.content.Intent.FLAG_ACTIVITY_NEW_TASK or
+                            android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                    )
+                )
+            }
+        }, AI_RETURN_DELAY_MS)
+    }
+
+    private fun aiKeyReturn(event: KeyEvent, key: HwKey): Boolean {
+        if (key != HwKey.AI) return false
+        if (event.action == KeyEvent.ACTION_UP) return aiSwallowed.remove(key)
+        if (key in aiSwallowed) return true
+        if (!inAiScreen || !dev.equwal.assistkey.device.Device.aiKeyReturns(this)) return false
+        aiSwallowed.add(key)
+        returnFromAiScreen()
+        return true
+    }
 
     /**
      * The settings screen lives in this same process, so new timing values can
@@ -253,6 +324,9 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
     companion object {
         /** How long after a Power hold a key press still counts as a combination. */
         const val POWER_COMBO_WINDOW_MS = 1000L
+
+        /** Longer than the firmware takes to open its AI screen on an AI key press. */
+        private const val AI_RETURN_DELAY_MS = 350L
 
         /** A press this soon after the screen came on is the press that woke it. */
         private const val WAKE_GRACE_MS = 1000L

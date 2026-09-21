@@ -41,6 +41,9 @@ class AiKeyActivity : Activity() {
         val svc = ServiceHolder.service as? KeyFilterService
 
         when {
+            // Inside an AI screen the key means "back to what I was doing".
+            svc != null && svc.inAiScreen && License.active(this) &&
+                dev.equwal.assistkey.device.Device.aiKeyReturns(this) -> svc.returnFromAiScreen()
             // Ahead of the licence check: the navigation lifeline lives here.
             svc != null && svc.takePowerCombo(HwKey.AI) -> Unit
             // Locked means the key behaves as the firmware intended.

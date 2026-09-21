@@ -11,6 +11,7 @@ import dev.equwal.assistkey.model.HwKey
 import dev.equwal.assistkey.model.Trigger
 import dev.equwal.assistkey.native.ViwoodsBridge
 import dev.equwal.assistkey.store.Store
+import dev.equwal.assistkey.ui.Ui.check
 import dev.equwal.assistkey.ui.Ui.header
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
@@ -54,6 +55,13 @@ class TriggerListActivity : Activity() {
             )
         }
 
+        if (keys == setOf(HwKey.AI) && dev.equwal.assistkey.device.Device.isViwoods) {
+            col.check(
+                "In the AI or crop screen, go back",
+                "There the AI key returns to the app you were in, whatever is bound below",
+                dev.equwal.assistkey.device.Device.aiKeyReturns(this)
+            ) { dev.equwal.assistkey.device.Device.setAiKeyReturns(this, it) }
+        }
         if (HwKey.AI in keys) {
             col.note(
                 if (ViwoodsBridge.aiHookedToUs(this)) {

@@ -49,6 +49,23 @@ object Device {
     val brightnessFloor: Int? get() = if (isViwoods) 5 else null
 
     private const val PREFS = "assistkey_device"
+    private const val K_AI_RETURNS = "ai_key_returns"
+
+    /**
+     * Viwoods only. Inside the AI screen or the crop screen, the AI key goes
+     * back to the app that was in use before. On by default on that device.
+     */
+    fun aiKeyReturns(c: Context): Boolean =
+        isViwoods && c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(K_AI_RETURNS, true)
+
+    fun setAiKeyReturns(c: Context, on: Boolean) {
+        c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(K_AI_RETURNS, on).apply()
+    }
+
+    /** True for the Viwoods AI assistant and for the Viwoods crop and screenshot-edit screens. */
+    fun isAiScreen(pkg: String?, cls: String?): Boolean =
+        pkg == "com.viwoods.viwoodsai" ||
+            (pkg == "com.viwoods.launcher" && cls?.contains(".libfloating.") == true)
     private const val K_SEEN = "seen_keys"
 
     private val builtIn: List<HwKey>
