@@ -65,8 +65,7 @@ VOICE TYPING
 Bind a key to Voice typing: press, speak, and the words appear where the cursor is - in any app, with the keyboard you already have. Rebind has no speech engine and no internet access; a speech recognition app on your device does the listening.
 
 MORE FOR E-INK
-• A plain text home screen: a clock, a few apps, type to find the rest
-• Recent apps as swipe cards, drawn for e-ink with no animation
+• Opens Ink Recents, our free recent-apps app for e-ink, from any button
 
 BUILT FOR E-INK
 
@@ -88,7 +87,7 @@ GOOD TO KNOW
 • If a volume key does not respond, the device's own key settings may be holding on to it. The built-in key tester shows exactly which keys Rebind can see, and the Firmware key hooks screen shows the fix.
 
 COMPATIBILITY
-Works on Android 12 and later. Built and tested on the Viwoods AiPaper Reader; key remapping, page turning, voice typing and the home screen work on Boox, Bigme, Meebook and ordinary phones and tablets too. Search terms people use for this: button mapper, key remapper, remap buttons, volume key page turn, double tap, long press, key combination.
+Works on Android 12 and later. Built and tested on the Viwoods AiPaper Reader; key remapping, page turning, and voice typing work on Boox, Bigme, Meebook and ordinary phones and tablets too. Search terms people use for this: button mapper, key remapper, remap buttons, volume key page turn, double tap, long press, key combination.
 
 Rebind is not affiliated with, or endorsed by, Viwoods, Onyx Boox, Bigme or Meebook.
 

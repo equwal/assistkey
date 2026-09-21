@@ -8,6 +8,7 @@ import android.provider.Settings
 import dev.equwal.assistkey.channel.Channel
 import dev.equwal.assistkey.channel.Channels
 import dev.equwal.assistkey.voice.Dictation
+import dev.equwal.assistkey.bundle.Bundled
 import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.header
 import dev.equwal.assistkey.ui.Ui.note
@@ -58,18 +59,9 @@ class VoiceActivity : Activity() {
             }
         }
         if (engines.none(Dictation::isOnDevice)) {
-            col.note("No app here recognises speech offline. Whisper, from F-Droid, is free.")
-            col.button("Get Whisper") {
-                val pages = listOf(
-                    "market://details?id=" + Dictation.WHISPER_PACKAGE,
-                    "https://f-droid.org/packages/" + Dictation.WHISPER_PACKAGE + "/"
-                )
-                pages.firstOrNull { url ->
-                    runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }.isSuccess
-                }
-            }
-            col.note("In Whisper, download a model and allow the microphone.")
+            col.note("No app here recognises speech offline. Whisper does, and it is free.")
         }
+        BundledRows.add(this, col, Bundled.VOICE)
 
         col.header("Language")
         val lang = Dictation.language(this)

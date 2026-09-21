@@ -8,7 +8,6 @@ import android.provider.Settings
 import android.widget.LinearLayout
 import dev.equwal.assistkey.channel.Channel
 import dev.equwal.assistkey.channel.Channels
-import dev.equwal.assistkey.home.Apps
 import dev.equwal.assistkey.native.PowerNative
 import dev.equwal.assistkey.shell.Shell
 import dev.equwal.assistkey.ui.Ui.button
@@ -71,11 +70,6 @@ class PermissionsActivity : Activity() {
             "For Voice typing",
             state[2]
         ) { requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), 1) }
-        list += Item(
-            "App usage data",
-            "Puts the recent apps cards in order",
-            state[3]
-        ) { start(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
         return list
     }
 
@@ -160,8 +154,7 @@ class PermissionsActivity : Activity() {
         fun granted(c: Context): List<Boolean> = listOf(
             Channels.isSatisfied(c, Channel.ACCESSIBILITY),
             Channels.isSatisfied(c, Channel.ASSISTANT),
-            Dictation.hasMicrophone(c),
-            Apps.hasUsageAccess(c) || Shell.ready
+            Dictation.hasMicrophone(c)
         )
 
         /** Opens this screen the first time the app runs, and never again by itself. */

@@ -32,22 +32,22 @@ enum class Channel(
 
     ASSISTANT(
         "assistant",
-        "Digital assistant",
-        "Catches a held Power button",
+        "Hold Power",
+        "Through the assistant role",
         listOf("dev.equwal.assistkey.channel.AssistActivity")
     ),
 
     CAMERA(
         "camera",
-        "Camera app",
-        "Catches a double press of Power",
+        "Double tap Power, by camera",
+        "Most devices send it to the camera",
         listOf("dev.equwal.assistkey.channel.CameraShimActivity")
     ),
 
     WALLET(
         "wallet",
-        "Wallet app",
-        "Catches the wallet tile and button",
+        "Double tap Power, by wallet",
+        "Some devices send it to the wallet",
         listOf(
             "dev.equwal.assistkey.channel.WalletActivity",
             "dev.equwal.assistkey.channel.WalletService"

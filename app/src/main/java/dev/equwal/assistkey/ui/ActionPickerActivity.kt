@@ -114,21 +114,9 @@ class ActionPickerActivity : Activity() {
 
     private fun own(col: LinearLayout) {
         col.header("Rebind")
-        listOf(
-            "Recent apps (cards)" to "dev.equwal.assistkey.home.RecentsActivity",
-            "App search" to "dev.equwal.assistkey.home.HomeActivity"
-        ).filter { (_, cls) ->
-            // The home screen is switched off until asked for; a disabled
-            // activity cannot be launched, so it is not offered.
-            packageManager.getComponentEnabledSetting(android.content.ComponentName(packageName, cls)) !=
-                android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED &&
-                (cls.endsWith("RecentsActivity") ||
-                    packageManager.getComponentEnabledSetting(android.content.ComponentName(packageName, cls)) ==
-                    android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
-        }.forEach { (label, cls) ->
-            col.row(label, null) {
-                choose(ActionSpec(ActionKind.LAUNCH_COMPONENT, packageName + "/" + cls, label))
-            }
+        val label = "Recent apps (cards)"
+        col.row(label, null) {
+            choose(ActionSpec(ActionKind.LAUNCH_COMPONENT, packageName + "/dev.equwal.assistkey.home.RecentsActivity", label))
         }
     }
 

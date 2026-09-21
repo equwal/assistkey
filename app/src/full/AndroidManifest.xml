@@ -2,11 +2,20 @@
 <!-- The `full` flavour only: everything Shizuku needs. The `play` flavour has none of it. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Installs the apps of other makers that this build carries in its assets.
+         Android asks the user before each install. Not in the Google Play build. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <queries>
         <package android:name="moe.shizuku.privileged.api" />
     </queries>
 
     <application>
+        <!-- The package installer of Android answers an install request here. -->
+        <receiver
+            android:name="dev.equwal.assistkey.bundle.Bundled$Result"
+            android:exported="false" />
+
         <!-- How Shizuku hands this app its binder. -->
         <provider
             android:name="rikka.shizuku.ShizukuProvider"

@@ -182,9 +182,7 @@ class GuidedSetupActivity : Activity() {
         }
         when {
             HwKey.SCREEN in set -> col.note("A small button floats over every app. Drag to move it.")
-            HwKey.POWER in set && set.size > 1 ->
-                col.note("Hold Power, then press the other button.")
-            HwKey.POWER in set && !env.powerIsDirect && !env.shellSupported ->
+            set == setOf(HwKey.POWER) && !env.powerIsDirect && !env.shellSupported ->
                 col.note("A tap cannot reach any app. Hold and double tap work.")
         }
         if (HwKey.SCREEN !in set) {

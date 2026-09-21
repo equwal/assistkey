@@ -2,6 +2,8 @@
 build/
 .gradle/
 *.apk
+# The unchanged release APKs of other makers that the full build carries.
+!app/src/full/assets/bundled/*.apk
 *.aab
 *.ap_
 *.dex

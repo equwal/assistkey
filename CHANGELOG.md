@@ -1,6 +1,30 @@
 # Changelog
 
-## Unreleased
+## 0.0.12-alpha - 2026-09-21
+
+Version code 12.
+
+- **Apps of other makers.** The build for direct install carries two apps and
+  can install them: CLauncher v5.3.0 (the release APK of its maker, not
+  changed) and Ink Recents 0.1.1 (open source). Home and recents lists them. Android asks before
+  each install. The APKs are in the build, because Rebind has no internet
+  permission. The Google Play build carries nothing and has no install
+  permission: Google Play does not allow that here. It opens the page of the
+  maker.
+- Whisper 3.7 (speech to text on the device, MIT, the F-Droid build) is the
+  third app that the build for direct install carries. Voice typing lists it.
+- **The home screen of Rebind is gone**, with its settings screens. CLauncher
+  is the home screen now, as its maker released it. An old settings file that
+  has home screen settings still imports. Those settings are skipped.
+- **Recent apps is a program of its own: Ink Recents** (open source,
+  github.com/equwal/ink-recents). Rebind no longer has that screen, and no
+  longer asks for usage access or `KILL_BACKGROUND_PROCESSES`. The Recent apps
+  action opens Ink Recents. Old bindings keep working. Where Ink Recents is
+  not installed, the action opens the screen that offers it.
+- Hardware hacks: the double tap of Power is one row. Its way in is the camera
+  intent or the wallet intent, as the device decides. There is no wallet
+  button.
+- The setup of a Power combination no longer says the same thing twice.
 
 - **Hardware hacks** is a tile on the main screen with a screen of its own:
   hold Power (assistant role), double tap Power (camera intent), the wallet

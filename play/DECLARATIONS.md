@@ -44,7 +44,7 @@ so it is not a financial feature.)
 
 Why "No" is accurate: the app holds no `INTERNET` permission
 (`aapt2 dump badging` on the release shows `WRITE_SECURE_SETTINGS`,
-`PACKAGE_USAGE_STATS`, `RECORD_AUDIO`, `QUICK_ACCESS_WALLET` and
+`RECORD_AUDIO`, `QUICK_ACCESS_WALLET` and
 `com.android.vending.BILLING`, none of which is network access). These answers
 are for the `play` build, which is the only one uploaded. The device report is
 composed on the device and leaves it only if the user sends it, through their
@@ -93,7 +93,6 @@ pointed at the reader - the reader cannot capture its own screen.
 | `BIND_ACCESSIBILITY_SERVICE` | Above. |
 | `WRITE_SECURE_SETTINGS` | Cannot be granted to a Play install; it does nothing unless the owner grants it over adb. It then lets the app switch the firmware's power-button behaviour (short press, hold duration). Declared so that the grant is possible at all. |
 | `RECORD_AUDIO` | Voice typing only. Requested at run time from the Voice typing screen. The speech recognition app the user chose records the audio; Android requires the calling app to hold the permission too. AssistKey receives text only, and stores and sends nothing. |
-| `PACKAGE_USAGE_STATS` | Special access the user grants from a settings screen. Used only by the recent-apps list to order apps by last use, on the device; nothing is stored or sent. Not needed when shell access is on. |
 | `QUICK_ACCESS_WALLET` | Required of any app offered as the wallet app. AssistKey serves an empty card list; it exists so a press of the wallet shortcut reaches the user's chosen action. |
 | `com.android.vending.BILLING` | Play Billing. |
 

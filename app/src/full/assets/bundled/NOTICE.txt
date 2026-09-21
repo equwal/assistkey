@@ -1,0 +1,23 @@
+Apps of other makers in this folder
+
+Each file is the release APK of its maker, not changed in any way. It is a
+separate program. Rebind only hands it to the package installer of Android.
+
+clauncher-v5.3.0-universal.apk
+  CLauncher v5.3.0, by mlm-games
+  Licence: GNU General Public License v3.0
+  Source code and releases: https://github.com/mlm-games/CLauncher
+  SHA-256: aedb78216822d5c8924eb125529f2dfa9140e4841b87ed309eca8f12f38956eb
+
+ink-recents-0.1.1.apk
+  Ink Recents 0.1.1, by equwal
+  Licence: GNU General Public License v3.0 or later
+  Source code and releases: https://github.com/equwal/ink-recents
+  SHA-256: f524150a25d7980224b93948133c5abee7c7bb4af3de9d7e721162fca5dd180b
+
+org.woheller69.whisper_37.apk
+  Whisper 3.7, by woheller69, as F-Droid built and signed it
+  Licence: MIT
+  Source code: https://github.com/woheller69/whisperIME
+  Release: https://f-droid.org/packages/org.woheller69.whisper/
+  SHA-256: b7efb1f4377c7ecf870688b1f7d74ad201bff2bd8991a387316db3ab71353824

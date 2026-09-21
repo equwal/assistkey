@@ -55,9 +55,9 @@ class SummaryTest {
 
     @Test
     fun `home and recents says what is in use`() {
-        assertEquals("Home screen in use", Summary.homeAndRecents(homeOffered = true, isDefault = true))
-        assertEquals("Home screen ready", Summary.homeAndRecents(homeOffered = true, isDefault = false))
-        assertEquals("Recent apps only", Summary.homeAndRecents(homeOffered = false, isDefault = false))
+        assertEquals("CLauncher, Ink Recents", Summary.homeAndRecents(0))
+        assertEquals("1 of 2 installed", Summary.homeAndRecents(1))
+        assertEquals("Both installed", Summary.homeAndRecents(2))
     }
 
     @Test

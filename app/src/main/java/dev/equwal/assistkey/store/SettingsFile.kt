@@ -29,7 +29,6 @@ object SettingsFile {
         "assistkey" to setOf("bindings", "multitap_ms", "hold_ms", "chord_ms"),
         "assistkey_channels" to null,
         "assistkey_nav" to setOf("buttons", "gestures", "keys"),
-        "assistkey_home" to setOf("favourites", "hidden", "clock", "auto_open"),
         "assistkey_voice" to setOf("engine", "language"),
         "assistkey_device" to setOf("ai_key_returns"),
         "assistkey_power" to setOf("wanted")

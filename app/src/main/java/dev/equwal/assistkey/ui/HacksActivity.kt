@@ -35,12 +35,12 @@ class HacksActivity : Activity() {
 
     private fun build() {
         val col = Ui.page(this, "Hardware hacks")
-        fun door(title: String, hint: String, ch: Channel) = col.row(
-            title, hint, state = if (Channels.isSatisfied(this, ch)) "On" else "Off"
+        fun door(title: String, hint: String, vararg ways: Channel) = col.row(
+            title, hint, state = if (ways.any { Channels.isSatisfied(this, it) }) "On" else "Off"
         ) { startActivity(Intent(this, PowerActivity::class.java)) }
         door("Hold Power", "Through the assistant role", Channel.ASSISTANT)
-        door("Double tap Power", "Through the camera intent. No camera button.", Channel.CAMERA)
-        door("Wallet button", "Through the wallet role", Channel.WALLET)
+        // One gesture, two ways in. A device sends the double tap to the camera or to the wallet.
+        door("Double tap Power", "Through the camera or the wallet intent", Channel.CAMERA, Channel.WALLET)
         if (Shell.SUPPORTED) {
             col.row(
                 "Full Power button",

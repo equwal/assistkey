@@ -5,8 +5,8 @@ Formerly AssistKey. The package id, the repository and the code keep the old nam
 Remaps the hardware keys of an Android device - volume keys, the Power button,
 and whatever else the device has - to arbitrary actions, with multi-tap,
 press-and-hold and key combinations. Also: navigation in any mix of button bar,
-gestures and the Power key; a frontlight level below the system's floor; a
-plain text home screen and recent-apps list made for e-ink.
+gestures and the Power key; a frontlight level below the system's floor; and a
+recent-apps list made for e-ink.
 
 It runs on any Android 12+ device. The **Viwoods AiPaper Reader** is the first
 device profile, because that is where it was built; see *Device profiles*.
@@ -154,16 +154,21 @@ The Viwoods voice prompt is not reusable. It uploads audio to the Viwoods cloud
 Debug builds carry `FakeRecognitionService`, which hears a fixed sentence, so
 the whole chain can be tested on a bench with no voice.
 
-## Home screen and recent apps
+## Home, recent apps, speech: apps of other makers
 
-`home/`. The home screen is a clock, a few chosen apps and a search line; the
-app list is hidden until you type, and a single match opens itself. It is
-original code: the idea is shared with CLauncher/Olauncher, which are GPL-3.0
-and therefore cannot be copied into this app. Disabled in the manifest until
-switched on. Recent apps is a row of cards like the Android switcher, drawn for
-e-ink: outlines, no animation, one jump per card. A card closes with a swipe up
-when there is shell access, and shows the task picture the system keeps when
-the shell is root (`/data/system_ce/0/snapshots`, owned by `system`).
+Rebind has no recent-apps screen of its own. That screen is a program of its
+own, open source: [Ink Recents](https://github.com/equwal/ink-recents). The
+Recent apps action opens it (`dev.equwal.inkrecents.OPEN`). Where it is not
+installed, the action opens the screen that offers it. `home/RecentsActivity`
+is only that stand-in, and keeps the class name that old bindings hold.
+
+Rebind has no home screen of its own. The `full` build carries the release
+APKs of other makers, not changed, in `app/src/full/assets/bundled/`, and
+installs them with `REQUEST_INSTALL_PACKAGES`: CLauncher (home screen,
+GPL-3.0), Ink Recents (GPL-3.0) and Whisper (speech to text, MIT).
+`NOTICE.txt` in that folder names each maker, licence, source and SHA-256.
+Android asks the user before each install. The `play` build carries nothing
+and has no install permission. It opens the page of the maker.
 
 ## Why it is shaped like this
 
@@ -432,7 +437,8 @@ engine/    the gesture state machine and the accessibility service
 channel/   the key filter switch and the Power side doors (assistant, camera, wallet)
 device/    device profiles
 display/   the extra-dim light
-home/      the home screen and the recent-apps cards
+home/      the stand-in that opens Ink Recents
+bundle/    apps of other makers that the full build carries (per flavour)
 menu/      the menu of actions
 shell/     shell access through Shizuku, and the managed Power button
 voice/     voice typing: recognizer choice, the listening screen, text insert

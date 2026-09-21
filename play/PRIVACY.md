@@ -34,12 +34,9 @@ field that has the cursor. To do that it reads the current text of that one
 field at that moment. It keeps and sends none of it, and never writes into
 password fields.
 
-**Recent apps.** If you use the recent-apps list without shell access, it
-reads the usage log Android keeps, with the usage access you grant, to put apps
-in order of last use. This happens on the device each time the list opens;
-nothing from it is stored or sent.
+**Recent apps.** Rebind has no recent-apps list of its own. The Recent apps action opens Ink Recents, a separate app with a privacy policy of its own.
 
-**Closing apps.** When you close an app in the recent-apps list, Rebind asks Android to end the background processes of that app, and remembers on your device the time you closed it, so that the app stays off the list until you open it again.
+**Apps of other makers.** The build for direct install carries the release files of three other apps (CLauncher, Ink Recents, Whisper) and can hand them to the installer of Android, which asks you first. Rebind downloads nothing. Each of those apps has its own policy. The Google Play build carries none of them.
 
 **The on-screen button.** If you give the on-screen button an action, the accessibility service draws a small round button over other apps. It reads nothing from the screen. It remembers only where you put it.
 

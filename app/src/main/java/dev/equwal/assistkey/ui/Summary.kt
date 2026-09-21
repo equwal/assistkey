@@ -50,11 +50,11 @@ object Summary {
         else -> "Ready"
     }
 
-    /** The home screen and the recent-apps cards. */
-    fun homeAndRecents(homeOffered: Boolean, isDefault: Boolean): String = when {
-        isDefault -> "Home screen in use"
-        homeOffered -> "Home screen ready"
-        else -> "Recent apps only"
+    /** CLauncher and Ink Recents: how many of the two are installed. */
+    fun homeAndRecents(installed: Int): String = when (installed) {
+        0 -> "CLauncher, Ink Recents"
+        2 -> "Both installed"
+        else -> "1 of 2 installed"
     }
 
     /**

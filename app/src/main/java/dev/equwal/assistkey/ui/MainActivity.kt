@@ -14,7 +14,6 @@ import android.widget.TextView
 import dev.equwal.assistkey.channel.Channel
 import dev.equwal.assistkey.channel.Channels
 import dev.equwal.assistkey.device.Detect
-import dev.equwal.assistkey.home.HomeActivity
 import dev.equwal.assistkey.license.License
 import dev.equwal.assistkey.license.PlayBilling
 import dev.equwal.assistkey.model.GestureType
@@ -174,16 +173,11 @@ class MainActivity : Activity() {
         )
     }
 
-    private fun homeSummary(): String {
-        val cn = android.content.ComponentName(this, HomeActivity::class.java)
-        val offered = packageManager.getComponentEnabledSetting(cn) ==
-            android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-        val isDefault = packageManager.resolveActivity(
-            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME),
-            android.content.pm.PackageManager.MATCH_DEFAULT_ONLY
-        )?.activityInfo?.packageName == packageName
-        return Summary.homeAndRecents(offered, isDefault)
-    }
+    private fun homeSummary(): String = Summary.homeAndRecents(
+        listOf("app.clauncher", "dev.equwal.inkrecents").count { pkg ->
+            runCatching { packageManager.getPackageInfo(pkg, 0) }.isSuccess
+        }
+    )
 
     private fun setupSummary(): String {
         val granted = PermissionsActivity.granted(this)
