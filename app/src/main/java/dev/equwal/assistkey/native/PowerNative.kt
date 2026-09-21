@@ -69,6 +69,37 @@ object PowerNative {
 
     val onOff = listOf(Option(1, "On"), Option(0, "Off"))
 
+    // ---- Emergency SOS ----------------------------------------------------------------
+
+    private const val EMERGENCY_GESTURE = "emergency_gesture_enabled"
+    private const val PREFS = "assistkey_power"
+    private const val K_SOS = "system_sos"
+
+    /**
+     * What the user chose here. The setting itself cannot be read by an app, so
+     * the app remembers its own last write. True, the system default, until then.
+     */
+    fun emergencySos(c: Context): Boolean =
+        c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(K_SOS, true)
+
+    /**
+     * Switches the system's "press Power five times" Emergency SOS. It writes
+     * the setting directly when the app holds WRITE_SECURE_SETTINGS, and asks
+     * the shell otherwise. [done] gets false when neither way is open.
+     */
+    fun setEmergencySos(c: Context, on: Boolean, done: (Boolean) -> Unit) {
+        val value = if (on) "1" else "0"
+        fun remember(ok: Boolean) {
+            if (ok) c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(K_SOS, on).apply()
+            done(ok)
+        }
+        val direct = runCatching { Settings.Secure.putString(c.contentResolver, EMERGENCY_GESTURE, value) }
+            .getOrDefault(false)
+        if (direct) return remember(true)
+        if (!dev.equwal.assistkey.shell.Shell.ready) return remember(false)
+        dev.equwal.assistkey.shell.Shell.run("settings put secure $EMERGENCY_GESTURE $value") { remember(it.ok) }
+    }
+
     fun canWriteSecure(c: Context): Boolean =
         c.checkSelfPermission(android.Manifest.permission.WRITE_SECURE_SETTINGS) ==
             PackageManager.PERMISSION_GRANTED

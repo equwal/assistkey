@@ -59,12 +59,11 @@ class ActionPickerActivity : Activity() {
         navigation(col)
         if (dev.equwal.assistkey.shell.Shell.SUPPORTED) {
             col.header("Light")
-            listOf(
-                "Extra-dim: darker" to "darker",
-                "Extra-dim: brighter" to "brighter",
-                "Extra-dim: on and off" to "toggle"
-            ).forEach { (label, what) ->
-                col.row(label, null) { choose(ActionSpec(ActionKind.DIM, what, label)) }
+            listOf("toggle", "darker", "brighter").forEach { what ->
+                val spec = ActionSpec(ActionKind.DIM, what, "")
+                col.row(spec.describe(), if (what == "toggle") "On is the lowest level. Off is your system brightness." else null) {
+                    choose(spec)
+                }
             }
         }
         col.header("Typing")

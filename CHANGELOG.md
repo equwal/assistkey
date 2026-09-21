@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.0.7-alpha - 2026-09-21
+
+Version code 7.
+
+- **Fix: Extra dim toggle.** On now goes to the lowest level (1). Off gives the
+  light back to the brightness set in the system. Before, on used the level
+  that was last in use, or a middle level. Regression tests added.
+- **Emergency SOS switch.** Android starts Emergency SOS on five quick Power
+  presses, which collides with a 5-tap binding. The Power screen now has a
+  switch for it (`emergency_gesture_enabled`). The app never turns it off by
+  itself. The switch shows only where the app can write the setting.
+- The three light actions are now named Extra dim toggle, Extra dim darker and
+  Extra dim brighter. A binding made by 0.0.6 shows the new name with no change.
+
 ## 0.0.6-alpha - 2026-09-21
 
 Version code 6.

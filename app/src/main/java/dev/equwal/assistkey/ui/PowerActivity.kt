@@ -57,6 +57,27 @@ class PowerActivity : Activity() {
         col.title("Power button")
         val direct = Shell.ready && PowerControl.wanted(this)
         if (direct) direct(col) else sideDoors(col)
+        emergencySos(col)
+    }
+
+    /**
+     * Android starts Emergency SOS on five quick Power presses. That collides
+     * with a 5-tap binding, and with fast tapping in general. It is a safety
+     * feature, so the app never turns it off by itself: this is the user's switch.
+     */
+    private fun emergencySos(col: LinearLayout) {
+        if (!Shell.ready && !PowerNative.canWriteSecure(this)) return
+        col.header("Emergency SOS")
+        col.check(
+            "System Emergency SOS on five presses",
+            "A safety feature of Android. Untick it if five quick presses start it by accident, or to use 5 taps for an action.",
+            PowerNative.emergencySos(this)
+        ) { on ->
+            PowerNative.setEmergencySos(this, on) { ok ->
+                if (!ok) Toast.makeText(this, "The system refused", Toast.LENGTH_LONG).show()
+                build()
+            }
+        }
     }
 
     private fun bindRow(col: LinearLayout, label: String, t: Trigger, enabled: Boolean = true) {

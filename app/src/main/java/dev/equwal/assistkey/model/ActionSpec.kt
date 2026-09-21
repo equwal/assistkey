@@ -67,7 +67,17 @@ data class ActionSpec(
         .put("payload", payload)
         .put("label", label)
 
-    fun describe(): String = label.ifBlank {
+    /**
+     * The name of a light action comes from its payload, not from the stored
+     * label, so that a binding made by an older version shows the current name.
+     */
+    private fun dimName(): String = when (payload) {
+        "darker" -> "Extra dim darker"
+        "brighter" -> "Extra dim brighter"
+        else -> "Extra dim toggle"
+    }
+
+    fun describe(): String = if (kind == ActionKind.DIM) dimName() else label.ifBlank {
         when (kind) {
             ActionKind.NONE -> "Disabled"
             ActionKind.PASS_THROUGH -> "Default behaviour"

@@ -43,8 +43,6 @@ object ExtraDim {
 
     // ---- from a key ---------------------------------------------------------------------
 
-    private const val K_LAST = "extra_dim_last"
-
     /**
      * The order of brightness, darkest last: off (the system level), then the
      * levels under the floor from high to low. [darker] is one step down that
@@ -61,17 +59,20 @@ object ExtraDim {
         return if (i <= 0) 0 else levels[i - 1]
     }
 
+    /**
+     * On and off. On is the lowest level there is. Off gives the light back to
+     * the brightness the user set in the system.
+     */
+    fun toggled(level: Int, levels: List<Int>): Int = if (level > 0) 0 else levels.lastOrNull() ?: 0
+
     /** Runs a key action: "darker", "brighter" or "toggle". */
     fun act(c: Context, what: String, done: (Boolean) -> Unit = {}) {
-        val p = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val now = level(c)
         val next = when (what) {
             "darker" -> darker(now, levels())
             "brighter" -> brighter(now, levels())
-            // Toggle goes back to the level that was in use, not to a fixed one.
-            else -> if (now > 0) 0 else p.getInt(K_LAST, levels().getOrElse(levels().size / 2) { 0 })
+            else -> toggled(now, levels())
         }
-        if (next > 0) p.edit().putInt(K_LAST, next).apply()
         if (next == now) return done(true)
         set(c, next, done)
     }
