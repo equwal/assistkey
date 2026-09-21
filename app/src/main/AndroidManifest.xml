@@ -101,7 +101,6 @@
             android:name=".voice.DictationActivity"
             android:exported="false"
             android:excludeFromRecents="true"
-            android:noHistory="true"
             android:launchMode="singleInstance"
             android:taskAffinity=""
             android:theme="@style/Theme.Invisible" />

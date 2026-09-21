@@ -28,6 +28,7 @@ import dev.equwal.assistkey.route.ServiceHolder
 class DictationActivity : Activity() {
 
     private companion object {
+        private const val SCREEN = 1
         /** Time for the window behind to be the front window again. */
         const val INSERT_DELAY_MS = 300L
     }
@@ -66,7 +67,32 @@ class DictationActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        if (recognizer == null) listen()
+        if (recognizer != null || onScreen) return
+        if (Dictation.usesScreen(this, Dictation.engine(this)) && listenOnScreen()) return
+        listen()
+    }
+
+    /** True while the speech app listens on a screen of its own. */
+    private var onScreen = false
+
+    /**
+     * The other way to listen: the speech screen of the speech app, which
+     * gives the words back as a result. See [Dictation.fallBackToScreen].
+     */
+    private fun listenOnScreen(): Boolean {
+        val engine = Dictation.engine(this) ?: return false
+        val ask = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).setPackage(engine.packageName)
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        Dictation.language(this).takeIf { it.isNotEmpty() }?.let { ask.putExtra(RecognizerIntent.EXTRA_LANGUAGE, it) }
+        if (ask.resolveActivity(packageManager) == null) return false
+        return runCatching { startActivityForResult(ask, SCREEN) }.isSuccess.also { onScreen = it }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != SCREEN) return
+        onScreen = false
+        done(data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull())
     }
 
     override fun onDestroy() {
@@ -103,6 +129,14 @@ class DictationActivity : Activity() {
 
         override fun onError(error: Int) {
             Log.i("AssistKey", "speech recognition error " + error)
+            val engine = Dictation.engine(this@DictationActivity)
+            if (Dictation.fallBackToScreen(error, screenAvailable = engine != null)) {
+                close()
+                if (listenOnScreen()) {
+                    Dictation.rememberScreen(this@DictationActivity, engine)
+                    return
+                }
+            }
             Dictation.toast(
                 this@DictationActivity,
                 when (error) {

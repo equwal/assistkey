@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- **Fix: voice typing said "The microphone is not allowed" although it was
+  allowed.** Android gives the microphone to an app only while that app is in
+  use. The Viwoods firmware does not count a speech app as in use while it
+  listens in the background for another app, so Whisper was refused (error
+  9). Rebind now goes to the speech screen of the speech app, where that app
+  is in use, takes the words from its result, and remembers the route.
+  Regression test: `DictationRouteTest`.
+- **Fix: "Let Rebind get the Power hold" opened nothing.** Android has no
+  request dialog for the assistant role. The row now opens the settings page
+  "Default digital assistant app".
+
 ## 0.0.13-alpha - 2026-09-21
 
 Version code 13.

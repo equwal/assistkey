@@ -145,8 +145,10 @@ object Channels {
     fun claimIntent(c: Context, ch: Channel): Intent = when (ch) {
         Channel.ACCESSIBILITY -> Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
 
-        Channel.ASSISTANT -> roleRequest(c, RoleManager.ROLE_ASSISTANT)
-            ?: Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
+        // Android has no request dialog for the assistant role: the request
+        // intent closes at once and the user sees nothing. The settings page
+        // "Digital assistant app" is the only way in.
+        Channel.ASSISTANT -> Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
 
         Channel.WALLET -> roleRequest(c, ROLE_WALLET)
             ?: defaultApps()

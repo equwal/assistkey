@@ -85,6 +85,31 @@ object Dictation {
         c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(K_LANGUAGE, tag.trim()).apply()
     }
 
+    /**
+     * True when the speech app must listen on a screen of its own. Android
+     * gives the microphone to an app only while that app is in use. Some
+     * firmware does not count a speech app as in use while it listens in the
+     * background for another app. It then refuses with this error, although
+     * every grant is in place. On its own screen the speech app is in use.
+     */
+    fun fallBackToScreen(error: Int, screenAvailable: Boolean): Boolean =
+        error == ERROR_INSUFFICIENT_PERMISSIONS && screenAvailable
+
+    /** SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS, as a plain number for tests. */
+    const val ERROR_INSUFFICIENT_PERMISSIONS = 9
+
+    private const val K_SCREEN_ROUTE = "screen_route"
+
+    /** The speech app that was refused in the background before. It goes to its screen at once. */
+    fun usesScreen(c: Context, engine: ComponentName?): Boolean =
+        engine != null && c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getString(K_SCREEN_ROUTE, null) == engine.flattenToString()
+
+    fun rememberScreen(c: Context, engine: ComponentName?) {
+        c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putString(K_SCREEN_ROUTE, engine?.flattenToString()).apply()
+    }
+
     fun hasMicrophone(c: Context): Boolean =
         c.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
 
