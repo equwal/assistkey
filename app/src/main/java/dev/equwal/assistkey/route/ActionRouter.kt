@@ -37,6 +37,7 @@ object ActionRouter {
                     dev.equwal.assistkey.display.ExtraDim.act(ctx.applicationContext, spec.payload)
                     true
                 }
+                ActionKind.NAV -> dev.equwal.assistkey.native.NavNative.toggleBar(ctx.applicationContext)
                 ActionKind.VOICE -> ServiceHolder.service
                     ?.let { dev.equwal.assistkey.voice.Dictation.toggle(it) } ?: false
             }

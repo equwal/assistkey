@@ -5,6 +5,11 @@
 - **Change a button from the Done step.** "Change what it does" and "Change
   how you press it" go back to those steps with the button kept. Back on the
   Done step goes to the actions too. Tests: `Route.back`.
+- **Show or hide the button bar** is an action (build for direct install).
+  Android 16 has no auto-hide for the three-button bar, so a button does it.
+  It uses the shell commands of the Navigation screen and keeps the gestures
+  as they are. The allow step asks for shell access for this action and for
+  the light actions.
 - **AI voice prompt** is an action of its own (Viwoods). It is what the
   firmware does on a hold of the AI key: the Viwoods AI screen, told to start
   its voice prompt. It needs the Viwoods AI account, as the stock hold does.

@@ -26,6 +26,12 @@ enum class ActionKind {
     /** payload = package name; launches its main activity */
     LAUNCH_APP,
 
+    /**
+     * payload = toggle_bar. Shows or hides the three-button bar through shell
+     * access. Android 16 has no auto-hide for that bar, so a button does it.
+     */
+    NAV,
+
     /** payload = "pkg/class"; explicit component, no intent-filter needed */
     LAUNCH_COMPONENT,
 

@@ -77,6 +77,22 @@ object NavNative {
         return out
     }
 
+    const val PREFS = "assistkey_nav"
+
+    /**
+     * Shows the button bar when it is hidden, and hides it when it shows. The
+     * gestures stay as the user set them. It needs shell access. False where
+     * there is none.
+     */
+    fun toggleBar(c: Context): Boolean {
+        if (!dev.equwal.assistkey.shell.Shell.ready) return false
+        val p = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val buttons = !p.getBoolean("buttons", true)
+        p.edit().putBoolean("buttons", buttons).apply()
+        dev.equwal.assistkey.shell.Shell.runAll(shellCommands(buttons, p.getBoolean("gestures", true)))
+        return true
+    }
+
     /** The same, for someone typing them at a computer. */
     fun commands(buttons: Boolean, gestures: Boolean): List<String> =
         shellCommands(buttons, gestures).filterNot { it.startsWith("sleep") }.distinct().map { "adb shell $it" }

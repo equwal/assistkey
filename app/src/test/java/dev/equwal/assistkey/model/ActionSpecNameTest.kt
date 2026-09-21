@@ -21,4 +21,10 @@ class ActionSpecNameTest {
     @Test fun `other actions keep their stored label`() {
         assertEquals("Back", ActionSpec(ActionKind.GLOBAL, "BACK", "Back").describe())
     }
+
+    @Test fun `the button bar action has a name a person can read, and survives a save`() {
+        val spec = ActionSpec(ActionKind.NAV, "toggle_bar", "Show or hide the button bar")
+        assertEquals("Show or hide the button bar", spec.describe())
+        assertEquals(ActionKind.NAV, ActionKind.fromName("NAV"))
+    }
 }

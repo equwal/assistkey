@@ -65,6 +65,8 @@ class ActionPickerActivity : Activity() {
         viwoods(col)
         navigation(col)
         if (dev.equwal.assistkey.shell.Shell.SUPPORTED) {
+            col.header("Button bar")
+            col.row(NAV_TOGGLE.label, "Needs shell access") { choose(NAV_TOGGLE) }
             col.header("Light")
             listOf("toggle", "darker", "brighter", "system_up", "system_down").forEach { what ->
                 val spec = ActionSpec(ActionKind.DIM, what, "")
@@ -231,6 +233,7 @@ class ActionPickerActivity : Activity() {
     companion object {
         private const val EXTRA_TRIGGER = "trigger"
         private const val EXTRA_PICK_ONLY = "pick_only"
+        private val NAV_TOGGLE = ActionSpec(ActionKind.NAV, "toggle_bar", "Show or hide the button bar")
 
         /** Set by the guided setup, which asks for what a binding needs by itself. */
         const val EXTRA_NO_ASK = "no_ask"

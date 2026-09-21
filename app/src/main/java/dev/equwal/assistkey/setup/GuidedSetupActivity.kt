@@ -295,7 +295,8 @@ class GuidedSetupActivity : Activity() {
 
         val missing = plan.needs.filterNot(::satisfied)
         val microphone = spec.kind == ActionKind.VOICE && !Dictation.hasMicrophone(this)
-        if (plan.possible && missing.isEmpty() && !microphone) return if (askOnly) finish() else go(Step.DONE)
+        val shell = needsShell(spec) && !Shell.ready
+        if (plan.possible && missing.isEmpty() && !microphone && !shell) return if (askOnly) finish() else go(Step.DONE)
 
         plan.blocked?.let {
             col.note(it)
@@ -307,6 +308,11 @@ class GuidedSetupActivity : Activity() {
         if (microphone) {
             col.row("Allow the microphone", "For Voice typing") {
                 requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), 1)
+            }
+        }
+        if (shell) {
+            col.row("Turn on shell access", "This action works through Shizuku") {
+                startActivity(Intent(this, ShellActivity::class.java))
             }
         }
         if (Need.KEY_FILTER in missing) {
@@ -374,8 +380,13 @@ class GuidedSetupActivity : Activity() {
             val needsFilter = ActionRouter.requiresAccessibility(spec) || spec.kind == ActionKind.MENU
             val plan = Route.plan(t, needsFilter, env(c))
             val microphone = spec.kind == ActionKind.VOICE && !Dictation.hasMicrophone(c)
-            return !(plan.possible && plan.needs.all { satisfied(c, it) } && !microphone)
+            val shell = needsShell(spec) && !Shell.ready
+            return !(plan.possible && plan.needs.all { satisfied(c, it) } && !microphone && !shell)
         }
+
+        /** The light and the button bar are set by shell commands. */
+        private fun needsShell(spec: ActionSpec): Boolean =
+            Shell.SUPPORTED && (spec.kind == ActionKind.NAV || spec.kind == ActionKind.DIM)
 
         private fun env(c: android.content.Context): Route.Env =
             Route.Env(powerIsDirect = Shell.ready && PowerControl.wanted(c), shellSupported = Shell.SUPPORTED)
