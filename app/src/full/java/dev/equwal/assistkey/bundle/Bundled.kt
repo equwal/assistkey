@@ -40,8 +40,12 @@ object Bundled {
 
     val items = listOf(
         Item(
-            HOME, "CLauncher", "Minimal home screen", "app.clauncher", "v5.3.0", "GPL-3.0",
-            "https://github.com/mlm-games/CLauncher", "bundled/clauncher-v5.3.0-universal.apk"
+            HOME, "inkOS", "Text home screen for e-ink", "app.inkos", "v0.6", "GPL-3.0",
+            "https://github.com/gezimos/inkOS", "bundled/app.inkos_v0.6-Signed.apk"
+        ),
+        Item(
+            HOME, "ThinkLauncher", "Minimal home screen for e-ink", "org.matiasdesu.thinklauncherv2", "v3.0", "GPL-3.0",
+            "https://github.com/MatiasDesuu/ThinkLauncher", "bundled/thinklauncher-v3.0.apk"
         ),
         Item(
             HOME, "Ink Recents", "Recent apps, drawn for e-ink", "dev.equwal.inkrecents", "0.1.1", "GPL-3.0",

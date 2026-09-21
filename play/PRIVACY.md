@@ -36,7 +36,7 @@ password fields.
 
 **Recent apps.** Rebind has no recent-apps list of its own. The Recent apps action opens Ink Recents, a separate app with a privacy policy of its own.
 
-**Apps of other makers.** The build for direct install carries the release files of three other apps (CLauncher, Ink Recents, Whisper) and can hand them to the installer of Android, which asks you first. Rebind downloads nothing. Each of those apps has its own policy. The Google Play build carries none of them.
+**Apps of other makers.** The build for direct install carries the release files of other apps (inkOS, ThinkLauncher, Ink Recents, Whisper) and can hand them to the installer of Android, which asks you first. Rebind downloads nothing. Each of those apps has its own policy. The Google Play build carries none of them.
 
 **The on-screen button.** If you give the on-screen button an action, the accessibility service draws a small round button over other apps. It reads nothing from the screen. It remembers only where you put it.
 

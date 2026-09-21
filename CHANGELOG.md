@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.0.13-alpha - 2026-09-21
+
+Version code 13.
+
+- **Home screens: inkOS and ThinkLauncher in place of CLauncher.** The build
+  for direct install carries inkOS v0.6 and ThinkLauncher v3.0, both made for
+  e-ink, both GPL-3.0, each the release file of its maker and not changed.
+  ThinkLauncher has the internet permission of its own. Rebind still has
+  none.
 
 - **Change a button from the Done step.** "Change what it does" and "Change
   how you press it" go back to those steps with the button kept. Back on the

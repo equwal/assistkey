@@ -3,11 +3,17 @@ Apps of other makers in this folder
 Each file is the release APK of its maker, not changed in any way. It is a
 separate program. Rebind only hands it to the package installer of Android.
 
-clauncher-v5.3.0-universal.apk
-  CLauncher v5.3.0, by mlm-games
+app.inkos_v0.6-Signed.apk
+  inkOS v0.6, by gezimos
   Licence: GNU General Public License v3.0
-  Source code and releases: https://github.com/mlm-games/CLauncher
-  SHA-256: aedb78216822d5c8924eb125529f2dfa9140e4841b87ed309eca8f12f38956eb
+  Source code and releases: https://github.com/gezimos/inkOS
+  SHA-256: 8e09698279a857651b38590315952eb6c4bd6451f7dd22ff4f7a1893d83a051f
+
+thinklauncher-v3.0.apk
+  ThinkLauncher v3.0, by MatiasDesuu (the file app-release.apk of that release)
+  Licence: GNU General Public License v3.0
+  Source code and releases: https://github.com/MatiasDesuu/ThinkLauncher
+  SHA-256: 123cae5b3f18e0e4ddf21bf0f949c2bd20b9bd7351f334b484045f7bfc305822
 
 ink-recents-0.1.1.apk
   Ink Recents 0.1.1, by equwal

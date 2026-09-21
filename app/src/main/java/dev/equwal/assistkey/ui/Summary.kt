@@ -50,11 +50,11 @@ object Summary {
         else -> "Ready"
     }
 
-    /** CLauncher and Ink Recents: how many of the two are installed. */
-    fun homeAndRecents(installed: Int): String = when (installed) {
-        0 -> "CLauncher, Ink Recents"
-        2 -> "Both installed"
-        else -> "1 of 2 installed"
+    /** The home screens and Ink Recents: how many of them are installed. */
+    fun homeAndRecents(installed: Int, offered: Int): String = when (installed) {
+        0 -> "Home screens, Ink Recents"
+        offered -> "All installed"
+        else -> installed.toString() + " of " + offered + " installed"
     }
 
     /**

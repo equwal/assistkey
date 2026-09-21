@@ -175,8 +175,9 @@ is only that stand-in, and keeps the class name that old bindings hold.
 
 Rebind has no home screen of its own. The `full` build carries the release
 APKs of other makers, not changed, in `app/src/full/assets/bundled/`, and
-installs them with `REQUEST_INSTALL_PACKAGES`: CLauncher (home screen,
-GPL-3.0), Ink Recents (GPL-3.0) and Whisper (speech to text, MIT).
+installs them with `REQUEST_INSTALL_PACKAGES`: inkOS and ThinkLauncher (home
+screens for e-ink, GPL-3.0), Ink Recents (GPL-3.0) and Whisper (speech to
+text, MIT).
 `NOTICE.txt` in that folder names each maker, licence, source and SHA-256.
 Android asks the user before each install. The `play` build carries nothing
 and has no install permission. It opens the page of the maker.

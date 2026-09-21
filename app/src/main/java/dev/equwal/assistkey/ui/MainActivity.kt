@@ -11,6 +11,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import android.widget.TextView
+import dev.equwal.assistkey.bundle.Bundled
 import dev.equwal.assistkey.channel.Channel
 import dev.equwal.assistkey.channel.Channels
 import dev.equwal.assistkey.device.Detect
@@ -173,11 +174,13 @@ class MainActivity : Activity() {
         )
     }
 
-    private fun homeSummary(): String = Summary.homeAndRecents(
-        listOf("app.clauncher", "dev.equwal.inkrecents").count { pkg ->
-            runCatching { packageManager.getPackageInfo(pkg, 0) }.isSuccess
-        }
-    )
+    private fun homeSummary(): String {
+        val home = Bundled.items.filter { it.group == Bundled.HOME }
+        return Summary.homeAndRecents(
+            home.count { runCatching { packageManager.getPackageInfo(it.pkg, 0) }.isSuccess },
+            home.size
+        )
+    }
 
     private fun setupSummary(): String {
         val granted = PermissionsActivity.granted(this)
