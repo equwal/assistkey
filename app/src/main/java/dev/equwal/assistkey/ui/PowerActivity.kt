@@ -1,14 +1,22 @@
 package dev.equwal.assistkey.ui
 
 import android.app.Activity
+import android.content.Intent
 import android.widget.LinearLayout
 import android.widget.Toast
 import dev.equwal.assistkey.channel.Channel
 import dev.equwal.assistkey.channel.Channels
+import dev.equwal.assistkey.engine.KeyFilterService
+import dev.equwal.assistkey.model.GestureType
 import dev.equwal.assistkey.model.HwKey
 import dev.equwal.assistkey.model.Trigger
 import dev.equwal.assistkey.native.PowerNative
+import dev.equwal.assistkey.route.ServiceHolder
+import dev.equwal.assistkey.shell.PowerControl
+import dev.equwal.assistkey.shell.Shell
 import dev.equwal.assistkey.store.Store
+import dev.equwal.assistkey.ui.Ui.button
+import dev.equwal.assistkey.ui.Ui.check
 import dev.equwal.assistkey.ui.Ui.code
 import dev.equwal.assistkey.ui.Ui.header
 import dev.equwal.assistkey.ui.Ui.note
@@ -16,262 +24,207 @@ import dev.equwal.assistkey.ui.Ui.row
 import dev.equwal.assistkey.ui.Ui.title
 
 /**
- * Power is its own screen because it is not like the other keys.
+ * The Power button.
  *
- * PhoneWindowManager consumes KEYCODE_POWER before the input dispatcher, so no
- * app - accessibility service or otherwise - ever sees it. That leaves exactly
- * three slots, each reached a different way: short press is firmware-only,
- * double press arrives as a camera or wallet launch, and long press arrives as
- * an assistant request. No multi-tap beyond two, and no chords.
+ * It has two lives. With shell access the app reads the button straight from
+ * the kernel and it becomes a key like any other: any number of taps, hold, and
+ * combinations. Without shell access no app is ever shown the key, and what is
+ * left is two side doors - a hold arrives as an assistant request, a double
+ * press as a camera launch - plus whatever the firmware's own switches offer.
+ *
+ * The bindings are the same in both lives. "Hold" is one binding whichever door
+ * it comes through, so gaining or losing shell access changes what can fire,
+ * never what is configured.
  */
 class PowerActivity : Activity() {
 
-    private var readable = true
+    private val redraw: () -> Unit = { if (!isFinishing) build() }
 
     override fun onResume() {
         super.onResume()
+        Shell.onChange(redraw)
+        Shell.connect(this)
         build()
     }
 
+    override fun onPause() {
+        super.onPause()
+        Shell.removeOnChange(redraw)
+    }
+
     private fun build() {
-        readable = PowerNative.canRead(this)
         val col = Ui.page(this)
         col.title("Power button")
-        col.note(
-            "The system eats the power key before any app can filter it, so " +
-                "these three slots are everything that is reachable."
-        )
-
-        if (!PowerNative.canWriteSecure(this)) {
-            col.note(
-                "The firmware switches below cannot be changed without a " +
-                    "permission that only adb can grant. Run this once with the " +
-                    "device plugged in:"
-            )
-            col.code(PowerNative.GRANT_COMMAND)
-        } else if (!readable) {
-            col.note(
-                "Android blocks apps from reading these particular settings, so " +
-                    "the current values show as unknown. Writing them still " +
-                    "works - pick a value and it is applied."
-            )
-        }
-
-        shortPress(col)
-        doublePress(col)
-        longPress(col)
-        powerThen(col)
-        escapeHatch(col)
+        val direct = Shell.ready && PowerControl.wanted(this)
+        if (direct) direct(col) else sideDoors(col)
     }
 
-    // ---- hold Power, then press a key ---------------------------------------
+    private fun bindRow(col: LinearLayout, label: String, t: Trigger, enabled: Boolean = true) {
+        val spec = Store.bindings(this).raw(t)
+        col.row(label, spec.describe(), enabled) {
+            startActivity(ActionPickerActivity.intent(this, t))
+        }
+    }
 
-    private fun powerThen(col: LinearLayout) {
-        col.header("Hold Power, then press a key")
+    private val power = setOf(HwKey.POWER)
+
+    // ---- with shell access ----------------------------------------------------------------
+
+    private fun direct(col: LinearLayout) {
         col.note(
-            "Keep Power held for a moment, then press another key before letting " +
-                "go. It needs the digital assistant channel and the accessibility " +
-                "key filter, both on. While any of these is bound, the plain " +
-                "press-and-hold action above waits a second to see whether a key " +
-                "follows."
+            "AssistKey is reading the Power button directly. While anything is " +
+                "bound here the system's own reactions are switched off, so a " +
+                "gesture you leave unbound locks the screen, as Power always did."
         )
-        val b = Store.bindings(this)
+
+        col.header("Taps")
+        bindRow(col, "Tap", Trigger(power, GestureType.TAP, 1))
+        bindRow(col, "Double tap", Trigger(power, GestureType.TAP, 2))
+        bindRow(col, "Triple tap", Trigger(power, GestureType.TAP, 3))
+        bindRow(col, "4 taps", Trigger(power, GestureType.TAP, 4))
+        bindRow(col, "5 taps", Trigger(power, GestureType.TAP, 5))
+        col.note(
+            "A tap waits a moment for a second one only if double tap or more is " +
+                "bound. The wait is set under Gesture timing."
+        )
+
+        col.header("Hold")
+        bindRow(col, "Press and hold", Trigger(power, GestureType.HOLD))
+
+        col.header("Power held, plus another key")
         HwKey.interceptable.forEach { key ->
-            val t = Trigger.powerThen(key)
-            col.row("Power, then " + Ui.inSentence(key), b.raw(t).describe()) {
-                startActivity(ActionPickerActivity.intent(this, t))
-            }
+            bindRow(col, "Power + " + key.label, Trigger.powerThen(key))
         }
-    }
 
-    // ---- short press: firmware only ---------------------------------------
-
-    private fun shortPress(col: LinearLayout) {
-        col.header("Short press")
-        val cur = PowerNative.shortPressValue(this)
-        col.row(
-            "Currently: " + PowerNative.describe(PowerNative.shortPress, cur),
-            "Handled entirely by the firmware - this rewrites its setting"
-        ) {
-            pickNative("Short press", PowerNative.shortPress, cur) { v ->
-                apply(
-                    PowerNative.setShortPress(this, v),
-                    "global", PowerNative.SHORT_PRESS, v
-                )
-            }
-        }
-    }
-
-    // ---- double press: camera / wallet impersonation -----------------------
-
-    private fun doublePress(col: LinearLayout) {
-        col.header("Double press")
-        val camera = Channels.isSatisfied(this, Channel.CAMERA)
-        val wallet = Channels.isSatisfied(this, Channel.WALLET)
-
+        col.header("Safety")
         col.note(
-            when {
-                camera && wallet -> "Routed here through both the camera and wallet channels."
-                camera -> "Routed here through the camera channel."
-                wallet -> "Routed here through the wallet channel."
-                else ->
-                    "Nothing is routing double press here yet. Turn on the camera " +
-                        "or wallet channel on the main screen, then pick this app " +
-                        "as the double-press target in system settings."
+            "Power + Volume up always opens the power menu. The press that wakes " +
+                "the screen is never treated as a gesture. If shell access is lost - " +
+                "after a restart, say - the button goes back to the system until it " +
+                "returns."
+        )
+        col.check(
+            "Let AssistKey handle the Power button",
+            "Untick to give it back to the system and use the side doors instead",
+            true
+        ) { on ->
+            PowerControl.setWanted(this, on)
+            (ServiceHolder.service as? KeyFilterService)?.syncPower()
+            build()
+        }
+
+        if (ServiceHolder.service == null) {
+            col.note("The accessibility key filter is off, so nothing here can fire yet.")
+        }
+    }
+
+    // ---- without it --------------------------------------------------------------------------
+
+    private fun sideDoors(col: LinearLayout) {
+        col.note(
+            "Android does not show the Power button to apps. With shell access " +
+                "AssistKey can read it anyway and every gesture becomes available."
+        )
+        if (Shell.ready) {
+            col.check("Let AssistKey handle the Power button", "Tap, double tap, hold and more", false) {
+                PowerControl.setWanted(this, it)
+                (ServiceHolder.service as? KeyFilterService)?.syncPower()
+                build()
             }
+        } else {
+            col.row("Shell access: " + Shell.describe(this), "Unlocks tap, double tap, more taps and combinations") {
+                startActivity(Intent(this, ShellActivity::class.java))
+            }
+        }
+
+        col.header("Hold - through the assistant door")
+        door(col, Channel.ASSISTANT)
+        bindRow(col, "Press and hold", Channel.POWER_HOLD)
+        HwKey.interceptable.forEach { key ->
+            bindRow(col, "Power held, then " + Ui.inSentence(key), Trigger.powerThen(key))
+        }
+        col.note(
+            "While a held-then-key combination is bound, plain hold waits a second " +
+                "to see whether a key follows."
         )
 
-        val spec = Store.bindings(this)[Channel.POWER_DOUBLE]
-        col.row("Action", spec?.describe() ?: "Default behaviour") {
-            startActivity(ActionPickerActivity.intent(this, Channel.POWER_DOUBLE))
-        }
+        col.header("Double press - through the camera door")
+        door(col, Channel.CAMERA)
+        bindRow(col, "Double press", Channel.POWER_DOUBLE)
 
-        onOffRow(
-            col,
-            "Firmware double-press gesture",
-            PowerNative.doubleTapGestureEnabled(this),
-            "Must be on for double press to do anything at all"
-        ) { on ->
-            apply(
-                PowerNative.setDoubleTapGestureEnabled(this, on),
-                "secure", PowerNative.DOUBLE_TAP, if (on) 1 else 0
-            )
-        }
+        col.header("Tap")
+        col.note(
+            "A single tap cannot reach any app this way. The system's own choices " +
+                "are all there is:"
+        )
+        firmware(col)
 
-        onOffRow(
-            col,
-            "Camera double-press gesture",
-            PowerNative.cameraDoubleTapEnabled(this),
-            "The older camera-specific route, still live on this firmware"
-        ) { on ->
-            apply(
-                PowerNative.setCameraDoubleTapEnabled(this, on),
-                "secure", PowerNative.CAMERA_DOUBLE_TAP, if (on) 0 else 1
-            )
+        col.header("Wallet door")
+        door(col, Channel.WALLET)
+        col.note("Runs the double-press action from the wallet tile and lock-screen button.")
+    }
+
+    /** One side door: its switch, what state it is in, and how to open it. */
+    private fun door(col: LinearLayout, ch: Channel) {
+        val on = Channels.isEnabled(this, ch)
+        col.check(ch.title, ch.summary, on) { checked ->
+            Channels.setEnabled(this, ch, checked)
+            if (checked && !Channels.isSatisfied(this, ch)) claim(ch)
+            build()
+        }
+        if (on) {
+            col.row("Status: " + Channels.status(this, ch), null, enabled = false)
+            if (!Channels.isSatisfied(this, ch)) col.button("Set up") { claim(ch) }
         }
     }
 
-    // ---- long press: assistant impersonation -------------------------------
-
-    private fun longPress(col: LinearLayout) {
-        col.header("Press and hold")
-        val cur = PowerNative.longPressValue(this)
-        val held = Channels.isSatisfied(this, Channel.ASSISTANT)
-
-        col.note(
-            when {
-                cur == 5 && held ->
-                    "Routed here: the firmware sends hold to the assistant, and that is us."
-                cur == 5 ->
-                    "The firmware sends hold to the assistant, but this app does not " +
-                        "hold that role yet."
-                cur == null && held ->
-                    "This app holds the assistant role. Whether the firmware sends " +
-                        "hold to the assistant cannot be read, so try it and see."
-                cur == null ->
-                    "Neither the firmware setting nor the role is in place yet."
-                else ->
-                    "The firmware does not send hold to the assistant, so nothing " +
-                        "reaches this app."
-            }
-        )
-
-        val spec = Store.bindings(this)[Channel.POWER_HOLD]
-        col.row("Action", spec?.describe() ?: "Default behaviour") {
-            startActivity(ActionPickerActivity.intent(this, Channel.POWER_HOLD))
+    private fun claim(ch: Channel) {
+        if (ch == Channel.CAMERA) {
+            Toast.makeText(this, "Choose Camera app, then pick AssistKey", Toast.LENGTH_LONG).show()
         }
+        if (!Channels.safeStart(this, Channels.claimIntent(this, ch))) {
+            Toast.makeText(this, "No settings screen for that on this device", Toast.LENGTH_LONG).show()
+        }
+    }
 
+    // ---- the firmware's own switches -------------------------------------------------------
+
+    private fun firmware(col: LinearLayout) {
+        if (!PowerNative.canWriteSecure(this)) {
+            col.note("Changing them needs a permission that shell access grants by itself, or this once from a computer:")
+            col.code(PowerNative.GRANT_COMMAND)
+            return
+        }
+        val short = PowerNative.shortPressValue(this)
+        col.row("Tap: " + PowerNative.describe(PowerNative.shortPress, short), "Handled by the system") {
+            pick("Tap", PowerNative.shortPress, short) { v ->
+                applied(PowerNative.setShortPress(this, v))
+            }
+        }
+        val long = PowerNative.longPressValue(this)
         col.row(
-            "Firmware behaviour: " + PowerNative.describe(PowerNative.longPress, cur),
-            "Set this to Digital assistant"
+            "Hold: " + PowerNative.describe(PowerNative.longPress, long),
+            "Must be Digital assistant for the assistant door to open"
         ) {
-            pickNative("Press and hold", PowerNative.longPress, cur) { v ->
-                apply(PowerNative.setLongPress(this, v), "global", PowerNative.LONG_PRESS, v)
-            }
+            pick("Hold", PowerNative.longPress, long) { v -> applied(PowerNative.setLongPress(this, v)) }
         }
-
         val ms = PowerNative.longPressMs(this)
-        val opts = listOf(250, 350, 500, 650, 800, 1000).map {
-            PowerNative.Option(it, it.toString() + " ms")
-        }
-        col.row(
-            "Hold time: " + PowerNative.describe(opts, ms),
-            "How long the button must be down before it counts as a hold"
-        ) {
-            pickNative("Hold time", opts, ms) { v ->
-                apply(
-                    PowerNative.setLongPressMs(this, v),
-                    "global", PowerNative.LONG_PRESS_MS, v
-                )
-            }
+        val times = listOf(250, 350, 500, 650, 800, 1000).map { PowerNative.Option(it, it.toString() + " ms") }
+        col.row("Hold time: " + PowerNative.describe(times, ms), null) {
+            pick("Hold time", times, ms) { v -> applied(PowerNative.setLongPressMs(this, v)) }
         }
     }
 
-    private fun escapeHatch(col: LinearLayout) {
-        col.header("Escape hatch")
-        val cur = PowerNative.chordVolumeUpValue(this)
-        col.row(
-            "Power + Volume up: " + PowerNative.describe(PowerNative.chordVolumeUp, cur),
-            "Keep this on the power menu so you can always shut down"
-        ) {
-            pickNative("Power + Volume up", PowerNative.chordVolumeUp, cur) { v ->
-                apply(
-                    PowerNative.setChordVolumeUp(this, v),
-                    "global", PowerNative.CHORD_VOL_UP, v
-                )
-            }
-        }
-    }
-
-    // ---- helpers -----------------------------------------------------------
-
-    /**
-     * An explicit On/Off choice rather than a toggle, because when the current
-     * value cannot be read there is nothing to toggle away from.
-     */
-    private fun onOffRow(
-        col: LinearLayout,
-        title: String,
-        current: Boolean?,
-        blurb: String,
-        onPick: (Boolean) -> Unit
-    ) {
-        val shown = when (current) {
-            true -> "on"
-            false -> "off"
-            null -> "unknown"
-        }
-        col.row(title + ": " + shown, blurb) {
-            pickNative(title, PowerNative.onOff, current?.let { if (it) 1 else 0 }) { v ->
-                onPick(v == 1)
-            }
-        }
-    }
-
-    private fun pickNative(
-        title: String,
-        options: List<PowerNative.Option>,
-        current: Int?,
-        onPick: (Int) -> Unit
-    ) {
+    private fun pick(title: String, options: List<PowerNative.Option>, current: Int?, onPick: (Int) -> Unit) {
         val labels = options.map { o ->
-            val mark = if (current != null && o.value == current) "* " else "   "
-            mark + o.label + if (o.note.isBlank()) "" else "  -  " + o.note
+            (if (current != null && o.value == current) "* " else "   ") + o.label +
+                if (o.note.isBlank()) "" else "  -  " + o.note
         }
         Ui.pick(this, title, labels) { i -> onPick(options[i].value) }
     }
 
-    /** A refused write is the normal case without the adb grant; say so. */
-    private fun apply(ok: Boolean, scope: String, key: String, value: Int) {
-        if (ok) {
-            Toast.makeText(this, "Applied", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(
-                this,
-                "Refused - run: " + PowerNative.adbFallback(scope, key, value),
-                Toast.LENGTH_LONG
-            ).show()
-        }
+    private fun applied(ok: Boolean) {
+        Toast.makeText(this, if (ok) "Applied" else "The system refused", Toast.LENGTH_SHORT).show()
         build()
     }
 }

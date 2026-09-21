@@ -8,7 +8,7 @@
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:accessibilityEventTypes="typeWindowStateChanged"
     android:accessibilityFeedbackType="feedbackGeneric"
-    android:accessibilityFlags="flagDefault|flagRequestFilterKeyEvents|flagReportViewIds"
+    android:accessibilityFlags="flagDefault|flagRequestFilterKeyEvents|flagReportViewIds|flagRetrieveInteractiveWindows"
     android:canRequestFilterKeyEvents="true"
     android:canPerformGestures="true"
     android:canRetrieveWindowContent="true"

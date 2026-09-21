@@ -35,6 +35,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Channels.syncComponents(this)
+        dev.equwal.assistkey.shell.Shell.connect(this)
     }
 
     override fun onResume() {
@@ -51,8 +52,7 @@ class MainActivity : Activity() {
         val col = Ui.page(this)
         col.title("AssistKey")
         col.note(
-            "Remaps the AI key, both volume keys and the power button. " +
-                "Turn on the capture channels you want, then bind gestures below."
+            "Remaps this device's hardware keys, the Power button included."
         )
         licence(col)
         channels(col)
@@ -80,26 +80,27 @@ class MainActivity : Activity() {
     // ---- channels ----------------------------------------------------------
 
     private fun channels(col: LinearLayout) {
-        col.header("Capture channels")
-        col.note(
-            "Each one is a different way of getting a key routed to this app. " +
-                "They are independent - tick any combination."
-        )
+        col.header("Setup")
 
-        Channel.entries.forEach { ch ->
-            val on = Channels.isEnabled(this, ch)
-            val ok = Channels.isSatisfied(this, ch)
-            col.check(ch.title, ch.summary, on) { checked ->
-                Channels.setEnabled(this, ch, checked)
-                if (checked && !Channels.isSatisfied(this, ch)) claim(ch)
-                build()
-            }
-            col.row("Status: " + Channels.status(this, ch), null, enabled = on)
-            if (on && !ok) {
-                col.button("Set up " + ch.title.lowercase()) { claim(ch) }
-                if (ch == Channel.ACCESSIBILITY) restrictedSettingsHint(col)
-            }
+        // The key filter is the one switch everything depends on: it sees the
+        // keys, and it is what carries out Back, Home and the rest.
+        val ch = Channel.ACCESSIBILITY
+        val on = Channels.isEnabled(this, ch)
+        val ok = Channels.isSatisfied(this, ch)
+        col.check("Key remapping", "Uses the accessibility key filter - " + Channels.status(this, ch).lowercase(), on) { checked ->
+            Channels.setEnabled(this, ch, checked)
+            if (checked && !Channels.isSatisfied(this, ch)) claim(ch)
+            build()
         }
+        if (on && !ok) {
+            col.button("Turn on the key filter") { claim(ch) }
+            restrictedSettingsHint(col)
+        }
+
+        col.row(
+            "Shell access: " + dev.equwal.assistkey.shell.Shell.describe(this),
+            "Optional. Unlocks the Power button, the navigation bar and system gestures"
+        ) { startActivity(Intent(this, ShellActivity::class.java)) }
     }
 
     /**
@@ -185,7 +186,7 @@ class MainActivity : Activity() {
 
         col.row(
             "Navigation",
-            "Button bar, swipe gestures, Power key combinations - in any mix"
+            "Button bar, swipe gestures, the Power key - in any mix"
         ) { startActivity(Intent(this, NavigationActivity::class.java)) }
 
         col.row(
@@ -212,15 +213,12 @@ class MainActivity : Activity() {
     }
 
     private fun powerSummary(): String {
-        val b = Store.bindings(this)
-        val parts = ArrayList<String>()
-        PowerNative.shortPressValue(this)?.let { v ->
-            PowerNative.shortPress.firstOrNull { it.value == v }
-                ?.let { parts.add("short → " + it.label.lowercase()) }
+        val bound = Store.bindings(this).all().filterKeys { HwKey.POWER in it.keys }
+        if (bound.isEmpty()) return "Default behaviour"
+        return bound.entries.joinToString(", ") { (t, spec) ->
+            val what = if (t.keys.size > 1) "+" + (t.keys - HwKey.POWER).first().label.lowercase() else shortGesture(t)
+            what + " → " + spec.describe()
         }
-        b[Channel.POWER_DOUBLE]?.let { parts.add("double → " + it.describe()) }
-        b[Channel.POWER_HOLD]?.let { parts.add("hold → " + it.describe()) }
-        return if (parts.isEmpty()) "Default behaviour" else parts.joinToString(", ")
     }
 
     // ---- everything else ---------------------------------------------------

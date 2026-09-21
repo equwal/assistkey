@@ -19,6 +19,8 @@ import dev.equwal.assistkey.model.Trigger
 import dev.equwal.assistkey.native.ViwoodsBridge
 import dev.equwal.assistkey.route.ActionRouter
 import dev.equwal.assistkey.route.ServiceHolder
+import dev.equwal.assistkey.shell.PowerControl
+import dev.equwal.assistkey.shell.Shell
 import dev.equwal.assistkey.store.Store
 
 /**
@@ -40,18 +42,58 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
         ServiceHolder.service = this
         // The service starts at boot and may run for weeks without the settings
         // screen ever opening, so it keeps the licence fresh on its own.
-        PlayBilling.refresh(this)
+        PlayBilling.refresh(this) { syncPower() }
+
+        Shell.onChange(shellChanged)
+        Store.onBindingsChanged = { syncPower() }
+        registerReceiver(screenOn, android.content.IntentFilter(android.content.Intent.ACTION_SCREEN_ON))
+        Shell.connect(this)
+        syncPower()
+    }
+
+    // ---- the Power button, when there is shell access -----------------------------
+
+    private val shellChanged: () -> Unit = { syncPower() }
+    private var powerIgnoredUntilUp = false
+
+    /** A press that wakes the reader is not a gesture. */
+    private val screenOn = object : android.content.BroadcastReceiver() {
+        override fun onReceive(c: android.content.Context?, i: android.content.Intent?) {
+            powerIgnoredUntilUp = true
+            if (::engine.isInitialized) engine.onCancel()
+        }
+    }
+
+    fun syncPower() = PowerControl.sync(this, serviceRunning = ServiceHolder.service === this, ::onRawPower)
+
+    private fun onRawPower(down: Boolean, at: Long) {
+        if (!::engine.isInitialized) return
+        if (down) {
+            val awake = getSystemService(android.os.PowerManager::class.java)?.isInteractive != false
+            powerIgnoredUntilUp = !awake
+            if (awake) engine.onDown(HwKey.POWER, at, 0)
+        } else {
+            if (powerIgnoredUntilUp) powerIgnoredUntilUp = false else engine.onUp(HwKey.POWER, at)
+        }
+    }
+
+    private fun stopPower() {
+        Shell.removeOnChange(shellChanged)
+        Store.onBindingsChanged = null
+        runCatching { unregisterReceiver(screenOn) }
+        ServiceHolder.service = null
+        syncPower() // with no service running this hands Power back to the firmware
     }
 
     override fun onUnbind(intent: android.content.Intent?): Boolean {
         cancelAll()
-        ServiceHolder.service = null
+        stopPower()
         return super.onUnbind(intent)
     }
 
     override fun onDestroy() {
         cancelAll()
-        ServiceHolder.service = null
+        stopPower()
         super.onDestroy()
     }
 
@@ -156,13 +198,14 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
 
     private fun bindings() = Store.bindings(this)
 
-    override fun maxTaps(keys: Set<HwKey>): Int = bindings().maxTaps(keys)
+    override fun maxTaps(keys: Set<HwKey>): Int = bindings().maxTaps(keys, PowerControl.active)
 
-    override fun hasHold(keys: Set<HwKey>): Boolean = bindings().hasHold(keys)
+    override fun hasHold(keys: Set<HwKey>): Boolean = bindings().hasHold(keys, PowerControl.active)
 
     override fun isBound(trigger: Trigger): Boolean = bindings().isBound(trigger)
 
-    override fun chordPartners(key: HwKey): Set<HwKey> = bindings().chordPartners(key)
+    override fun chordPartners(key: HwKey): Set<HwKey> =
+        bindings().chordPartners(key, PowerControl.active)
 
     companion object {
         /** How long after a Power hold a key press still counts as a combination. */
@@ -192,7 +235,8 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
                 this,
                 ActionSpec(ActionKind.LAUNCH_COMPONENT, ViwoodsBridge.aiTarget(this))
             )
-            HwKey.POWER -> Unit
+            // An unbound Power gesture does what Power always did.
+            HwKey.POWER -> performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
         }
     }
 

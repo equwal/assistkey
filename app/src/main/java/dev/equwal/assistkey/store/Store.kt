@@ -45,7 +45,11 @@ object Store {
         b.all().forEach { (t, spec) -> o.put(t.id, spec.toJson()) }
         prefs(c).edit().putString(K_BINDINGS, o.toString()).apply()
         cache = b
+        onBindingsChanged?.invoke()
     }
+
+    /** Set by the key service, which has things to re-decide when bindings move. */
+    @Volatile var onBindingsChanged: (() -> Unit)? = null
 
     fun bind(c: Context, trigger: Trigger, spec: ActionSpec) {
         save(c, bindings(c).with(trigger, spec))

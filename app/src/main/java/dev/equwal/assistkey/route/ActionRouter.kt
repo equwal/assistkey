@@ -43,7 +43,25 @@ object ActionRouter {
         val svc = ServiceHolder.service ?: return false
         val action = GlobalAction.fromName(name) ?: return false
         if (!action.available) return false
+        if (action == GlobalAction.HOME_CLOSE_IME) return homeClosingKeyboard(svc)
         return svc.performGlobalAction(action.id)
+    }
+
+    /**
+     * Home alone leaves a keyboard floating over the launcher on some firmware,
+     * so an open keyboard is dismissed first. Seeing the keyboard's window needs
+     * flagRetrieveInteractiveWindows; if the list is unavailable this is Home.
+     */
+    private fun homeClosingKeyboard(svc: android.accessibilityservice.AccessibilityService): Boolean {
+        val keyboardUp = runCatching {
+            svc.windows.any { it.type == android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD }
+        }.getOrDefault(false)
+        if (!keyboardUp) return svc.performGlobalAction(GlobalAction.HOME.id)
+        svc.performGlobalAction(GlobalAction.BACK.id)
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
+            { svc.performGlobalAction(GlobalAction.HOME.id) }, 180L
+        )
+        return true
     }
 
     private fun volume(ctx: Context, dir: String): Boolean {

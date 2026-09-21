@@ -11,6 +11,8 @@ import android.os.Build
 enum class GlobalAction(val id: Int, val label: String, val minSdk: Int = 30) {
     BACK(AS.GLOBAL_ACTION_BACK, "Back"),
     HOME(AS.GLOBAL_ACTION_HOME, "Home"),
+    /** Not a framework action: Back first if a keyboard is up, then Home. */
+    HOME_CLOSE_IME(-1, "Home, closing the keyboard first"),
     RECENTS(AS.GLOBAL_ACTION_RECENTS, "Recent apps"),
     NOTIFICATIONS(AS.GLOBAL_ACTION_NOTIFICATIONS, "Notification shade"),
     QUICK_SETTINGS(AS.GLOBAL_ACTION_QUICK_SETTINGS, "Quick settings"),

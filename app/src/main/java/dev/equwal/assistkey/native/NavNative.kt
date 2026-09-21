@@ -47,17 +47,30 @@ object NavNative {
         return v?.trim() != "1"
     }
 
-    /** The commands that produce the wanted state, in the order they must run. */
-    fun commands(buttons: Boolean, gestures: Boolean): List<String> {
-        val out = ArrayList<String>()
-        out += "adb shell cmd overlay enable-exclusive --category " + OVERLAY +
-            (if (buttons) "threebutton" else "gestural")
-        out += "adb shell settings put system " + GESTURE_BOTTOM + " " + (if (gestures) "0" else "1")
+    /**
+     * What a shell has to run to produce the wanted state, in the order it must
+     * run. The pause and the double write are not decoration: SystemUI rebuilds
+     * itself when the overlay changes and only notices the gesture setting if it
+     * changes afterwards.
+     */
+    fun shellCommands(buttons: Boolean, gestures: Boolean): List<String> {
+        val off = if (gestures) "0" else "1"
+        val nudge = if (gestures) "1" else "0"
         // Only meaningful without the bar, but harmless with it, and setting it
         // every time means a later switch to gestural mode cannot surprise.
         val scale = if (gestures) "0.6" else "0"
-        out += "adb shell settings put secure back_gesture_inset_scale_left $scale"
-        out += "adb shell settings put secure back_gesture_inset_scale_right $scale"
-        return out
+        return listOf(
+            "cmd overlay enable-exclusive --category " + OVERLAY + (if (buttons) "threebutton" else "gestural"),
+            "sleep 4",
+            "settings put system $GESTURE_BOTTOM $nudge",
+            "sleep 1",
+            "settings put system $GESTURE_BOTTOM $off",
+            "settings put secure back_gesture_inset_scale_left $scale",
+            "settings put secure back_gesture_inset_scale_right $scale"
+        )
     }
+
+    /** The same, for someone typing them at a computer. */
+    fun commands(buttons: Boolean, gestures: Boolean): List<String> =
+        shellCommands(buttons, gestures).filterNot { it.startsWith("sleep") }.distinct().map { "adb shell $it" }
 }

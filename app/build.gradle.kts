@@ -121,4 +121,11 @@ dependencies {
     implementation("com.android.billingclient:billing:8.3.0") {
         exclude(group = "com.google.android.datatransport")
     }
+
+    // Shell access. Shizuku (MIT) lets the app run a small service of its own
+    // under the shell uid, which is what reads the Power key and switches the
+    // settings Android keeps from ordinary apps. The user starts Shizuku through
+    // wireless debugging; nothing here needs root or a computer.
+    implementation("dev.rikka.shizuku:api:13.1.5")
+    implementation("dev.rikka.shizuku:provider:13.1.5")
 }
