@@ -70,7 +70,7 @@ class ReportActivity : Activity() {
         }
         col.header("The report")
         col.code(text)
-        if (!Shell.ready) {
+        if (Shell.SUPPORTED && !Shell.ready) {
             col.note("With shell access the report also lists the input devices and their keys, which is the most useful part.")
         }
     }

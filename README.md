@@ -13,7 +13,25 @@ Sold on Google Play as a free download with a one-time licence. Publishing,
 products, pricing and how the beta is run and ended are in
 [play/CHECKLIST.md](play/CHECKLIST.md). The app holds no `INTERNET` permission.
 
+## Two builds
+
+One app, one id, one signature, two flavours:
+
+| Flavour | For | Shizuku |
+|---|---|---|
+| `play` | Google Play. `./gradlew bundlePlayRelease` | No code, no permission |
+| `full` | Direct install. `./gradlew assembleFullRelease` | Yes |
+
+Shizuku is on Google Play and so are apps that use it, so Play does not forbid
+it. The `play` flavour leaves it out anyway: an app that holds an accessibility
+service and a shell has a harder review, and the store build must be the safe
+one. `shell/Shell.kt` exists once per flavour with the same surface; the `play`
+one always answers "not available", and every feature falls back by itself.
+`Shell.SUPPORTED` hides the rows that would lead nowhere.
+
 ## Shell access
+
+*`full` flavour only.*
 
 Android keeps several things from every installed app: the Power key, the
 navigation bar, system gestures, a maker's own key settings, the backlight
@@ -324,11 +342,12 @@ initialization failed"*; that was confirmed in bytecode and on the device.
 ## Building
 
 ```bash
-./gradlew assembleRelease bundleRelease
+./gradlew assembleFullRelease assemblePlayRelease bundlePlayRelease
 ```
 
-`assembleRelease` makes the APK for testers, `bundleRelease` the `.aab` for
-Play. The version comes from `gradle.properties`; `versionCode` must rise with
+`bundlePlayRelease` makes the `.aab` for Play. `assembleFullRelease` makes the
+APK with shell access for direct install. `assemblePlayRelease` makes the store
+build as an APK, for testing it on a device. The version comes from `gradle.properties`; `versionCode` must rise with
 every upload.
 
 Release signing is read from `keystore.properties` at the repo root, which is
@@ -377,6 +396,7 @@ store/     persistence, with the key-event hot path precomputed
 ui/        the configuration screens, built in code
 
 tools/     adb helpers: nav-mode (bar and gestures), ai-key (the AI key hook)
+tools/e2e/ tests that run on a device, through the kernel input nodes
 play/      everything for the Play Console: checklist, listing, policy, graphics
 src/debug/ a debug-only hook that renders each screen to a PNG, because the
            e-ink panel defeats `adb shell screencap`

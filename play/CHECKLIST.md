@@ -66,8 +66,9 @@ Neither is in git. Without them you cannot ship another update.
 ## 4. Upload the build
 
 Test and release > Testing > **Internal testing** > Create new release > upload
-`AssistKey-0.0.1-alpha.aab` (attached to the GitHub release `v0.0.1-alpha`, or
-rebuild with `./gradlew bundleRelease`).
+`AssistKey-<version>-play.aab` (attached to the GitHub release, or rebuild with
+`./gradlew bundlePlayRelease`). Upload the `play` build only. It has no Shizuku
+code and no Shizuku permission. The `full` APK is for direct install.
 
 Internal testing needs no review and is live in minutes. Products cannot be
 created until one build has been uploaded.
@@ -130,7 +131,7 @@ account not on the tester list, or the signatures not matching (section 3).
 ## 9. Running the beta, and ending it
 
 **During the beta** hand testers either the Play opt-in link or
-`AssistKey-0.0.1-alpha.apk` directly. Both are the same build. While
+the `play` APK from the GitHub release. Both are the same build. While
 `assistkey_beta_open` is Active, every install is fully unlocked for free, and
 each one quietly marks itself as a tester.
 
@@ -157,5 +158,5 @@ Production and choose countries.
 
 1. Raise `assistkey.versionCode` (must increase every upload) and
    `assistkey.versionName` in `gradle.properties`.
-2. `./gradlew assembleRelease bundleRelease`
+2. `./gradlew assembleFullRelease assemblePlayRelease bundlePlayRelease`
 3. Tag it, upload the `.aab`, attach both files to a GitHub release.

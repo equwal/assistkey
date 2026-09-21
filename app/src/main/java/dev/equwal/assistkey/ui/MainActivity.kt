@@ -97,10 +97,12 @@ class MainActivity : Activity() {
             restrictedSettingsHint(col)
         }
 
-        col.row(
-            "Shell access: " + dev.equwal.assistkey.shell.Shell.describe(this),
-            "Optional. Unlocks the Power button, the navigation bar and system gestures"
-        ) { startActivity(Intent(this, ShellActivity::class.java)) }
+        if (dev.equwal.assistkey.shell.Shell.SUPPORTED) {
+            col.row(
+                "Shell access: " + dev.equwal.assistkey.shell.Shell.describe(this),
+                "Optional. Unlocks the Power button, the navigation bar and system gestures"
+            ) { startActivity(Intent(this, ShellActivity::class.java)) }
+        }
     }
 
     /**
@@ -186,7 +188,8 @@ class MainActivity : Activity() {
 
         col.row(
             "Navigation",
-            "Button bar, swipe gestures, the Power key - in any mix"
+            if (dev.equwal.assistkey.shell.Shell.SUPPORTED) "Button bar, swipe gestures, the Power key - in any mix"
+            else "The Power key, and how to switch the button bar and gestures"
         ) { startActivity(Intent(this, NavigationActivity::class.java)) }
 
         col.row(
@@ -230,8 +233,10 @@ class MainActivity : Activity() {
         }
 
         col.header("Display and home")
-        col.row("Extra-dim light", "Below the lowest the system slider allows") {
-            startActivity(Intent(this, DisplayActivity::class.java))
+        if (dev.equwal.assistkey.shell.Shell.SUPPORTED) {
+            col.row("Extra-dim light", "Below the lowest the system slider allows") {
+                startActivity(Intent(this, DisplayActivity::class.java))
+            }
         }
         col.row("Home screen", "A plain, fast launcher made for e-ink") {
             startActivity(Intent(this, dev.equwal.assistkey.home.HomeSettingsActivity::class.java))

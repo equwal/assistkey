@@ -19,7 +19,7 @@ Remap volume keys, the power button and more. Made for e-ink readers.
 ```
 AssistKey remaps your device's hardware keys: volume keys, the power button, page-turn buttons, camera and assistant keys, and on the Viwoods AiPaper the AI key.
 
-Turn pages with the volume keys. Tap the power button for Back, hold it for Home, double tap it for Recents - and hide the navigation bar for good. Put three different actions on one key with a tap, a double tap and a hold.
+Turn pages with the volume keys. Hold the power button for Home, double press it for Recents. Put three different actions on one key with a tap, a double tap and a hold.
 
 Built for e-ink readers, and it works on any Android 12+ phone or tablet.
 
@@ -32,7 +32,7 @@ AI key and volume keys
 • A key with only a single-tap binding fires instantly - you only wait out a double-tap window on keys where you asked for a double tap
 
 Power button
-• Hold Power, then press another key: three extra combinations - Back, Home and Recents by default, so you can hide the navigation bar and keep the whole screen for reading
+• Hold Power, then press another key: three extra combinations
 • Press and hold: run any action (AssistKey becomes your digital assistant app)
 • Double press: run any action (AssistKey becomes your default camera app)
 • Short press: choose the firmware behaviour
@@ -51,12 +51,8 @@ VOICE TYPING
 Bind a key to Voice typing: press, speak, and the words appear where the cursor is - in any app, with the keyboard you already have. AssistKey has no speech engine and no internet access; a speech recognition app on your device does the listening.
 
 MORE FOR E-INK
-• Extra-dim light: go below the lowest brightness the system allows (needs shell access with root)
 • A plain text home screen: a clock, a few apps, type to find the rest
 • Recent apps as a list instead of a slow screenshot carousel
-
-SHELL ACCESS (OPTIONAL)
-Some things Android keeps from every app: the power button, the navigation bar, system gestures. AssistKey can use the free Shizuku app to reach them, set up on the device itself through wireless debugging - no computer, no root. Without it AssistKey still remaps keys, and the power button still gets hold and double press.
 
 BUILT FOR E-INK
 

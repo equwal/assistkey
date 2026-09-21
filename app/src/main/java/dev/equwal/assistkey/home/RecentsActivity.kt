@@ -58,7 +58,9 @@ class RecentsActivity : Activity() {
             }
             col.note("Press and hold an app to close just that one.")
         }
-        if (!closable) col.note("With shell access this list is exact, and apps can be closed from it.")
+        if (!closable && Shell.SUPPORTED) {
+            col.note("With shell access this list is exact, and apps can be closed from it.")
+        }
     }
 
     private fun entry(col: LinearLayout, app: Apps.App, closable: Boolean) {
@@ -88,13 +90,15 @@ class RecentsActivity : Activity() {
         val col = Ui.page(this)
         col.title("Recent apps")
         col.note(
-            "Android does not tell apps what has been used recently. Either give " +
-                "AssistKey usage access, or turn on shell access, which gives the " +
-                "exact list the system keeps."
+            "Android does not tell apps what has been used recently. Give AssistKey " +
+                "usage access and it can put your apps in order of last use." +
+                if (Shell.SUPPORTED) " Shell access gives the exact list the system keeps." else ""
         )
         col.button("Give usage access") {
             runCatching { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
         }
-        col.button("Shell access") { startActivity(Intent(this, ShellActivity::class.java)) }
+        if (Shell.SUPPORTED) {
+            col.button("Shell access") { startActivity(Intent(this, ShellActivity::class.java)) }
+        }
     }
 }

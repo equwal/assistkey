@@ -158,7 +158,12 @@ class NavigationActivity : Activity() {
         col.check("Swipe gestures", "Swipe up for Home; without the bar, swipe in from a side for Back", wantGestures) {
             choose(wantButtons, it, wantKeys)
         }
-        col.check("Power key", "Tap for Back, hold for Home, double tap for Recents", wantKeys) {
+        col.check(
+            "Power key",
+            if (Shell.SUPPORTED) "Tap for Back, hold for Home, double tap for Recents"
+            else "Hold for Home, double press for Recents",
+            wantKeys
+        ) {
             choose(wantButtons, wantGestures, it)
         }
 
@@ -189,11 +194,16 @@ class NavigationActivity : Activity() {
             }
             // Without shell access only hold and double press have a way in.
             val reachable = direct || t == Channel.POWER_HOLD || t == Channel.POWER_DOUBLE
+            if (!reachable && !Shell.SUPPORTED) return@forEach
             col.row(label + ": " + b.raw(t).describe(), if (reachable) null else "Needs shell access", reachable) {
                 startActivity(ActionPickerActivity.intent(this, t))
             }
         }
-        col.row("More Power button gestures", "More taps, combinations with other keys, and how it works") {
+        col.row(
+            if (Shell.SUPPORTED) "More Power button gestures" else "Set up the Power button",
+            if (Shell.SUPPORTED) "More taps, combinations with other keys, and how it works"
+            else "Make AssistKey the assistant for hold, and the camera app for double press"
+        ) {
             startActivity(Intent(this, PowerActivity::class.java))
         }
         if (!Channels.isSatisfied(this, Channel.ACCESSIBILITY)) {
@@ -201,9 +211,10 @@ class NavigationActivity : Activity() {
         }
         if (!direct) {
             col.note(
-                "Without shell access a tap cannot reach any app. Hold works once " +
-                    "AssistKey is the digital assistant, and double press once it is " +
-                    "the default camera app - both are set up on the Power button screen."
+                (if (Shell.SUPPORTED) "Without shell access a tap cannot reach any app. " else "A tap cannot reach any app. ") +
+                    "Hold works once AssistKey is the digital assistant, and double " +
+                    "press once it is the default camera app - both are set up on the " +
+                    "Power button screen."
             )
         }
     }
@@ -229,11 +240,18 @@ class NavigationActivity : Activity() {
             col.button("Apply") { applySystem(wantButtons, wantGestures) }
             return
         }
-        col.note("Android does not let apps switch these. Shell access lets AssistKey do it from here:")
-        col.row("Shell access: " + Shell.describe(this), "Set it up once, on the device, with no computer") {
-            startActivity(Intent(this, ShellActivity::class.java))
+        if (Shell.SUPPORTED) {
+            col.note("Android does not let apps switch these. Shell access lets AssistKey do it from here:")
+            col.row("Shell access: " + Shell.describe(this), "Set it up once, on the device, with no computer") {
+                startActivity(Intent(this, ShellActivity::class.java))
+            }
+            col.note("Or, with a computer and USB debugging:")
+        } else {
+            col.note(
+                "Android does not let apps switch these. Do it once from a computer, " +
+                    "with the device plugged in and USB debugging on. It survives restarts."
+            )
         }
-        col.note("Or, with a computer and USB debugging:")
         col.code(NavNative.commands(wantButtons, wantGestures).joinToString("\n"))
     }
 

@@ -69,6 +69,19 @@ android {
         }
     }
 
+    // Two builds of one app, same id and same signature.
+    //   play: for Google Play. No Shizuku code, no Shizuku permission.
+    //   full: for direct install. Adds shell access through Shizuku, which is
+    //         what reads the Power button and switches the navigation bar.
+    flavorDimensions += "store"
+    productFlavors {
+        create("play") { dimension = "store" }
+        create("full") {
+            dimension = "store"
+            versionNameSuffix = "-full"
+        }
+    }
+
     buildTypes {
         release {
             // No shrinking: the app is tiny, and R8 would only complicate
@@ -122,10 +135,10 @@ dependencies {
         exclude(group = "com.google.android.datatransport")
     }
 
-    // Shell access. Shizuku (MIT) lets the app run a small service of its own
+    // Shell access, `full` flavour only. Shizuku (MIT) lets the app run a small service of its own
     // under the shell uid, which is what reads the Power key and switches the
     // settings Android keeps from ordinary apps. The user starts Shizuku through
     // wireless debugging; nothing here needs root or a computer.
-    implementation("dev.rikka.shizuku:api:13.1.5")
-    implementation("dev.rikka.shizuku:provider:13.1.5")
+    "fullImplementation"("dev.rikka.shizuku:api:13.1.5")
+    "fullImplementation"("dev.rikka.shizuku:provider:13.1.5")
 }

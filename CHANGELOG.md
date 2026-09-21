@@ -9,6 +9,12 @@ Version code 4.
   SpeechRecognizer interface, so any speech recognition app on the device does
   the listening. The accessibility service puts the text into the focused
   field. Password fields are never written to.
+- **Two builds.** `play` for Google Play has no Shizuku code and no Shizuku
+  permission. `full` for direct install keeps shell access. Same app id and
+  signature, so one can replace the other.
+- **Viwoods: AI key goes back.** Inside the AI screen or the crop screen, the AI
+  key returns to the app that was in use before. Switch on the AI key screen.
+  Test: `tools/e2e/ai-key-return.sh`.
 - **Fix: Power always wakes and unlocks.** While the app manages the Power
   button, a press on a sleeping or locked device is never a gesture. The app
   also sends the wake and the keyguard dismissal through the shell, so waking

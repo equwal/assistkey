@@ -29,6 +29,9 @@ import java.util.concurrent.Executors
 object Shell {
 
     private const val TAG = "AssistKey"
+
+    /** This build can use shell access. The `play` flavour has a stub with false here. */
+    const val SUPPORTED = true
     const val SHIZUKU_PACKAGE = "moe.shizuku.privileged.api"
     private const val REQUEST_CODE = 7301
 

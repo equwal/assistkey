@@ -39,7 +39,8 @@ reads the usage log Android keeps, with the usage access you grant, to put apps
 in order of last use. This happens on the device each time the list opens;
 nothing from it is stored or sent.
 
-**Shell access.** If you connect AssistKey to Shizuku, it runs commands on your
+**Shell access.** Not in the Google Play build. In the build for direct
+install, if you connect AssistKey to Shizuku, it runs commands on your
 device as the shell user to read the Power button, switch the navigation bar
 and gestures, and set the light. These act on your device only.
 
