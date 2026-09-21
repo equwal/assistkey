@@ -4,8 +4,10 @@ import dev.equwal.assistkey.model.GestureType
 import dev.equwal.assistkey.model.HwKey
 import dev.equwal.assistkey.model.Trigger
 import dev.equwal.assistkey.setup.Route.Need
+import dev.equwal.assistkey.setup.Route.Step
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -129,5 +131,31 @@ class RouteTest {
         // The doors of Android stay the first choice.
         assertEquals(listOf(Need.ASSISTANT), Route.plan(Trigger(power, GestureType.HOLD), false, fullBuild).needs)
         assertEquals(Trigger.MAX_TAPS + 1, Route.gestures(power, fullBuild).size)
+    }
+
+    @Test fun `Back on the button step always leaves`() {
+        assertNull(Route.back(Step.BUTTON, fromHub = false, askOnly = false))
+        assertNull(Route.back(Step.BUTTON, fromHub = true, askOnly = true))
+    }
+
+    @Test fun `Back on the press step leaves when the hub chose the button, else goes to the button step`() {
+        assertNull(Route.back(Step.PRESS, fromHub = true, askOnly = false))
+        assertEquals(Step.BUTTON, Route.back(Step.PRESS, fromHub = false, askOnly = false))
+    }
+
+    @Test fun `Back on the action step always goes to the press step`() {
+        assertEquals(Step.PRESS, Route.back(Step.ACTION, fromHub = false, askOnly = false))
+        assertEquals(Step.PRESS, Route.back(Step.ACTION, fromHub = true, askOnly = true))
+    }
+
+    @Test fun `Back on the allow step leaves for an ask-only screen, else goes to the action step`() {
+        assertNull(Route.back(Step.ALLOW, fromHub = false, askOnly = true))
+        assertEquals(Step.ACTION, Route.back(Step.ALLOW, fromHub = false, askOnly = false))
+    }
+
+    @Test fun `Back on the done step leaves for an ask-only screen, else goes to the action step to edit again`() {
+        assertNull(Route.back(Step.DONE, fromHub = false, askOnly = true))
+        assertEquals(Step.ACTION, Route.back(Step.DONE, fromHub = false, askOnly = false))
+        assertEquals(Step.ACTION, Route.back(Step.DONE, fromHub = true, askOnly = false))
     }
 }

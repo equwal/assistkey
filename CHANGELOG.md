@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **Change a button from the Done step.** "Change what it does" and "Change
+  how you press it" go back to those steps with the button kept. Back on the
+  Done step goes to the actions too. Tests: `Route.back`.
+
 ## 0.0.12-alpha - 2026-09-21
 
 Version code 12.

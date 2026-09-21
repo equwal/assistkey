@@ -20,6 +20,7 @@ import dev.equwal.assistkey.model.Trigger
 import dev.equwal.assistkey.route.ActionRouter
 import dev.equwal.assistkey.route.ServiceHolder
 import dev.equwal.assistkey.setup.Route.Need
+import dev.equwal.assistkey.setup.Route.Step
 import dev.equwal.assistkey.shell.PowerControl
 import dev.equwal.assistkey.shell.Shell
 import dev.equwal.assistkey.store.Store
@@ -52,8 +53,6 @@ import dev.equwal.assistkey.voice.Dictation
  */
 class GuidedSetupActivity : Activity() {
 
-    private enum class Step { BUTTON, PRESS, ACTION, ALLOW, DONE }
-
     private var step = Step.BUTTON
     private var keys: List<HwKey> = emptyList()
     private var trigger: Trigger? = null
@@ -63,6 +62,13 @@ class GuidedSetupActivity : Activity() {
 
     /** True when another screen made the binding. This screen then only asks, and leaves. */
     private var askOnly = false
+
+    /**
+     * True after the menu editor or the full action list is opened from the
+     * ACTION step. It marks a real trip away from this screen, so onResume
+     * can tell that from a return to ACTION chosen on purpose (from DONE).
+     */
+    private var leftForPicker = false
 
     private fun tokens(text: String?): List<HwKey> =
         text.orEmpty().split('+').mapNotNull(HwKey::fromToken)
@@ -76,6 +82,7 @@ class GuidedSetupActivity : Activity() {
             keys = tokens(s.getString("keys"))
             trigger = s.getString("trigger")?.let(Trigger::parse)
             fromHub = s.getBoolean("fromHub")
+            leftForPicker = s.getBoolean("leftForPicker")
         } ?: intent.getStringExtra(EXTRA_ASK)?.let(Trigger::parse)?.let {
             // Another screen made this binding. Ask for what it needs, and nothing else.
             trigger = it
@@ -95,6 +102,7 @@ class GuidedSetupActivity : Activity() {
         out.putString("step", step.name)
         out.putString("keys", keys.joinToString("+") { it.token })
         out.putBoolean("fromHub", fromHub)
+        out.putBoolean("leftForPicker", leftForPicker)
         trigger?.let { out.putString("trigger", it.id) }
     }
 
@@ -102,18 +110,19 @@ class GuidedSetupActivity : Activity() {
         super.onResume()
         Shell.connect(this)
         // Back from the action list or the menu editor: a binding now exists, or not.
-        if (step == Step.ACTION && trigger?.let { Store.bindings(this).isBound(it) } == true) step = Step.ALLOW
+        // This runs only after a real trip to one of those screens, not after
+        // a plain return to ACTION chosen from the DONE step.
+        if (leftForPicker) {
+            leftForPicker = false
+            if (step == Step.ACTION && trigger?.let { Store.bindings(this).isBound(it) } == true) step = Step.ALLOW
+        }
         build()
     }
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        when (step) {
-            Step.BUTTON, Step.DONE -> finish()
-            Step.ALLOW -> if (askOnly) finish() else go(Step.ACTION)
-            Step.PRESS -> if (fromHub) finish() else go(Step.BUTTON)
-            else -> { step = Step.entries[step.ordinal - 1]; build() }
-        }
+        val next = Route.back(step, fromHub, askOnly)
+        if (next == null) finish() else go(next)
     }
 
     private fun go(next: Step) {
@@ -228,8 +237,12 @@ class GuidedSetupActivity : Activity() {
                 go(Step.ALLOW)
             }
         }
-        col.row("A menu of actions", "One press, many choices") { startActivity(MenuEditActivity.intent(this, t)) }
+        col.row("A menu of actions", "One press, many choices") {
+            leftForPicker = true
+            startActivity(MenuEditActivity.intent(this, t))
+        }
         col.row("Advanced", "Every action") {
+            leftForPicker = true
             startActivity(ActionPickerActivity.intent(this, t).putExtra(ActionPickerActivity.EXTRA_NO_ASK, true))
         }
     }
@@ -315,6 +328,11 @@ class GuidedSetupActivity : Activity() {
                 Channels.setEnabled(this, Channel.WALLET, true)
                 Channels.safeStart(this, Channels.claimIntent(this, Channel.WALLET))
             }
+        }
+        col.button("Change what it does") { go(Step.ACTION) }
+        // The on-screen button has one gesture, so there is nothing to change here.
+        if (keys.singleOrNull() != HwKey.SCREEN) {
+            col.button("Change how you press it") { go(Step.PRESS) }
         }
         col.button("Set up another button") {
             keys = emptyList()

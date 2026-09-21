@@ -15,6 +15,25 @@ import dev.equwal.assistkey.model.Trigger
  */
 object Route {
 
+    /** A step of the guided setup screen. The single definition; the activity uses this one. */
+    enum class Step { BUTTON, PRESS, ACTION, ALLOW, DONE }
+
+    /**
+     * Where hardware Back leads from [step]. Null means leave the screen.
+     *
+     * [fromHub] is true when the main screen chose the button, so Back from
+     * PRESS leaves instead of going to BUTTON. [askOnly] is true when another
+     * screen made the binding and this screen only asks, so Back from ALLOW
+     * or DONE leaves instead of going back into the flow.
+     */
+    fun back(step: Step, fromHub: Boolean, askOnly: Boolean): Step? = when (step) {
+        Step.BUTTON -> null
+        Step.PRESS -> if (fromHub) null else Step.BUTTON
+        Step.ACTION -> Step.PRESS
+        Step.ALLOW -> if (askOnly) null else Step.ACTION
+        Step.DONE -> if (askOnly) null else Step.ACTION
+    }
+
     /** One thing the user must allow. The order of the entries is the order to ask in. */
     enum class Need(val title: String, val why: String) {
         KEY_FILTER(
