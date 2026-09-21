@@ -77,6 +77,14 @@ class GuidedSetupActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // From Android 13, the system does not call onBackPressed for an app
+        // with this target version. It calls this callback. Without it, Back
+        // always closed the screen, whatever the step.
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            onBackInvokedDispatcher.registerOnBackInvokedCallback(
+                android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT
+            ) { @Suppress("DEPRECATION") onBackPressed() }
+        }
         savedInstanceState?.let { s ->
             step = Step.valueOf(s.getString("step", Step.BUTTON.name))
             keys = tokens(s.getString("keys"))

@@ -5,6 +5,10 @@
 - **Change a button from the Done step.** "Change what it does" and "Change
   how you press it" go back to those steps with the button kept. Back on the
   Done step goes to the actions too. Tests: `Route.back`.
+- **Fix: system Back always closed the button setup.** From Android 13 the
+  system does not call `onBackPressed` for an app with this target version.
+  The setup now registers the Back callback, and Back goes one step back.
+  Checked on the reader: Done, actions, how to press, main screen.
 
 ## 0.0.12-alpha - 2026-09-21
 
