@@ -104,7 +104,7 @@ object ViwoodsBridge {
     /** Human description of whatever the firmware currently has bound. */
     fun describe(c: Context, key: HwKey): String {
         val v = read(c, key) ?: return "Not set"
-        if (key == HwKey.AI) return if (aiHookedToUs(c)) "AssistKey" else shortName(c, v)
+        if (key == HwKey.AI) return if (aiHookedToUs(c)) "Rebind" else shortName(c, v)
 
         val label = volumeTokens[v] ?: return shortName(c, v)
         if (v != TOKEN_APP) return label

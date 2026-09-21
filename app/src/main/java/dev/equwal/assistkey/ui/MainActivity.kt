@@ -13,6 +13,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import dev.equwal.assistkey.channel.Channel
 import dev.equwal.assistkey.channel.Channels
+import dev.equwal.assistkey.device.Detect
 import dev.equwal.assistkey.home.HomeActivity
 import dev.equwal.assistkey.license.License
 import dev.equwal.assistkey.license.PlayBilling
@@ -20,6 +21,8 @@ import dev.equwal.assistkey.model.GestureType
 import dev.equwal.assistkey.model.HwKey
 import dev.equwal.assistkey.model.Trigger
 import dev.equwal.assistkey.native.NavNative
+import dev.equwal.assistkey.setup.DeviceView
+import dev.equwal.assistkey.setup.GuidedSetupActivity
 import dev.equwal.assistkey.store.Store
 import dev.equwal.assistkey.ui.Ui.dp
 import dev.equwal.assistkey.ui.Ui.header
@@ -34,7 +37,7 @@ import dev.equwal.assistkey.voice.Dictation
  * The hub, and the only screen the app opens on.
  *
  * It fits on one screen at 412 x 824 dp and says three things: what the licence
- * is, the one action that sets up a button, and what is bound now. Everything
+ * is, and the drawing of the device that shows and sets up the buttons. Everything
  * else is a tile that leads to a screen of its own.
  *
  * Rebuilt in onResume rather than onCreate, because almost every setup step
@@ -43,13 +46,13 @@ import dev.equwal.assistkey.voice.Dictation
  */
 class MainActivity : Activity() {
 
-    /** How many bindings the hub lists before it points at Advanced. */
-    private val listed = 4
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Channels.syncComponents(this)
         dev.equwal.assistkey.shell.Shell.connect(this)
+        // Finds the buttons and the capabilities of this device. It runs at
+        // first start, and again after a firmware or app change.
+        Detect.refreshIfStale(this)
         PermissionsActivity.showOnce(this)
     }
 
@@ -67,8 +70,7 @@ class MainActivity : Activity() {
         val col = Ui.page(this)
         appBar(col)
         col.rule()
-        callToAction(col)
-        yourButtons(col)
+        buttons(col)
         hubTiles(col)
     }
 
@@ -85,7 +87,7 @@ class MainActivity : Activity() {
             setOnClickListener { startActivity(Intent(this@MainActivity, LicenseActivity::class.java)) }
         }
         bar.addView(TextView(this).apply {
-            text = "AssistKey"
+            text = "Rebind"
             setTextColor(Ui.INK)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
             setTypeface(Typeface.DEFAULT_BOLD)
@@ -94,58 +96,35 @@ class MainActivity : Activity() {
         col.addView(bar, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
     }
 
-    // ---- the one action ----------------------------------------------------
+    // ---- the buttons ---------------------------------------------------------
+
+    /** The buttons the user tapped in the drawing, oldest first. */
+    private var selected: List<HwKey> = emptyList()
 
     /**
-     * Press a button, choose what it does. The flow finds the way in by itself,
-     * so nobody has to know what a channel or a role is.
+     * The drawing of the device is the way in. Each button shows what it does
+     * now. A tap selects a button, two selected buttons make a combination, and
+     * the button under the drawing opens the setup of that selection.
      */
-    private fun callToAction(col: LinearLayout) {
-        col.primaryButton("Set up a button") {
-            startActivity(
-                Intent().setClassName(this, "dev.equwal.assistkey.setup.GuidedSetupActivity")
-            )
-        }
-        col.note("Pick a button, choose what it does, and AssistKey does the rest.")
-    }
-
-    // ---- what is bound now -------------------------------------------------
-
-    private fun yourButtons(col: LinearLayout) {
-        col.header("Your buttons")
-        val all = Store.bindings(this).all().entries
-            .sortedWith(
-                compareBy(
-                    { t -> t.key.keys.minOf { it.ordinal } },
-                    { t -> t.key.keys.size },
-                    { t -> t.key.type.ordinal },
-                    { t -> t.key.count }
-                )
-            )
-        if (all.isEmpty()) {
-            col.note("Nothing is bound yet. Set up a button to make a start.")
-            return
-        }
-        val overflow = all.size > listed
-        val shown = all.take(if (overflow) listed - 1 else listed)
-        shown.forEach { (trigger, spec) ->
-            col.row(Summary.binding(plainGesture(trigger), spec.describe())) {
-                startActivity(ActionPickerActivity.intent(this, trigger))
+    private fun buttons(col: LinearLayout) {
+        val bound = Store.bindings(this).all()
+        val drawn = GuidedSetupActivity.drawn(this)
+        col.addView(DeviceView(this, heightDp = 270).apply {
+            keys = drawn
+            selected = this@MainActivity.selected
+            captions = drawn.associateWith { key ->
+                Summary.caption(bound.filterKeys { key in it.keys }.values.map { it.describe() })
+            }
+            onSelect = { this@MainActivity.selected = it; build() }
+        })
+        if (selected.isEmpty()) {
+            col.note("Tap a button. Tap two for a combination.")
+        } else {
+            col.primaryButton("Set up " + selected.joinToString(" + ") { it.label }) {
+                startActivity(GuidedSetupActivity.intent(this, selected))
             }
         }
-        if (overflow) {
-            col.row(
-                (all.size - shown.size).toString() + " more",
-                "See them all under Advanced > Full control"
-            ) { startActivity(Intent(this, AdvancedActivity::class.java)) }
-        }
     }
-
-    private fun plainGesture(t: Trigger): String = Summary.gesture(
-        t.keys.sortedBy { it.ordinal }.map { it.label },
-        t.type == GestureType.HOLD,
-        t.count
-    )
 
     // ---- tiles -------------------------------------------------------------
 
@@ -164,7 +143,7 @@ class MainActivity : Activity() {
                 Ui.Tile("Setup", setupSummary()) {
                     startActivity(Intent(this, SetupActivity::class.java))
                 },
-                Ui.Tile("Advanced", "Every key, the Power button, testing and backup") {
+                Ui.Tile("Advanced", "Every button, tools and backup") {
                     startActivity(Intent(this, AdvancedActivity::class.java))
                 }
             )

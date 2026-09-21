@@ -23,7 +23,6 @@ import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.check
 import dev.equwal.assistkey.ui.Ui.code
 import dev.equwal.assistkey.ui.Ui.header
-import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
 
@@ -40,13 +39,13 @@ class NavigationActivity : Activity() {
     private data class Setup(val name: String, val buttons: Boolean, val gestures: Boolean, val keys: Boolean)
 
     private val setups = listOf(
-        Setup("Buttons only", true, false, false),
+        Setup("Bar only", true, false, false),
         Setup("Gestures only", false, true, false),
-        Setup("Power key only", false, false, true),
-        Setup("Power key + buttons", true, false, true),
-        Setup("Power key + gestures", false, true, true),
-        Setup("Buttons + gestures", true, true, false),
-        Setup("Power key + buttons + gestures", true, true, true)
+        Setup("Power button only", false, false, true),
+        Setup("Power button + bar", true, false, true),
+        Setup("Power button + gestures", false, true, true),
+        Setup("Bar + gestures", true, true, false),
+        Setup("Power button + bar + gestures", true, true, true)
     )
 
     private var redrawnForInsets = false
@@ -74,7 +73,7 @@ class NavigationActivity : Activity() {
 
     private fun choose(buttons: Boolean, gestures: Boolean, keys: Boolean) {
         if (!buttons && !gestures && !keys) {
-            Toast.makeText(this, "That would leave no way to navigate at all", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Leaves no way to navigate", Toast.LENGTH_LONG).show()
             build()
             return
         }
@@ -127,7 +126,7 @@ class NavigationActivity : Activity() {
         build()
         Shell.runAll(NavNative.shellCommands(buttons, gestures)) { ok ->
             applying = false
-            if (!ok) Toast.makeText(this, "The system refused part of that", Toast.LENGTH_LONG).show()
+            if (!ok) Toast.makeText(this, "The system refused", Toast.LENGTH_LONG).show()
             // The bar comes and goes with a relayout; give the insets a moment.
             window.decorView.postDelayed({ if (!isFinishing) build() }, 1200L)
         }
@@ -149,16 +148,15 @@ class NavigationActivity : Activity() {
         val wantKeys = wanted("keys", keysOn())
 
         val col = Ui.page(this, "Navigation")
-        col.note("The button bar, swipe gestures and the Power key, in any mix.")
 
-        col.check("Button bar", "Back, Home and Recents along the bottom edge", wantButtons) {
+        col.check("Button bar", "Back, Home and Recents at the bottom", wantButtons) {
             choose(it, wantGestures, wantKeys)
         }
-        col.check("Swipe gestures", "Swipe up for Home; without the bar, swipe in from a side for Back", wantGestures) {
+        col.check("Swipe gestures", "Swipe up for Home, in from a side for Back", wantGestures) {
             choose(wantButtons, it, wantKeys)
         }
         col.check(
-            "Power key",
+            "Power button",
             if (Shell.SUPPORTED) "Tap for Back, hold for Home, double tap for Recents"
             else "Hold for Home, double press for Recents",
             wantKeys
@@ -166,11 +164,10 @@ class NavigationActivity : Activity() {
             choose(wantButtons, wantGestures, it)
         }
 
-        col.header("Or pick a setup")
         val labels = setups.map { s ->
             (if (s.buttons == wantButtons && s.gestures == wantGestures && s.keys == wantKeys) "* " else "   ") + s.name
         }
-        col.button("Choose...") {
+        col.button("Pick a setup") {
             Ui.pick(this, "Navigation setup", labels) { i ->
                 setups[i].let { choose(it.buttons, it.gestures, it.keys) }
             }
@@ -181,7 +178,7 @@ class NavigationActivity : Activity() {
     }
 
     private fun powerKey(col: LinearLayout) {
-        col.header("Power key")
+        col.header("Power button")
         val b = Store.bindings(this)
         val direct = Shell.ready && PowerControl.wanted(this)
         defaults.forEach { (t, _) ->
@@ -200,23 +197,17 @@ class NavigationActivity : Activity() {
         }
         col.row(
             if (Shell.SUPPORTED) "More Power button gestures" else "Set up the Power button",
-            if (Shell.SUPPORTED) "More taps, combinations with other keys, and how it works"
-            else "Make AssistKey the assistant for hold, and the camera app for double press"
+            if (Shell.SUPPORTED) "More taps and combinations" else "Hold and double press"
         ) {
             startActivity(Intent(this, PowerActivity::class.java))
         }
         if (!Channels.isSatisfied(this, Channel.ACCESSIBILITY)) {
-            col.row("Key remapping is off", "Back and Home cannot fire yet", state = "Off") {
+            col.row("Button remapping", "Nothing here can fire", state = "Off") {
                 startActivity(Intent(this, SetupActivity::class.java))
             }
         }
         if (!direct) {
-            col.note(
-                (if (Shell.SUPPORTED) "Without shell access a tap cannot reach any app. "
-                else "A tap cannot reach any app. ") +
-                    "Hold and double press still work."
-            )
-            col.more("The Power key as navigation", POWER_KEY_ABOUT)
+            col.note("A tap cannot reach any app. Hold and double press work.")
         }
     }
 
@@ -227,12 +218,12 @@ class NavigationActivity : Activity() {
         buttonsNow: Boolean?,
         gesturesNow: Boolean?
     ) {
-        col.header("Button bar and gestures")
+        col.header("Now")
         col.row("Button bar", null, enabled = false, state = now(buttonsNow, "Showing", "Hidden"))
-        col.row("Swipe-up gesture", null, enabled = false, state = now(gesturesNow, "On", "Off"))
+        col.row("Swipe gestures", null, enabled = false, state = now(gesturesNow, "On", "Off"))
 
         if (applying) {
-            col.note("Applying... the screen may redraw once.")
+            col.note("Applying...")
             return
         }
         if (buttonsNow == wantButtons && gesturesNow == wantGestures) return
@@ -242,18 +233,15 @@ class NavigationActivity : Activity() {
             return
         }
         if (Shell.SUPPORTED) {
-            col.note("Android does not let apps switch these. Shell access lets AssistKey do it from here:")
+            col.note("Shell access applies this from here:")
             col.row(
                 "Shell access",
-                "Set it up once, on the device, with no computer",
+                "No computer needed",
                 state = Shell.describe(this)
             ) { startActivity(Intent(this, ShellActivity::class.java)) }
-            col.note("Or, with a computer and USB debugging:")
+            col.note("Or from a computer with USB debugging:")
         } else {
-            col.note(
-                "Android does not let apps switch these. Do it once from a computer, " +
-                    "with the device plugged in and USB debugging on. It survives restarts."
-            )
+            col.note("Run this once from a computer with USB debugging on.")
         }
         col.code(NavNative.commands(wantButtons, wantGestures).joinToString("\n"))
     }
@@ -262,19 +250,5 @@ class NavigationActivity : Activity() {
         true -> yes
         false -> no
         null -> "Unknown"
-    }
-
-    private companion object {
-        const val POWER_KEY_ABOUT =
-            "The window manager takes the Power key before any app can see it, " +
-                "so a single tap cannot reach AssistKey.\n\n" +
-                "Press and hold arrives as an assistant request, so it works " +
-                "once AssistKey is the digital assistant.\n\n" +
-                "Double press arrives as a camera launch, so it works once " +
-                "AssistKey is the default camera app.\n\n" +
-                "Both are set up on the Power button screen.\n\n" +
-                "Back, Home and Recents on a Power gesture keep working when " +
-                "the app is locked, so a reader with no bar and no gestures is " +
-                "never left without a way to navigate."
     }
 }

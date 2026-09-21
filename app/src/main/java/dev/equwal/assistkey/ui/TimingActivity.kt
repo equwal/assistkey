@@ -6,7 +6,6 @@ import dev.equwal.assistkey.engine.GestureEngine
 import dev.equwal.assistkey.route.ServiceHolder
 import dev.equwal.assistkey.store.Store
 import dev.equwal.assistkey.ui.Ui.header
-import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
 
 /**
@@ -30,9 +29,7 @@ class TimingActivity : Activity() {
             "Multi-tap window",
             cfg.multiTapMs,
             listOf(180L, 220L, 280L, 350L, 450L),
-            "How long to wait for another tap. Longer is easier to hit, but " +
-                "adds that much delay to every single tap on a key that has a " +
-                "double tap bound."
+            "Longer is easier, but delays every tap"
         ) { Store.setTiming(this, cfg.copy(multiTapMs = it)) }
 
         section(
@@ -40,7 +37,7 @@ class TimingActivity : Activity() {
             "Hold threshold",
             cfg.holdMs,
             listOf(300L, 400L, 450L, 600L, 800L),
-            "How long a key must stay down before it counts as a hold."
+            "How long a press counts as a hold"
         ) { Store.setTiming(this, cfg.copy(holdMs = it)) }
 
         section(
@@ -48,7 +45,7 @@ class TimingActivity : Activity() {
             "Combination window",
             cfg.chordMs,
             listOf(80L, 120L, 140L, 200L, 300L),
-            "How close together two keys must go down to count as a combination."
+            "How close together two presses count"
         ) { Store.setTiming(this, cfg.copy(chordMs = it)) }
 
         col.header("Defaults")
@@ -64,12 +61,10 @@ class TimingActivity : Activity() {
         title: String,
         current: Long,
         options: List<Long>,
-        blurb: String,
+        hint: String,
         onPick: (Long) -> Unit
     ) {
-        col.header(title)
-        col.note(blurb)
-        col.row(title, "Tap to change", state = current.toString() + " ms") {
+        col.row(title, hint, state = current.toString() + " ms") {
             val labels = options.map { v ->
                 (if (v == current) "* " else "   ") + v + " ms"
             }

@@ -25,6 +25,9 @@ import dev.equwal.assistkey.shell.Shell
 import dev.equwal.assistkey.store.Store
 import dev.equwal.assistkey.ui.AccessibilityDisclosure
 import dev.equwal.assistkey.ui.ActionPickerActivity
+import dev.equwal.assistkey.ui.PowerActivity
+import dev.equwal.assistkey.ui.ShellActivity
+import dev.equwal.assistkey.ui.TriggerListActivity
 import dev.equwal.assistkey.ui.Ui
 import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.header
@@ -36,8 +39,9 @@ import dev.equwal.assistkey.voice.Dictation
 /**
  * Set up one button by saying what you want, in four short steps.
  *
- *  1. Which button: tap it in the drawing.
- *  2. How you press it: tap, double tap, hold.
+ *  1. Which button: tap it in the drawing. Two buttons make a combination.
+ *     The main screen has the same drawing, and then this step is skipped.
+ *  2. How you press it: tap, double tap, hold, and the longer tap counts.
  *  3. What it does.
  *  4. Allow what that needs - and only that.
  *
@@ -51,25 +55,46 @@ class GuidedSetupActivity : Activity() {
     private enum class Step { BUTTON, PRESS, ACTION, ALLOW, DONE }
 
     private var step = Step.BUTTON
-    private var key: HwKey? = null
+    private var keys: List<HwKey> = emptyList()
     private var trigger: Trigger? = null
 
-    private val env: Route.Env
-        get() = Route.Env(powerIsDirect = Shell.ready && PowerControl.wanted(this))
+    /** True when the main screen chose the buttons. Back from step 2 then leaves this screen. */
+    private var fromHub = false
+
+    /** True when another screen made the binding. This screen then only asks, and leaves. */
+    private var askOnly = false
+
+    private fun tokens(text: String?): List<HwKey> =
+        text.orEmpty().split('+').mapNotNull(HwKey::fromToken)
+
+    private val env: Route.Env get() = env(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         savedInstanceState?.let { s ->
             step = Step.valueOf(s.getString("step", Step.BUTTON.name))
-            key = s.getString("key")?.let(HwKey::fromToken)
+            keys = tokens(s.getString("keys"))
             trigger = s.getString("trigger")?.let(Trigger::parse)
+            fromHub = s.getBoolean("fromHub")
+        } ?: intent.getStringExtra(EXTRA_ASK)?.let(Trigger::parse)?.let {
+            // Another screen made this binding. Ask for what it needs, and nothing else.
+            trigger = it
+            keys = it.keys.toList()
+            askOnly = true
+            step = Step.ALLOW
+        } ?: tokens(intent.getStringExtra(EXTRA_KEYS)).takeIf { it.isNotEmpty() }?.let {
+            // The main screen chose the buttons already.
+            keys = it
+            fromHub = true
+            step = Step.PRESS
         }
     }
 
     override fun onSaveInstanceState(out: Bundle) {
         super.onSaveInstanceState(out)
         out.putString("step", step.name)
-        key?.let { out.putString("key", it.token) }
+        out.putString("keys", keys.joinToString("+") { it.token })
+        out.putBoolean("fromHub", fromHub)
         trigger?.let { out.putString("trigger", it.id) }
     }
 
@@ -85,6 +110,8 @@ class GuidedSetupActivity : Activity() {
     override fun onBackPressed() {
         when (step) {
             Step.BUTTON, Step.DONE -> finish()
+            Step.ALLOW -> if (askOnly) finish() else go(Step.ACTION)
+            Step.PRESS -> if (fromHub) finish() else go(Step.BUTTON)
             else -> { step = Step.entries[step.ordinal - 1]; build() }
         }
     }
@@ -97,7 +124,7 @@ class GuidedSetupActivity : Activity() {
     private fun build() {
         val heading = when (step) {
             Step.BUTTON -> "Which button?"
-            Step.PRESS -> key?.label ?: "Which button?"
+            Step.PRESS -> keys.joinToString(" + ") { it.label }.ifEmpty { "Which button?" }
             Step.ACTION -> trigger?.label() ?: "What should it do?"
             Step.ALLOW -> "Almost there"
             Step.DONE -> "Done"
@@ -115,46 +142,68 @@ class GuidedSetupActivity : Activity() {
     // ---- 1. which button ------------------------------------------------------------------
 
     private fun whichButton(col: LinearLayout) {
-        col.note("Tap the button in the drawing.")
+        col.note("Tap two for a combination.")
         val view = DeviceView(this).apply {
-            keys = listOf(HwKey.POWER) + Device.keys(this@GuidedSetupActivity)
-            selected = key
-            onSelect = { key = it; build() }
+            keys = drawn(this@GuidedSetupActivity)
+            selected = this@GuidedSetupActivity.keys
+            onSelect = { this@GuidedSetupActivity.keys = it; build() }
         }
         col.addView(view)
         // A device can have buttons the drawing does not know. The user names the button.
         val others = HwKey.interceptable.filterNot { it in view.keys }
         if (others.isNotEmpty()) {
-            col.row("My button is not in the drawing", key?.takeIf { it in others }?.label) {
-                Ui.pick(this, "Which button?", others.map { it.label }) { i -> key = others[i]; build() }
+            col.row("My button is not in the drawing", keys.filter { it in others }.joinToString { it.label }.ifEmpty { null }) {
+                Ui.pick(this, "Which button?", others.map { it.label }) { i ->
+                    keys = Route.toggle(keys, others[i])
+                    build()
+                }
             }
         }
-        key?.let { k -> col.primaryButton("Next: " + k.label) { go(Step.PRESS) } }
+        if (keys.isNotEmpty()) {
+            col.primaryButton("Next: " + keys.joinToString(" + ") { it.label }) { go(Step.PRESS) }
+        }
     }
 
     // ---- 2. how it is pressed ---------------------------------------------------------------
 
     private fun press(col: LinearLayout) {
-        val k = key ?: return go(Step.BUTTON)
+        if (keys.isEmpty()) return go(Step.BUTTON)
+        val set = keys.toSet()
         col.header("How do you press it?")
         val b = Store.bindings(this)
-        val offered = Route.gestures(setOf(k), env)
+        val offered = Route.gestures(set, env)
         offered.forEach { t ->
-            col.row(gestureName(t), b.raw(t).describe().takeIf { b.isBound(t) }?.let { "Now: $it" }) {
+            val state = b.raw(t).describe().takeIf { b.isBound(t) }?.let { "Now: $it" }
+                ?: "Needs shell access".takeIf { Need.SHELL_POWER in Route.plan(t, false, env).needs }
+            col.row(gestureName(t), state) {
                 trigger = t
                 go(Step.ACTION)
             }
         }
-        if (offered.size < 3) {
-            col.note("Android does not show a single tap of Power to apps. Hold and double press work.")
+        when {
+            HwKey.SCREEN in set -> col.note("A small button floats over every app. Drag to move it.")
+            HwKey.POWER in set && set.size > 1 ->
+                col.note("Hold Power, then press the other button.")
+            HwKey.POWER in set && !env.powerIsDirect && !env.shellSupported ->
+                col.note("A tap cannot reach any app. Hold and double press work.")
         }
-        col.note("More ways to press, and two buttons together, are under Advanced > Full control.")
+        if (HwKey.SCREEN !in set) {
+            col.row("Advanced", "Every gesture of this button") {
+                startActivity(
+                    if (HwKey.POWER in set) Intent(this, PowerActivity::class.java)
+                    else TriggerListActivity.intent(this, set)
+                )
+            }
+        }
     }
 
     private fun gestureName(t: Trigger): String = when {
+        HwKey.POWER in t.keys && t.keys.size > 1 -> "Hold Power, then press " + (t.keys - HwKey.POWER).first().label
         t.type == GestureType.HOLD -> "Press and hold"
+        t.count == 1 -> "Tap"
         t.count == 2 -> if (HwKey.POWER in t.keys && !env.powerIsDirect) "Double press" else "Double tap"
-        else -> "Tap"
+        t.count == 3 -> "Triple tap"
+        else -> t.count.toString() + " taps"
     }
 
     // ---- 3. what it does ------------------------------------------------------------------------
@@ -171,6 +220,8 @@ class GuidedSetupActivity : Activity() {
             ActionSpec(ActionKind.SWIPE, "left", "Next page"),
             ActionSpec(ActionKind.SWIPE, "right", "Previous page"),
             ActionSpec(ActionKind.VOICE, "", "Voice typing"),
+            global(GlobalAction.LOCK_SCREEN),
+            global(GlobalAction.SCREENSHOT),
             ActionSpec(ActionKind.NONE, "", "Nothing - switch the button off")
         )
         common.forEach { spec ->
@@ -180,18 +231,14 @@ class GuidedSetupActivity : Activity() {
             }
         }
         col.row("A menu of actions", "One press, many choices") { startActivity(MenuEditActivity.intent(this, t)) }
-        col.row("Open an app, or something else", "The full list of actions") {
-            startActivity(ActionPickerActivity.intent(this, t))
+        col.row("Advanced", "Every action") {
+            startActivity(ActionPickerActivity.intent(this, t).putExtra(ActionPickerActivity.EXTRA_NO_ASK, true))
         }
     }
 
     // ---- 4. allow what it needs --------------------------------------------------------------------
 
-    private fun satisfied(n: Need): Boolean = when (n) {
-        Need.KEY_FILTER -> Channels.isSatisfied(this, Channel.ACCESSIBILITY)
-        Need.ASSISTANT -> Channels.isSatisfied(this, Channel.ASSISTANT)
-        Need.CAMERA -> Channels.isSatisfied(this, Channel.CAMERA)
-    }
+    private fun satisfied(n: Need): Boolean = satisfied(this, n)
 
     private fun ask(n: Need) {
         when (n) {
@@ -207,8 +254,12 @@ class GuidedSetupActivity : Activity() {
             }
             Need.CAMERA -> {
                 Channels.setEnabled(this, Channel.CAMERA, true)
-                Toast.makeText(this, "Choose Camera app, then pick AssistKey", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Choose Camera app, then pick Rebind", Toast.LENGTH_LONG).show()
                 Channels.safeStart(this, Channels.claimIntent(this, Channel.CAMERA))
+            }
+            Need.SHELL_POWER -> {
+                PowerControl.setWanted(this, true)
+                startActivity(Intent(this, ShellActivity::class.java))
             }
         }
     }
@@ -225,23 +276,22 @@ class GuidedSetupActivity : Activity() {
 
         val missing = plan.needs.filterNot(::satisfied)
         val microphone = spec.kind == ActionKind.VOICE && !Dictation.hasMicrophone(this)
-        if (plan.possible && missing.isEmpty() && !microphone) return go(Step.DONE)
+        if (plan.possible && missing.isEmpty() && !microphone) return if (askOnly) finish() else go(Step.DONE)
 
         plan.blocked?.let {
             col.note(it)
-            col.button("Choose another way to press") { go(Step.PRESS) }
+            col.button("Press it another way") { go(Step.PRESS) }
             return
         }
-        col.note(t.label() + " will do: " + spec.describe() + ". Android asks you to allow this first:")
+        col.note(t.label() + " will do: " + spec.describe() + ". Allow this first:")
         missing.forEach { n -> col.row(n.title, n.why) { ask(n) } }
         if (microphone) {
-            col.row("Allow the microphone", "For Voice typing. A speech app on this device does the listening.") {
+            col.row("Allow the microphone", "For Voice typing") {
                 requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), 1)
             }
         }
-        col.note("Tap each one. When you come back here, it is ticked off.")
         if (Need.KEY_FILTER in missing) {
-            col.note("If the switch turns itself back off: open App info, the three-dot menu, Allow restricted settings.")
+            col.note("If the switch turns itself off, allow restricted settings in App info.")
             col.button("Open App info") { Channels.safeStart(this, Channels.appInfoIntent(this)) }
         }
     }
@@ -258,17 +308,57 @@ class GuidedSetupActivity : Activity() {
         val spec = t?.let { Store.bindings(this)[it] }
         if (t != null && spec != null) col.note(t.label() + " now does: " + spec.describe() + ". Try it.")
         if (spec?.kind == ActionKind.VOICE && Dictation.engines(this).none(Dictation::isOnDevice)) {
-            col.note("Voice typing works best with a speech app that listens on the device. See Voice typing on the main screen.")
+            col.note("See Voice typing for an on-device speech app.")
+        }
+        // Some firmware sends the double press of Power to the wallet app, not to the camera app.
+        val powerDouble = t == Trigger(setOf(HwKey.POWER), GestureType.TAP, 2) && !env.powerIsDirect
+        if (powerDouble && !Channels.isSatisfied(this, Channel.WALLET)) {
+            col.row("The double press does nothing?", "Take the wallet place too") {
+                Channels.setEnabled(this, Channel.WALLET, true)
+                Channels.safeStart(this, Channels.claimIntent(this, Channel.WALLET))
+            }
         }
         col.button("Set up another button") {
-            key = null
+            keys = emptyList()
             trigger = null
+            fromHub = false
             go(Step.BUTTON)
         }
         col.primaryButton("Finish") { finish() }
     }
 
     companion object {
-        fun intent(a: Activity): Intent = Intent(a, GuidedSetupActivity::class.java)
+        private const val EXTRA_KEYS = "keys"
+        private const val EXTRA_ASK = "ask"
+
+        /**
+         * For a screen that has just made a binding for [t]. Opens the allow
+         * step when the binding needs something the user has not allowed yet.
+         */
+        fun askIfMissing(a: Activity, t: Trigger) {
+            val spec = Store.bindings(a)[t] ?: return
+            val needsFilter = ActionRouter.requiresAccessibility(spec) || spec.kind == ActionKind.MENU
+            val plan = Route.plan(t, needsFilter, env(a))
+            val microphone = spec.kind == ActionKind.VOICE && !Dictation.hasMicrophone(a)
+            if (plan.possible && plan.needs.all { satisfied(a, it) } && !microphone) return
+            a.startActivity(Intent(a, GuidedSetupActivity::class.java).putExtra(EXTRA_ASK, t.id))
+        }
+
+        private fun env(c: android.content.Context): Route.Env =
+            Route.Env(powerIsDirect = Shell.ready && PowerControl.wanted(c), shellSupported = Shell.SUPPORTED)
+
+        private fun satisfied(c: android.content.Context, n: Need): Boolean = when (n) {
+            Need.KEY_FILTER -> Channels.isSatisfied(c, Channel.ACCESSIBILITY)
+            Need.ASSISTANT -> Channels.isSatisfied(c, Channel.ASSISTANT)
+            Need.CAMERA -> Channels.isSatisfied(c, Channel.CAMERA)
+            Need.SHELL_POWER -> env(c).powerIsDirect
+        }
+
+        /** With [keys], the flow starts at "how do you press it". */
+        fun intent(a: Activity, keys: List<HwKey> = emptyList()): Intent =
+            Intent(a, GuidedSetupActivity::class.java).putExtra(EXTRA_KEYS, keys.joinToString("+") { it.token })
+
+        /** The buttons in the drawing, from the top down. */
+        fun drawn(c: android.content.Context): List<HwKey> = listOf(HwKey.POWER) + Device.keys(c) + HwKey.SCREEN
     }
 }

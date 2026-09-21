@@ -12,7 +12,6 @@ import dev.equwal.assistkey.ui.ActionPickerActivity
 import dev.equwal.assistkey.ui.Ui
 import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.header
-import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.primaryButton
 import dev.equwal.assistkey.ui.Ui.row
 import org.json.JSONObject
@@ -39,9 +38,8 @@ class MenuEditActivity : Activity() {
 
     private fun build() {
         val col = Ui.page(this, "Menu for " + trigger.label())
-        col.note("One gesture opens a menu, so you get more actions than you have keys.")
 
-        col.header(if (items.isEmpty()) "No actions yet" else "Actions, in menu order")
+        col.header(if (items.isEmpty()) "No actions yet" else "Actions, in order")
         items.forEachIndexed { i, spec ->
             col.row(spec.describe(), "Tap to move or remove") {
                 val choices = listOf("Move up", "Move down", "Remove")
@@ -59,7 +57,6 @@ class MenuEditActivity : Activity() {
             startActivityForResult(ActionPickerActivity.pickIntent(this, trigger), PICK)
         }
 
-        col.header("Finish")
         col.primaryButton(if (items.isEmpty()) "Remove the menu" else "Save the menu") {
             Store.bind(this, trigger, if (items.isEmpty()) ActionSpec.PASS else Menu.spec(items))
             setResult(RESULT_OK)

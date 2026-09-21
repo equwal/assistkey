@@ -16,7 +16,6 @@ import dev.equwal.assistkey.store.SettingsFile
 import dev.equwal.assistkey.store.Store
 import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.header
-import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.note
 import org.json.JSONObject
 
@@ -33,15 +32,6 @@ class BackupActivity : Activity() {
         const val OPEN = 2
         const val FILE_NAME = "assistkey-settings.json"
 
-        const val ABOUT =
-            "The file holds your key bindings, timing, navigation setup, home " +
-                "screen and voice typing choices.\n\n" +
-                "It does not hold your licence, and nothing about you or your " +
-                "apps beyond the apps you bound to keys or put on the home " +
-                "screen.\n\n" +
-                "An import replaces the settings it contains and leaves the " +
-                "others as they are. A binding can open an app or send an " +
-                "intent, so import files only from people you trust."
     }
 
     override fun onResume() {
@@ -51,8 +41,6 @@ class BackupActivity : Activity() {
 
     private fun build() {
         val col = Ui.page(this, "Export and import")
-        col.note("Your settings as one file. Move them to another device, or share them.")
-        col.more("Export and import", ABOUT)
 
         col.header("Export")
         col.button("Save to a file") {
@@ -66,7 +54,7 @@ class BackupActivity : Activity() {
             start(
                 Intent.createChooser(
                     Intent(Intent.ACTION_SEND).setType("text/plain")
-                        .putExtra(Intent.EXTRA_SUBJECT, "AssistKey settings")
+                        .putExtra(Intent.EXTRA_SUBJECT, "Rebind settings")
                         .putExtra(Intent.EXTRA_TEXT, export()),
                     "Share settings"
                 ),
@@ -83,7 +71,7 @@ class BackupActivity : Activity() {
                 ?.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString()
             if (clip.isNullOrBlank()) toast("The clipboard is empty") else offer(clip)
         }
-        col.note("A binding can open an app or send an intent, so import files only from people you trust.")
+        col.note("Import files only from people you trust.")
     }
 
     private fun start(i: Intent, code: Int) {
@@ -132,7 +120,7 @@ class BackupActivity : Activity() {
         AlertDialog.Builder(this)
             .setTitle("Import these settings?")
             .setMessage(
-                count.toString() + " key bindings, and settings for: " +
+                count.toString() + " bindings, and settings for: " +
                     settings.keys.joinToString(", ") { it.removePrefix("assistkey_").replace("assistkey", "keys") } +
                     ".\n\nThey replace what you have now."
             )

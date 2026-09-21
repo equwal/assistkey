@@ -53,10 +53,6 @@ object Ui {
     /** Separator lines between rows. */
     val RULE = Color.rgb(150, 150, 150)
 
-    /** A key's name mid-sentence: "volume up", but never "ai key". */
-    fun inSentence(key: dev.equwal.assistkey.model.HwKey): String =
-        if (key == dev.equwal.assistkey.model.HwKey.AI) "the AI key" else key.label.lowercase()
-
     fun Context.dp(v: Int): Int = TypedValue.applyDimension(
         TypedValue.COMPLEX_UNIT_DIP, v.toFloat(), resources.displayMetrics
     ).toInt()
@@ -285,21 +281,6 @@ object Ui {
         add(box)
         rule()
         return cb
-    }
-
-    /**
-     * Moves a long explanation off the screen and behind one row. Every fact
-     * stays; the screen stops being a wall of text.
-     */
-    fun LinearLayout.more(dialogTitle: String, body: String) {
-        val a = context
-        row("More about this") {
-            AlertDialog.Builder(a)
-                .setTitle(dialogTitle)
-                .setMessage(body)
-                .setPositiveButton(android.R.string.ok, null)
-                .show()
-        }
     }
 
     // ---- tiles -----------------------------------------------------------

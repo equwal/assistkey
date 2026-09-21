@@ -8,37 +8,25 @@ import org.junit.Test
 class SummaryTest {
 
     @Test
-    fun `gesture names the key and what you do to it`() {
-        assertEquals("Power, hold", Summary.gesture(listOf("Power"), hold = true, taps = 1))
-        assertEquals("AI key, tap", Summary.gesture(listOf("AI key"), hold = false, taps = 1))
-        assertEquals("AI key, double tap", Summary.gesture(listOf("AI key"), hold = false, taps = 2))
-        assertEquals("AI key, triple tap", Summary.gesture(listOf("AI key"), hold = false, taps = 3))
-        assertEquals("AI key, 5 taps", Summary.gesture(listOf("AI key"), hold = false, taps = 5))
+    fun `a caption names what the button does now, each action once`() {
+        assertEquals("Not set", Summary.caption(emptyList()))
+        assertEquals("Back", Summary.caption(listOf("Back")))
+        assertEquals("Back \u00b7 Home", Summary.caption(listOf("Back", "Home", "Back")))
     }
 
     @Test
-    fun `gesture joins a combination with a plus`() {
-        assertEquals(
-            "Volume up + Volume down, tap",
-            Summary.gesture(listOf("Volume up", "Volume down"), hold = false, taps = 1)
-        )
-    }
-
-    @Test
-    fun `a hold never counts taps`() {
-        assertEquals("Power, hold", Summary.gesture(listOf("Power"), hold = true, taps = 3))
-    }
-
-    @Test
-    fun `binding reads as gesture then action`() {
-        assertEquals("Power, hold: Home", Summary.binding("Power, hold", "Home"))
-    }
-
-    @Test
-    fun `keys counts the bindings, not the keys`() {
+    fun `keys counts the bindings, not the buttons`() {
         assertEquals("Nothing bound yet", Summary.keys(3, 0))
-        assertEquals("1 action on 1 key", Summary.keys(1, 1))
-        assertEquals("5 actions on 3 keys", Summary.keys(3, 5))
+        assertEquals("1 action on 1 button", Summary.keys(1, 1))
+        assertEquals("5 actions on 3 buttons", Summary.keys(3, 5))
+    }
+
+    @Test
+    fun `detected says whether it has run, then what it found`() {
+        assertEquals("Not run yet", Summary.detected(null))
+        assertEquals("No named buttons found", Summary.detected(0))
+        assertEquals("1 button found", Summary.detected(1))
+        assertEquals("4 buttons found", Summary.detected(4))
     }
 
     @Test
@@ -51,9 +39,9 @@ class SummaryTest {
     @Test
     fun `navigation lists only what is on`() {
         assertEquals("Nothing switched on", Summary.navigation(false, false, false))
-        assertEquals("Buttons", Summary.navigation(true, false, false))
-        assertEquals("Power key", Summary.navigation(false, false, true))
-        assertEquals("Buttons · Gestures · Power key", Summary.navigation(true, true, true))
+        assertEquals("Bar", Summary.navigation(true, false, false))
+        assertEquals("Power button", Summary.navigation(false, false, true))
+        assertEquals("Bar · Gestures · Power button", Summary.navigation(true, true, true))
     }
 
     @Test
@@ -74,7 +62,7 @@ class SummaryTest {
 
     @Test
     fun `setup says the blocker before any count`() {
-        assertEquals("Key remapping is off", Summary.setup(false, 4, 4))
+        assertEquals("Button remapping is off", Summary.setup(false, 4, 4))
         assertEquals("All set", Summary.setup(true, 4, 4))
         assertEquals("2 to set up", Summary.setup(true, 2, 4))
     }
@@ -86,17 +74,6 @@ class SummaryTest {
         assertEquals("1 day left", Summary.licenceChip(License.Tier.TRIAL, 1))
         assertEquals("7 days left", Summary.licenceChip(License.Tier.TRIAL, 7))
         assertEquals("Locked", Summary.licenceChip(License.Tier.LOCKED, 0))
-    }
-
-    @Test
-    fun `the licence line explains the tier`() {
-        assertEquals("Bought. Thank you.", Summary.licence(License.Tier.LICENSED, 0))
-        assertEquals("Free while the beta is open", Summary.licence(License.Tier.BETA, 0))
-        assertEquals("3 days of the trial left", Summary.licence(License.Tier.TRIAL, 3))
-        assertEquals(
-            "Remapping is off until a licence is bought",
-            Summary.licence(License.Tier.LOCKED, 0)
-        )
     }
 
     @Test

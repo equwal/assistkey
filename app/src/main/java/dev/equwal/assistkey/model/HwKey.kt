@@ -34,13 +34,20 @@ enum class HwKey(
     F2(KeyEvent.KEYCODE_F2, "F2 key", true),
     F3(KeyEvent.KEYCODE_F3, "F3 key", true),
     F4(KeyEvent.KEYCODE_F4, "F4 key", true),
-    POWER(KeyEvent.KEYCODE_POWER, "Power", false);
+    POWER(KeyEvent.KEYCODE_POWER, "Power", false),
+
+    /**
+     * The accessibility button that Android draws on the screen. It is not a
+     * physical key and has no key code. The system tells the key filter about
+     * a tap on it, and that is the only gesture it has.
+     */
+    SCREEN(-1, "On-screen button", false);
 
     /** Stable token used in persisted trigger ids. Never change these. */
     val token: String get() = name.lowercase()
 
     companion object {
-        fun fromCode(code: Int): HwKey? = entries.firstOrNull { it.code == code }
+        fun fromCode(code: Int): HwKey? = entries.firstOrNull { it.code == code && it.code >= 0 }
         fun fromToken(t: String): HwKey? = entries.firstOrNull { it.token == t }
 
         /** The keys the accessibility engine is allowed to grab. */

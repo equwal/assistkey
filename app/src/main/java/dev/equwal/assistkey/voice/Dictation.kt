@@ -110,8 +110,8 @@ object Dictation {
             it()
             return true
         }
-        if (!hasMicrophone(svc)) return fail(svc, "Voice typing needs the microphone. Open AssistKey > Voice typing.")
-        if (!available(svc)) return fail(svc, "No speech recognition app on this device. Open AssistKey > Voice typing.")
+        if (!hasMicrophone(svc)) return fail(svc, "Voice typing needs the microphone")
+        if (!available(svc)) return fail(svc, "No speech app on this device")
         return runCatching {
             svc.startActivity(
                 Intent(svc, DictationActivity::class.java)

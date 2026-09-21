@@ -82,12 +82,12 @@ object Channels {
         if (!isEnabled(c, ch)) return "Off"
         if (isSatisfied(c, ch)) return "Active"
         return when (ch) {
-            Channel.ACCESSIBILITY -> "Service not enabled in Settings"
-            Channel.ASSISTANT -> "Not the default digital assistant"
+            Channel.ACCESSIBILITY -> "Not on in Settings"
+            Channel.ASSISTANT -> "Not the assistant"
             Channel.WALLET ->
-                if (isRoleAvailable(c, ROLE_WALLET)) "Not the default wallet app"
-                else "No wallet role on this firmware"
-            Channel.CAMERA -> "Not the default camera app"
+                if (isRoleAvailable(c, ROLE_WALLET)) "Not the wallet app"
+                else "No wallet here"
+            Channel.CAMERA -> "Not the camera app"
         }
     }
 

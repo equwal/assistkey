@@ -80,7 +80,7 @@ class DictationActivity : Activity() {
                 ?: SpeechRecognizer.createSpeechRecognizer(this)
         }.getOrNull()
         if (r == null) {
-            Dictation.toast(this, "The speech recognition app did not start.")
+            Dictation.toast(this, "The speech app did not start")
             return done(null)
         }
         recognizer = r
@@ -107,10 +107,10 @@ class DictationActivity : Activity() {
                 this@DictationActivity,
                 when (error) {
                     SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Heard nothing"
-                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "The microphone permission is missing"
+                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "The microphone is not allowed"
                     SpeechRecognizer.ERROR_NETWORK, SpeechRecognizer.ERROR_NETWORK_TIMEOUT ->
-                        "The speech recognition app could not reach its server"
-                    else -> "Speech recognition failed (" + error + ")"
+                        "The speech app has no connection"
+                    else -> "Speech failed (" + error + ")"
                 }
             )
             done(null)
@@ -149,7 +149,7 @@ class DictationActivity : Activity() {
             when (TextInsert.insert(svc, text)) {
                 TextInsert.Result.DONE -> Unit
                 TextInsert.Result.NO_FIELD -> Dictation.toast(app, "No text field has the cursor")
-                TextInsert.Result.PASSWORD -> Dictation.toast(app, "Voice typing does not write into password fields")
+                TextInsert.Result.PASSWORD -> Dictation.toast(app, "Not into a password field")
                 TextInsert.Result.REFUSED -> Dictation.toast(app, "That field did not accept the text")
             }
         }, INSERT_DELAY_MS)

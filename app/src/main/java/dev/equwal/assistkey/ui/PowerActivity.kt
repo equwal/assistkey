@@ -19,7 +19,6 @@ import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.check
 import dev.equwal.assistkey.ui.Ui.code
 import dev.equwal.assistkey.ui.Ui.header
-import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
 
@@ -68,8 +67,8 @@ class PowerActivity : Activity() {
         if (!Shell.ready && !PowerNative.canWriteSecure(this)) return
         col.header("Emergency SOS")
         col.check(
-            "System Emergency SOS on five presses",
-            "A safety feature of Android. Untick it if five quick presses start it by accident, or to use 5 taps for an action.",
+            "Start it on five presses",
+            "Untick to use 5 taps for an action",
             PowerNative.emergencySos(this)
         ) { on ->
             PowerNative.setEmergencySos(this, on) { ok ->
@@ -91,77 +90,62 @@ class PowerActivity : Activity() {
     // ---- with shell access ----------------------------------------------------------------
 
     private fun direct(col: LinearLayout) {
-        col.note("AssistKey is reading the Power button directly.")
-
-        col.header("Taps")
         bindRow(col, "Tap", Trigger(power, GestureType.TAP, 1))
         bindRow(col, "Double tap", Trigger(power, GestureType.TAP, 2))
         bindRow(col, "Triple tap", Trigger(power, GestureType.TAP, 3))
         bindRow(col, "4 taps", Trigger(power, GestureType.TAP, 4))
         bindRow(col, "5 taps", Trigger(power, GestureType.TAP, 5))
+        bindRow(col, "Hold", Trigger(power, GestureType.HOLD))
 
-        col.header("Hold")
-        bindRow(col, "Press and hold", Trigger(power, GestureType.HOLD))
-
-        col.header("Power held, plus another key")
+        col.header("Power held, then another button")
         dev.equwal.assistkey.device.Device.keys(this).forEach { key ->
             bindRow(col, "Power + " + key.label, Trigger.powerThen(key))
         }
 
         col.header("Safety")
         col.note("Power + Volume up always opens the power menu.")
-        col.more("The Power button, read directly", DIRECT_ABOUT)
-        col.check(
-            "Let AssistKey handle the Power button",
-            "Untick to give it back to the system and use the side doors instead",
-            true
-        ) { on ->
+        col.check("Let Rebind handle the Power button", null, true) { on ->
             PowerControl.setWanted(this, on)
             (ServiceHolder.service as? KeyFilterService)?.syncPower()
             build()
         }
 
         if (ServiceHolder.service == null) {
-            col.note("The accessibility key filter is off, so nothing here can fire yet.")
+            col.note("Button remapping is off.")
         }
     }
 
     // ---- without it --------------------------------------------------------------------------
 
     private fun sideDoors(col: LinearLayout) {
-        col.note("Android does not show the Power button to apps. Two side doors are open.")
-        col.more("The two side doors", SIDE_DOORS_ABOUT)
-
-        col.header("Hold - through the assistant door")
+        col.header("Hold")
         door(col, Channel.ASSISTANT)
-        bindRow(col, "Press and hold", Channel.POWER_HOLD)
+        bindRow(col, "Hold", Channel.POWER_HOLD)
         dev.equwal.assistkey.device.Device.keys(this).forEach { key ->
-            bindRow(col, "Power held, then " + Ui.inSentence(key), Trigger.powerThen(key))
+            bindRow(col, "Power + " + key.label, Trigger.powerThen(key))
         }
 
-        col.header("Double press - through the camera door")
+        col.header("Double press")
         door(col, Channel.CAMERA)
         bindRow(col, "Double press", Channel.POWER_DOUBLE)
 
         col.header("Tap")
-        col.note("A single tap cannot reach any app this way. The system's own choices are all there is.")
+        col.note("A tap cannot reach any app.")
         firmware(col)
 
-        col.header("Wallet door")
+        col.header("Wallet")
         door(col, Channel.WALLET)
-        col.note("Runs the double-press action from the wallet tile and lock-screen button.")
 
-        if (Shell.SUPPORTED) col.header("With Shizuku or root")
         if (!Shell.SUPPORTED) {
             // No shell access in this build: the side doors are everything.
         } else if (Shell.ready) {
-            col.check("Let AssistKey handle the Power button", "Tap, double tap, hold and more", false) {
+            col.check("Let Rebind handle the Power button", "Tap, double tap, hold and more", false) {
                 PowerControl.setWanted(this, it)
                 (ServiceHolder.service as? KeyFilterService)?.syncPower()
                 build()
             }
         } else {
-            col.row("Shell access: " + Shell.describe(this), "Unlocks tap, double tap, more taps and combinations") {
+            col.row("Shell access", "Unlocks every Power gesture", state = Shell.describe(this)) {
                 startActivity(Intent(this, ShellActivity::class.java))
             }
         }
@@ -177,17 +161,17 @@ class PowerActivity : Activity() {
             build()
         }
         if (on) {
-            col.row("Status: " + Channels.status(this, ch), null, enabled = false)
+            col.row("Status", null, enabled = false, state = Channels.status(this, ch))
             if (!Channels.isSatisfied(this, ch)) col.button("Set up") { claim(ch) }
         }
     }
 
     private fun claim(ch: Channel) {
         if (ch == Channel.CAMERA) {
-            Toast.makeText(this, "Choose Camera app, then pick AssistKey", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Choose Camera app, then pick Rebind", Toast.LENGTH_LONG).show()
         }
         if (!Channels.safeStart(this, Channels.claimIntent(this, ch))) {
-            Toast.makeText(this, "No settings screen for that on this device", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "This device has no screen for that", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -195,7 +179,7 @@ class PowerActivity : Activity() {
 
     private fun firmware(col: LinearLayout) {
         if (!PowerNative.canWriteSecure(this)) {
-            col.note("Changing them needs a permission that shell access grants by itself, or this once from a computer:")
+            col.note("Needs shell access, or this once from a computer:")
             col.code(PowerNative.GRANT_COMMAND)
             return
         }
@@ -208,7 +192,7 @@ class PowerActivity : Activity() {
         val long = PowerNative.longPressValue(this)
         col.row(
             "Hold: " + PowerNative.describe(PowerNative.longPress, long),
-            "Must be Digital assistant for the assistant door to open"
+            "Must be Digital assistant"
         ) {
             pick("Hold", PowerNative.longPress, long) { v -> applied(PowerNative.setLongPress(this, v)) }
         }
@@ -230,31 +214,5 @@ class PowerActivity : Activity() {
     private fun applied(ok: Boolean) {
         Toast.makeText(this, if (ok) "Applied" else "The system refused", Toast.LENGTH_SHORT).show()
         build()
-    }
-
-    private companion object {
-
-        const val DIRECT_ABOUT =
-            "While anything is bound here, the system's own reactions to the " +
-                "Power button are switched off. A gesture you leave unbound " +
-                "locks the screen, as Power always did.\n\n" +
-                "A tap waits a moment for a second one only if double tap or " +
-                "more is bound. The wait is set under Advanced > Gesture " +
-                "timing.\n\n" +
-                "Power + Volume up always opens the power menu. The press that " +
-                "wakes the screen is never treated as a gesture.\n\n" +
-                "If shell access is lost - after a restart, say - the button " +
-                "goes back to the system until it returns."
-
-        const val SIDE_DOORS_ABOUT =
-            "The window manager takes the Power key before any app can see it, " +
-                "so no accessibility service reaches it on any Android " +
-                "version. Two side doors are left.\n\n" +
-                "Press and hold arrives as an assistant request, so it works " +
-                "once AssistKey holds the digital assistant role.\n\n" +
-                "Double press arrives as a camera launch, so it works once " +
-                "AssistKey is the default camera app.\n\n" +
-                "While a held-then-key combination is bound, plain hold waits " +
-                "one second to see whether a key follows."
     }
 }

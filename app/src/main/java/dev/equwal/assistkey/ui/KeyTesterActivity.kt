@@ -10,7 +10,6 @@ import dev.equwal.assistkey.channel.Channels
 import dev.equwal.assistkey.engine.KeyLog
 import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.header
-import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
 
@@ -54,46 +53,29 @@ class KeyTesterActivity : Activity() {
 
     private fun build() {
         lastCount = KeyLog.count()
-        val col = Ui.page(this, "Key tester")
+        val col = Ui.page(this, "Button tester")
 
         if (!Channels.isSatisfied(this, Channel.ACCESSIBILITY)) {
             col.row(
-                "Key remapping is off",
-                "Nothing will appear here until it is on",
+                "Button remapping",
+                "Nothing will appear here",
                 state = "Off"
             ) { startActivity(android.content.Intent(this, SetupActivity::class.java)) }
             return
         }
 
-        col.note("Press a key. Anything that reaches the filter is listed below.")
-        col.more("Key tester", ABOUT)
+        col.note("Press a button.")
 
         col.button("Clear") { KeyLog.clear(); build() }
 
         val recent = KeyLog.recent()
         col.header(if (recent.isEmpty()) "Nothing yet" else "Most recent first")
         if (recent.isEmpty()) {
-            col.note(
-                "If a key never appears after pressing it, the firmware is " +
-                    "keeping it to itself. For a volume key that usually means " +
-                    "a firmware hook is set - see Firmware key hooks."
-            )
+            col.note("A button that never appears is kept by the device.")
             return
         }
         recent.forEach { e ->
             col.row(e.describe(), "keycode " + e.keyCode, enabled = false)
         }
-    }
-
-    private companion object {
-        const val ABOUT =
-            "Every key that reaches the filter is listed, whether or not it " +
-                "has a binding.\n\n" +
-                "Power will never appear. The window manager takes it before " +
-                "any app can see it, on every Android device.\n\n" +
-                "Only real presses count. Events injected with adb shell input " +
-                "bypass accessibility filters entirely and will not show up.\n\n" +
-                "Keys are listed only while this screen is open, and are never " +
-                "stored."
     }
 }

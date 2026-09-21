@@ -25,33 +25,29 @@ enum class Channel(
 ) {
     ACCESSIBILITY(
         "accessibility",
-        "Accessibility key filter",
-        "Captures the AI key and both volume keys. Required for multi-tap, " +
-            "holds, combinations, and for Back / Recents / swipe actions.",
+        "Button remapping",
+        "Sees button presses and does the action",
         listOf()
     ),
 
     ASSISTANT(
         "assistant",
         "Digital assistant",
-        "Captures long-press Power by holding the assistant role.",
+        "Catches a held Power button",
         listOf("dev.equwal.assistkey.channel.AssistActivity")
     ),
 
     CAMERA(
         "camera",
         "Camera app",
-        "Captures double-press Power. The firmware opens the camera on a " +
-            "double press, so this app has to be the default camera app.",
+        "Catches a double press of Power",
         listOf("dev.equwal.assistkey.channel.CameraShimActivity")
     ),
 
     WALLET(
         "wallet",
         "Wallet app",
-        "Captures the quick-settings wallet tile and the lock-screen wallet " +
-            "button, and double-press Power on firmware that sends it to the " +
-            "wallet. This reader sends it to the camera instead.",
+        "Catches the wallet tile and button",
         listOf(
             "dev.equwal.assistkey.channel.WalletActivity",
             "dev.equwal.assistkey.channel.WalletService"

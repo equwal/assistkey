@@ -45,7 +45,7 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
         PlayBilling.refresh(this) { syncPower() }
 
         Shell.onChange(shellChanged)
-        Store.onBindingsChanged = { syncPower() }
+        Store.onBindingsChanged = { syncPower(); handler.post { syncScreenButton() } }
         registerReceiver(
             screenState,
             android.content.IntentFilter(android.content.Intent.ACTION_SCREEN_ON).apply {
@@ -54,6 +54,21 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
         )
         Shell.connect(this)
         syncPower()
+        syncScreenButton()
+    }
+
+    // ---- the on-screen button --------------------------------------------------------------
+
+    private val screenTap = Trigger(setOf(HwKey.SCREEN), dev.equwal.assistkey.model.GestureType.TAP, 1)
+    private val screenButton by lazy { ScreenButton(this) { fire(screenTap) } }
+
+    /** The button floats only while it has a binding, and only while the app may act. */
+    fun syncScreenButton() {
+        // "Nothing" on a physical key stops the key. On this button it means: no button.
+        val action = bindings()[screenTap]?.kind
+        val wanted = action != null && action != ActionKind.NONE &&
+            Channels.isEnabled(this, Channel.ACCESSIBILITY) && License.active(this)
+        if (wanted) screenButton.show() else screenButton.hide()
     }
 
     // ---- the Power button, when there is shell access -----------------------------
@@ -123,6 +138,7 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
     override fun onUnbind(intent: android.content.Intent?): Boolean {
         cancelAll()
         stopPower()
+        screenButton.hide()
         return super.onUnbind(intent)
     }
 

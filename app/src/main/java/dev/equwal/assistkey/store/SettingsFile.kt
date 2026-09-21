@@ -66,9 +66,9 @@ object SettingsFile {
         } catch (e: Exception) {
             throw BadFile("This is not a settings file.")
         }
-        if (root.optString("app") != APP) throw BadFile("This is not an AssistKey settings file.")
+        if (root.optString("app") != APP) throw BadFile("This is not a Rebind settings file.")
         if (root.optInt("format", -1) != FORMAT) {
-            throw BadFile("This settings file is from a newer version of AssistKey.")
+            throw BadFile("This settings file is from a newer version of Rebind.")
         }
         val files = root.optJSONObject("settings") ?: throw BadFile("This settings file is empty.")
 

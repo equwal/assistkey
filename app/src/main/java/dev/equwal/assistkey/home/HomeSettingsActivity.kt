@@ -41,9 +41,8 @@ class HomeSettingsActivity : Activity() {
 
     private fun build() {
         val col = Ui.page(this, "Home screen")
-        col.note("A clock, the few apps you choose, and a line to type in.")
 
-        col.check("Offer AssistKey as a home screen", null, enabled()) { on ->
+        col.check("Offer Rebind as a home screen", null, enabled()) { on ->
             packageManager.setComponentEnabledSetting(
                 home,
                 if (on) PackageManager.COMPONENT_ENABLED_STATE_ENABLED
@@ -56,7 +55,7 @@ class HomeSettingsActivity : Activity() {
 
         col.row(
             "Home screen",
-            if (isDefault()) "This is your home screen" else "Not your home screen yet",
+            null,
             enabled = false,
             state = if (isDefault()) "In use" else "Ready"
         )
@@ -103,9 +102,6 @@ class HomeSettingsActivity : Activity() {
                 col.row(app.label, "Tap to show again") { Apps.toggleHidden(this, app.pkg); build() }
             }
         }
-        col.note(
-            "On the home screen itself, press and hold an app for its options, or " +
-                "empty space to come back here."
-        )
+        col.note("Press and hold empty space to come back here.")
     }
 }

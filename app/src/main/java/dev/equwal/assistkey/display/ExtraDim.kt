@@ -24,7 +24,8 @@ object ExtraDim {
     private const val PREFS = "assistkey_display"
     private const val K_LEVEL = "extra_dim"
 
-    private val nodes = listOf(
+    /** The light nodes to try, in order. Detection looks for the same ones. */
+    val nodes = listOf(
         "/sys/class/leds/lcd-backlight/brightness",
         "/sys/class/backlight/panel0-backlight/brightness"
     )

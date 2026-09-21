@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import dev.equwal.assistkey.home.HomeActivity
 import dev.equwal.assistkey.home.HomeSettingsActivity
 import dev.equwal.assistkey.home.RecentsActivity
-import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.row
 
 /** The two screens AssistKey draws for itself: the home screen, and recents. */
@@ -31,27 +30,14 @@ class HomeHubActivity : Activity() {
 
         col.row(
             "Home screen",
-            "A clock, the apps you choose, and a line to type in",
+            "A clock, your apps, and a search line",
             state = if (isDefault) "In use" else if (offered) "Ready" else "Off"
         ) { startActivity(Intent(this, HomeSettingsActivity::class.java)) }
 
         col.row(
             "Recent apps",
-            "Card switcher made for e-ink, bindable to any key"
+            "Cards you can bind to a button"
         ) { startActivity(Intent(this, RecentsActivity::class.java)) }
 
-        col.more("Home and recents", ABOUT)
-    }
-
-    private companion object {
-        const val ABOUT =
-            "The home screen keeps the app list out of sight until you type. " +
-                "When one match is left it opens itself. There are no icons and " +
-                "no grid, so there is nothing for an e-ink panel to redraw.\n\n" +
-                "AssistKey is not a home screen until you switch it on and the " +
-                "system asks you to choose.\n\n" +
-                "Recent apps is a row of cards like the Android switcher, drawn " +
-                "with outlines and no animation. Bind it to a key from the action " +
-                "list, under AssistKey."
     }
 }

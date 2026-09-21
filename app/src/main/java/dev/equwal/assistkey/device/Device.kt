@@ -69,18 +69,24 @@ object Device {
     private const val K_SEEN = "seen_keys"
 
     private val builtIn: List<HwKey>
-        get() = if (isViwoods) listOf(HwKey.AI, HwKey.VOL_UP, HwKey.VOL_DOWN)
+        // Top down, as the buttons sit on the edge of the device.
+        get() = if (isViwoods) listOf(HwKey.VOL_UP, HwKey.VOL_DOWN, HwKey.AI)
         else listOf(HwKey.VOL_UP, HwKey.VOL_DOWN)
 
     /**
-     * The remappable keys to show: what the profile knows about, plus any other
-     * supported key this device has actually produced. A page-turn button on an
-     * e-reader shows up here the first time it is pressed.
+     * The remappable keys to show: what the profile knows about, what detection
+     * found, plus any other supported key this device has actually produced.
+     *
+     * Detection only adds. A profile key stays on the list even if no source
+     * reports it, because a firmware hook can hide a key that is really there.
      */
     fun keys(c: Context): List<HwKey> {
         val seen = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getStringSet(K_SEEN, emptySet()).orEmpty()
-        return (builtIn + HwKey.interceptable.filter { it.token in seen }).distinct()
+        val detected = Detect.stored(c)?.keys.orEmpty().filter { it.interceptable }
+        // The profile knows where its buttons sit. The other keys follow in a fixed order.
+        val others = (detected + HwKey.interceptable.filter { it.token in seen }).sortedBy { it.ordinal }
+        return (builtIn + others).distinct()
     }
 
     private const val K_UNKNOWN = "unknown_keys"

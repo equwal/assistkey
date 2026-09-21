@@ -93,7 +93,34 @@ object Apps {
             events.getNextEvent(e)
             if (e.eventType == UsageEvents.Event.ACTIVITY_RESUMED) last[e.packageName] = e.timeStamp
         }
-        return rank(c, last.entries.sortedByDescending { it.value }.map { it.key }, limit)
+        return rank(c, open(last, closedAt(c)), limit)
+    }
+
+    /**
+     * The packages to show, most recent first. An app the user closed stays
+     * off the list until the user opens that app again.
+     */
+    fun open(lastUsed: Map<String, Long>, closedAt: Map<String, Long>): List<String> =
+        lastUsed.entries
+            .filter { (pkg, at) -> at > (closedAt[pkg] ?: Long.MIN_VALUE) }
+            .sortedByDescending { it.value }
+            .map { it.key }
+
+    private const val RECENTS_PREFS = "assistkey_recents"
+
+    private fun closedAt(c: Context): Map<String, Long> =
+        c.getSharedPreferences(RECENTS_PREFS, Context.MODE_PRIVATE).all
+            .mapNotNull { (pkg, at) -> (at as? Long)?.let { pkg to it } }.toMap()
+
+    /**
+     * Closes [pkg] without shell access: Android ends the background processes
+     * of the app, and the app leaves the list of this screen.
+     */
+    fun closeWithoutShell(c: Context, pkg: String) {
+        if (pkg == c.packageName) return
+        runCatching { c.getSystemService(android.app.ActivityManager::class.java)?.killBackgroundProcesses(pkg) }
+        c.getSharedPreferences(RECENTS_PREFS, Context.MODE_PRIVATE).edit()
+            .putLong(pkg, System.currentTimeMillis()).apply()
     }
 
     /** One entry of the recent-apps list. [taskId] is known only with shell access. */

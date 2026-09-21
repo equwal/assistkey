@@ -7,7 +7,6 @@ import dev.equwal.assistkey.model.Trigger
 import dev.equwal.assistkey.store.Store
 import dev.equwal.assistkey.ui.Ui.check
 import dev.equwal.assistkey.ui.Ui.header
-import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.primaryButton
 import dev.equwal.assistkey.ui.Ui.row
@@ -28,10 +27,10 @@ class ChordActivity : Activity() {
     }
 
     private fun build() {
-        val col = Ui.page(this, "Key combinations")
-        col.note("Hold one key and press the others within the chord window.")
+        val col = Ui.page(this, "Button combinations")
+        col.note("Hold one, press the others.")
 
-        col.header("Pick the keys")
+        col.header("Pick the buttons")
         HwKey.entries.filter { it.interceptable }.forEach { key ->
             col.check(key.label, null, key in picked) { on ->
                 if (on) picked.add(key) else picked.remove(key)
@@ -40,16 +39,15 @@ class ChordActivity : Activity() {
         }
 
         if (picked.size >= 2) {
-            col.primaryButton("Configure " + picked.joinToString(" + ") { it.label }) {
+            col.primaryButton("Set up " + picked.joinToString(" + ") { it.label }) {
                 startActivity(TriggerListActivity.intent(this, picked.toSet()))
             }
         } else {
-            col.note("Choose at least two keys.")
+            col.note("Choose at least two buttons.")
         }
 
         existing(col)
 
-        col.more("Key combinations", ABOUT)
     }
 
     /** Anything already bound, so a chord is easy to find again. */
@@ -68,16 +66,5 @@ class ChordActivity : Activity() {
                 n.toString() + (if (n == 1) " gesture bound" else " gestures bound")
             ) { startActivity(TriggerListActivity.intent(this, keys)) }
         }
-    }
-
-    private companion object {
-        const val ABOUT =
-            "Every gesture that works on a single key works on a combination " +
-                "too, including multi-tap and hold.\n\n" +
-                "Power is absent on purpose. The system takes the Power key " +
-                "before any app can see it, so it can never be half of an " +
-                "ordinary combination.\n\n" +
-                "Power + Volume up is reserved by the firmware for the power " +
-                "menu, and AssistKey leaves it alone as a way out."
     }
 }

@@ -43,7 +43,7 @@ object ChannelEntry {
         if (!licensed) {
             Toast.makeText(
                 activity,
-                "AssistKey is locked - open the app to unlock it",
+                "Rebind is locked. Open the app.",
                 Toast.LENGTH_SHORT
             ).show()
             activity.finishAndVanish()
@@ -63,7 +63,7 @@ object ChannelEntry {
             if (!ServiceHolder.isRunning) {
                 Toast.makeText(
                     activity,
-                    "Enable the AssistKey accessibility service to use this action",
+                    "Turn on button remapping first",
                     Toast.LENGTH_SHORT
                 ).show()
                 activity.finishAndVanish()

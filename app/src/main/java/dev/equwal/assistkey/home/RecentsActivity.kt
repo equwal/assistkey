@@ -48,10 +48,18 @@ class RecentsActivity : Activity() {
     private var scroller: HorizontalScrollView? = null
     private var strip: LinearLayout? = null
     private var heading: TextView? = null
-    private var closeOthers: android.widget.Button? = null
+    private var closeOthers: TextView? = null
     private var names: List<String> = emptyList()
+    private var shown: List<Apps.Recent> = emptyList()
     private var cardStep = 0
     private var index = 0
+
+    /** Each time the screen opens, it starts at the newest app and shows the hint again. */
+    override fun onStart() {
+        super.onStart()
+        index = 0
+        hinted = false
+    }
 
     override fun onResume() {
         super.onResume()
@@ -80,6 +88,7 @@ class RecentsActivity : Activity() {
         val gap = dp(16)
         cardStep = cardW + gap
         names = recents.map { it.app.label }
+        shown = recents
         index = index.coerceIn(0, maxOf(0, recents.size - 1))
 
         val root = LinearLayout(this).apply {
@@ -116,32 +125,33 @@ class RecentsActivity : Activity() {
         row = cards
 
         val scroll = object : HorizontalScrollView(this) {
-            private var startX = 0
+            private val slop = android.view.ViewConfiguration.get(context).scaledTouchSlop
+            private var downX = 0f
+            private var downY = 0f
 
+            /** A sideways drag belongs to the row. A tap or an upward swipe belongs to the card. */
             override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-                if (ev.actionMasked == MotionEvent.ACTION_DOWN) startX = scrollX
-                return super.onInterceptTouchEvent(ev)
+                when (ev.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> { downX = ev.x; downY = ev.y }
+                    MotionEvent.ACTION_MOVE -> {
+                        val dx = abs(ev.x - downX)
+                        if (dx > slop && dx > abs(ev.y - downY)) return true
+                    }
+                }
+                return false
             }
 
             /**
-             * One swipe, one card. The row follows the finger, and on release it
-             * goes to the next card in the direction of the swipe, however far
-             * or fast the swipe was. A very short drag goes back where it was.
+             * One swipe, one card, in one step. The row does not follow the
+             * finger: e-ink shows every frame of a moving row as a smear.
              */
             override fun onTouchEvent(ev: MotionEvent): Boolean {
-                if (ev.actionMasked == MotionEvent.ACTION_DOWN) startX = scrollX
-                val handled = super.onTouchEvent(ev)
-                if (ev.actionMasked == MotionEvent.ACTION_UP || ev.actionMasked == MotionEvent.ACTION_CANCEL) {
-                    val moved = scrollX - startX
-                    val from = Math.round(startX / cardStep.toFloat())
-                    val turn = if (abs(moved) < cardStep / 8) 0 else if (moved > 0) 1 else -1
-                    show(from + turn)
+                if (ev.actionMasked == MotionEvent.ACTION_UP) {
+                    val dx = ev.x - downX
+                    if (abs(dx) > slop) show(index + if (dx < 0) 1 else -1)
                 }
-                return handled
+                return true
             }
-
-            /** No fling and no glide: e-ink shows every frame of one as a smear. */
-            override fun fling(velocityX: Int) = Unit
         }.apply {
             isHorizontalScrollBarEnabled = false
             overScrollMode = View.OVER_SCROLL_NEVER
@@ -178,42 +188,73 @@ class RecentsActivity : Activity() {
             LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
         )
 
-        root.addView(TextView(this).apply {
-            text = if (closable) "Tap a card to open it.  Swipe a card up to close it."
-            else "Tap a card to open it."
-            setTextColor(Color.BLACK)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
-            gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(dp(20), dp(14), dp(20), dp(8))
-        })
         closeOthers = null
-        if (closable && recents.isNotEmpty()) {
-            val buttons = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_HORIZONTAL
-            }
-            buttons.addView(android.widget.Button(this).apply {
-                text = "Close all"
-                setOnClickListener { close(recents.mapNotNull { it.taskId }) }
-            })
-            if (recents.size > 1) {
-                closeOthers = android.widget.Button(this).apply {
-                    // The name is filled in by show(i): it is the card in the middle.
-                    setOnClickListener {
-                        close(recents.filterIndexed { i, _ -> i != index }.mapNotNull { it.taskId })
-                    }
+        if (recents.isNotEmpty()) {
+            // Two tall buttons, one above the other with space between, so that
+            // a finger does not hit the wrong one.
+            fun bigButton(black: Boolean, onClick: () -> Unit) = TextView(this).apply {
+                gravity = Gravity.CENTER
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
+                typeface = Typeface.DEFAULT_BOLD
+                setSingleLine()
+                setTextColor(if (black) Color.WHITE else Color.BLACK)
+                background = GradientDrawable().apply {
+                    setColor(if (black) Color.BLACK else Color.WHITE)
+                    setStroke(dp(2), Color.BLACK)
+                    cornerRadius = dp(8).toFloat()
                 }
-                buttons.addView(closeOthers)
+                setOnClickListener { onClick() }
             }
-            root.addView(buttons, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+            fun place(v: View, top: Int) = root.addView(
+                v,
+                LinearLayout.LayoutParams(MATCH_PARENT, dp(60)).apply { setMargins(dp(20), top, dp(20), 0) }
+            )
+            if (recents.size > 1) {
+                // The name is filled in by show(i): it is the card in the middle.
+                closeOthers = bigButton(black = true) { close(recents.filterIndexed { i, _ -> i != index }) }
+                place(closeOthers!!, dp(8))
+            }
+            val all = bigButton(black = false) { close(recents) }.apply { text = "Close all" }
+            place(all, dp(20))
         }
         setContentView(root)
-        scroll.post { show(index) }
+        scroll.post { show(index); hint() }
     }
 
-    private fun close(taskIds: List<Int>) {
+    /**
+     * Closes apps. With shell access the task leaves the list of the system and
+     * its background processes end. Without it, Android ends the background
+     * processes and the app leaves the list of this screen.
+     */
+    private fun close(apps: List<Apps.Recent>) {
         index = 0
-        Shell.runAll(taskIds.map { "am stack remove $it" }) { load() }
+        val mine = apps.filter { it.app.pkg != packageName }
+        val (withTask, without) = mine.partition { it.taskId != null && Shell.ready }
+        without.forEach { Apps.closeWithoutShell(this, it.app.pkg) }
+        if (withTask.isEmpty()) return load()
+        Shell.runAll(withTask.flatMap { listOf("am stack remove " + it.taskId, "am kill " + it.app.pkg) }) { load() }
+    }
+
+    private var hinted = false
+
+    /**
+     * Shows once what a swipe does: the card in the middle jumps up and comes
+     * back, then the row jumps sideways and comes back. Four still frames, no
+     * glide, so that e-ink draws them clean.
+     */
+    private fun hint() {
+        if (hinted) return
+        hinted = true
+        val s = scroller ?: return
+        val card = row?.getChildAt(index) ?: return
+        val many = (row?.childCount ?: 0) > 1
+        s.postDelayed({ card.translationY = -dp(28).toFloat() }, 500)
+        s.postDelayed({ card.translationY = 0f }, 900)
+        if (many) {
+            val side = if (index == 0) dp(40) else -dp(40)
+            s.postDelayed({ s.scrollTo(index * cardStep + side, 0) }, 1300)
+            s.postDelayed({ s.scrollTo(index * cardStep, 0) }, 1700)
+        }
     }
 
     /** Puts card [i] in the middle, in one step, and says which one it is. */
@@ -272,10 +313,10 @@ class RecentsActivity : Activity() {
             setPadding(p, p, p, p)
         }
         box.addView(body, LinearLayout.LayoutParams(MATCH_PARENT, 0, 1f))
-        if (closable && r.taskId != null) {
+        if (r.app.pkg != packageName) {
             box.addView(View(this).apply { setBackgroundColor(Color.BLACK) }, LinearLayout.LayoutParams(MATCH_PARENT, dp(1)))
             box.addView(TextView(this).apply {
-                text = "\u2191  Swipe up to close"
+                text = "\u2191 close this     \u2193 close the others"
                 setTextColor(Color.BLACK)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
                 gravity = Gravity.CENTER_HORIZONTAL
@@ -303,8 +344,12 @@ class RecentsActivity : Activity() {
 
             override fun onFling(e1: MotionEvent?, e2: MotionEvent, vx: Float, vy: Float): Boolean {
                 val up = e1 != null && e1.y - e2.y > box.height / 5 && abs(vy) > abs(vx)
-                if (!up || !closable || r.taskId == null) return false
-                Shell.run("am stack remove " + r.taskId) { load() }
+                val down = e1 != null && e2.y - e1.y > box.height / 5 && abs(vy) > abs(vx)
+                when {
+                    up -> close(listOf(r))
+                    down -> close(shown.filter { it !== r })
+                    else -> return false
+                }
                 return true
             }
         })
@@ -320,12 +365,7 @@ class RecentsActivity : Activity() {
     private fun askForAccess() {
         val col = Ui.page(this)
         col.title("Recent apps")
-        col.note(
-            "Android does not tell apps what has been used recently. Give AssistKey " +
-                "usage access and it can put your apps in order of last use. On some " +
-                "devices the setting is named App usage data." +
-                if (Shell.SUPPORTED) " Shell access gives the exact list the system keeps." else ""
-        )
+        col.note("Usage access puts your apps in order of last use.")
         col.button("Give usage access") {
             runCatching { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
         }

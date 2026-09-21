@@ -53,7 +53,7 @@ object TextInsert {
 
         // Web pages and some custom fields accept a paste but not a direct edit.
         val clipboard = svc.getSystemService(ClipboardManager::class.java) ?: return Result.REFUSED
-        clipboard.setPrimaryClip(ClipData.newPlainText("AssistKey voice typing", piece))
+        clipboard.setPrimaryClip(ClipData.newPlainText("Rebind voice typing", piece))
         return if (node.performAction(AccessibilityNodeInfo.ACTION_PASTE)) Result.DONE else Result.REFUSED
     }
 }

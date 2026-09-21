@@ -23,6 +23,10 @@
         still requires the app that asks for it to hold the permission. Requested
         at run time, from the Voice typing screen, and never otherwise.
     -->
+    <!-- Recent apps: "close" ends the background processes of an app where
+         there is no shell access. A normal permission: Android grants it at install. -->
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
+
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!-- Required of any app that wants to be offered the wallet role. -->
@@ -136,6 +140,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.ReportActivity" android:exported="false" />
+        <activity android:name=".ui.DetectActivity" android:exported="false" />
 
         <!--
             The three impersonation entry points. Each starts disabled: the app

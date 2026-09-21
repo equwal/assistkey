@@ -25,19 +25,15 @@ class ViwoodsActivity : Activity() {
     }
 
     private fun build() {
-        val col = Ui.page(this, "Firmware key hooks")
-        col.note(
-            "The firmware has its own setting for each key. Android does not allow " +
-                "apps to change these, so they are shown here for information, " +
-                "with the adb command where one is needed."
-        )
+        val col = Ui.page(this, "Device button settings")
+        col.note("Apps cannot change these. Run the command from a computer.")
         ViwoodsBridge.keys().forEach { keyBlock(col, it) }
     }
 
     private fun keyBlock(col: LinearLayout, key: HwKey) {
         col.header(key.label)
         col.row(
-            "Firmware setting",
+            "Device setting",
             ViwoodsBridge.describe(this, key),
             enabled = false,
             state = if (ViwoodsBridge.hidesFromFilter(this, key)) "Hiding" else "Clear"
@@ -45,42 +41,22 @@ class ViwoodsActivity : Activity() {
 
         if (key == HwKey.AI) {
             if (ViwoodsBridge.aiHookedToUs(this)) {
-                col.note(
-                    "The firmware hands every AI key press straight to AssistKey. " +
-                        "Taps, and Power then the AI key, work cleanly. Press-and-hold " +
-                        "and combinations with the volume keys are not available this " +
-                        "way. To give the key back to the firmware:"
-                )
+                col.note("Taps work; hold and combinations do not. To give the button back:")
                 col.code(ViwoodsBridge.aiUnhookCommand())
             } else {
-                col.note(
-                    "With this setting the firmware opens its own AI screen on every " +
-                        "press, whether or not AssistKey acted on it - so a binding " +
-                        "fires on top of that screen. To own the key cleanly, point " +
-                        "the hook at AssistKey once from a computer:"
-                )
+                col.note("The AI screen opens on every press. To stop it:")
                 col.code(ViwoodsBridge.aiHookCommand(this))
-                col.note(
-                    "Taps then work without the AI screen appearing. Press-and-hold " +
-                        "and combinations with the volume keys stop working for this " +
-                        "key, because the firmware no longer lets apps see it."
-                )
+                col.note("Then taps work, but hold and combinations stop.")
             }
             return
         }
 
         if (ViwoodsBridge.hidesFromFilter(this, key)) {
             col.note(
-                "While this is set, the firmware keeps " + key.label.lowercase() +
-                    " to itself and no app can see it - bindings made for it in " +
-                    "AssistKey will not fire. Clear it once from a computer:"
+                "The device keeps " + key.label.lowercase() + " to itself. To clear it:"
             )
             ViwoodsBridge.unsetCommand(key)?.let { col.code(it) }
-            col.note(
-                "Changing this key in the device's own key settings sets it again."
-            )
-        } else {
-            col.note("Not set, so AssistKey can see this key.")
+            col.note("The device's own button settings set it again.")
         }
     }
 }

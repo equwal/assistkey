@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">AssistKey</string>
-    <string name="service_label">AssistKey key filter</string>
-    <string name="service_description">Reads hardware key presses so the AI key and the volume keys can be remapped, and performs navigation actions such as Back and Recents on your behalf. Nothing is collected or transmitted.</string>
-    <string name="wallet_label">AssistKey</string>
-    <string name="wallet_short">AssistKey</string>
-    <string name="wallet_long">AssistKey button actions</string>
+    <string name="app_name">Rebind</string>
+    <string name="service_label">Rebind button remapping</string>
+    <string name="service_description">Sees button presses and does the action you chose. Nothing is collected, stored or sent.</string>
+    <string name="wallet_label">Rebind</string>
+    <string name="wallet_short">Rebind</string>
+    <string name="wallet_long">Rebind button actions</string>
 </resources>

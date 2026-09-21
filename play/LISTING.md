@@ -5,30 +5,32 @@ Paste into Play Console > Store presence > Main store listing.
 ## App name (30 max)
 
 ```
-AssistKey: E-Ink Key Remap
+Rebind: Button & Key Remap
 ```
 
-26 characters. Keep "AssistKey" as the brand and put no device maker's name in
-the title. A maker's name at the front of a title ("Viwoods ...") reads as an
-official app: Play can suspend it as impersonation, and the maker can remove it
-with one trademark complaint. It also tells every Boox owner the app is not for
-them, and Boox is the larger market by a wide margin. Maker names belong in the
-long description, as plain compatibility facts, with the disclaimer below.
+26 characters. "Rebind" is the brand: it names what the app does, and the words
+buyers type in Play search ("button", "key", "remap") are in the title. The
+package id stays `dev.equwal.assistkey`. Put no device maker's name in the
+title: Play can suspend it as impersonation, and the maker can remove it with
+one trademark complaint. Maker names belong in the long description, as plain
+compatibility facts, with the disclaimer below.
 
 ## Short description (80 max)
 
 ```
-Remap keys, page turn and voice type on E-Ink readers and any Android.
+Remap volume, power, page-turn keys. E-ink ready. One-time price, no ads.
 ```
 
 ## Full description (4000 max)
 
 ```
-AssistKey remaps your device's hardware keys: volume keys, the power button, page-turn buttons, camera and assistant keys, and on the Viwoods AiPaper the AI key.
+Rebind remaps your device's hardware keys: volume keys, the power button, page-turn buttons, camera and assistant keys, and on the Viwoods AiPaper the AI key.
 
 Turn pages with the volume keys. Hold the power button for Home, double press it for Recents. Put three different actions on one key with a tap, a double tap and a hold.
 
-Setup is three taps: tap the button in a drawing of your device, choose tap, double tap or hold, choose what it does. AssistKey asks only for what that needs.
+Setup is three taps: tap the button in a drawing of your device, choose tap, double tap or hold, choose what it does. Rebind asks only for what that needs.
+
+No spare button? Add the on-screen button: a small round button that floats over every app.
 
 Built for e-ink readers, and it works on any Android 12+ phone or tablet.
 
@@ -42,8 +44,8 @@ AI key and volume keys
 
 Power button
 • Hold Power, then press another key: three extra combinations
-• Press and hold: run any action (AssistKey becomes your digital assistant app)
-• Double press: run any action (AssistKey becomes your default camera app)
+• Press and hold: run any action (Rebind becomes your digital assistant app)
+• Double press: run any action (Rebind becomes your default camera app)
 • Short press: choose the firmware behaviour
 
 ACTIONS
@@ -60,7 +62,7 @@ ACTIONS
 • Export and import your setup as a file, to move it to another device or share it
 
 VOICE TYPING
-Bind a key to Voice typing: press, speak, and the words appear where the cursor is - in any app, with the keyboard you already have. AssistKey has no speech engine and no internet access; a speech recognition app on your device does the listening.
+Bind a key to Voice typing: press, speak, and the words appear where the cursor is - in any app, with the keyboard you already have. Rebind has no speech engine and no internet access; a speech recognition app on your device does the listening.
 
 MORE FOR E-INK
 • A plain text home screen: a clock, a few apps, type to find the rest
@@ -72,23 +74,23 @@ Black on white, large text, no animation. No ads. No account.
 
 PRIVATE BY CONSTRUCTION
 
-AssistKey has no internet permission. It cannot send anything anywhere, and you can verify that on the app's permissions page. It collects nothing and stores nothing except your own key bindings, on your device.
+Rebind has no internet permission. It cannot send anything anywhere, and you can verify that on the app's permissions page. It collects nothing and stores nothing except your own key bindings, on your device.
 
 ACCESSIBILITY SERVICE
 
-AssistKey uses Android's AccessibilityService API, and only to remap hardware keys. The service receives key presses so it can recognise taps, holds and combinations, and performs the action you chose - Back, Home, a swipe - on your behalf. It looks at the window in front only to find a scrollable area when you use the Scroll action. It does not record what you type or what is on your screen. The app explains this and asks for your agreement before sending you to the accessibility switch.
+Rebind uses Android's AccessibilityService API, and only to remap hardware keys. The service receives key presses so it can recognise taps, holds and combinations, and performs the action you chose - Back, Home, a swipe - on your behalf. It looks at the window in front only to find a scrollable area when you use the Scroll action. It does not record what you type or what is on your screen. The app explains this and asks for your agreement before sending you to the accessibility switch.
 
 GOOD TO KNOW
 
 • Made for the Viwoods AiPaper Reader. The volume and power features work on most Android 12+ devices; the AI key and Viwoods actions are specific to Viwoods hardware.
 • Android does not let any app see the power button directly, so power gestures are limited to short press, double press and hold.
-• Hiding the navigation bar, switching system gestures off, and giving AssistKey sole control of the AI key are one-time steps done from a computer over USB. Android does not allow any app to change them. The app shows the exact commands.
-• If a volume key does not respond, the device's own key settings may be holding on to it. The built-in key tester shows exactly which keys AssistKey can see, and the Firmware key hooks screen shows the fix.
+• Hiding the navigation bar, switching system gestures off, and giving Rebind sole control of the AI key are one-time steps done from a computer over USB. Android does not allow any app to change them. The app shows the exact commands.
+• If a volume key does not respond, the device's own key settings may be holding on to it. The built-in key tester shows exactly which keys Rebind can see, and the Firmware key hooks screen shows the fix.
 
 COMPATIBILITY
 Works on Android 12 and later. Built and tested on the Viwoods AiPaper Reader; key remapping, page turning, voice typing and the home screen work on Boox, Bigme, Meebook and ordinary phones and tablets too. Search terms people use for this: button mapper, key remapper, remap buttons, volume key page turn, double tap, long press, key combination.
 
-AssistKey is not affiliated with, or endorsed by, Viwoods, Onyx Boox, Bigme or Meebook.
+Rebind is not affiliated with, or endorsed by, Viwoods, Onyx Boox, Bigme or Meebook.
 
 PRICE
 

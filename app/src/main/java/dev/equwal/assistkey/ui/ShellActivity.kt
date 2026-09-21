@@ -9,7 +9,6 @@ import dev.equwal.assistkey.channel.Channels
 import dev.equwal.assistkey.shell.Shell
 import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.header
-import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
 
@@ -41,19 +40,11 @@ class ShellActivity : Activity() {
         val state = Shell.state(this)
         val col = Ui.page(this, "Shell access")
         col.row("Status", null, enabled = false, state = Shell.describe(this))
-        col.note("Shizuku, a free app, gives AssistKey the shell user from the device itself.")
-        col.more("Shell access", ABOUT)
+        col.note("Shizuku, a free app, sets this up with no computer.")
 
         if (state == Shell.State.READY) {
             col.header("What this unlocks")
-            col.note(
-                "Power button: tap, double tap, more taps, hold, and combinations " +
-                    "with other keys.\n" +
-                    "Navigation: show or hide the button bar and switch system " +
-                    "gestures, from inside the app.\n" +
-                    "Device key settings that would otherwise need a computer."
-            )
-            col.more("After a restart", RESTART)
+            col.note("Every Power button gesture, the button bar and system gestures.")
             return
         }
 
@@ -74,9 +65,8 @@ class ShellActivity : Activity() {
 
         col.header("2. Turn on wireless debugging")
         col.note(
-            "Settings > About > tap Build number seven times to unlock Developer " +
-                "options. In Developer options, switch on Wireless debugging. It " +
-                "needs Wi-Fi to be connected, but nothing leaves the device."
+            "Tap Build number seven times in Settings > About. Then switch on " +
+                "Wireless debugging. It needs Wi-Fi."
         )
         col.button("Open Developer options") {
             if (!tryStart(Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))) {
@@ -85,18 +75,14 @@ class ShellActivity : Activity() {
         }
 
         col.header("3. Start Shizuku")
-        col.note(
-            "In Shizuku choose Pairing, then in Wireless debugging choose Pair " +
-                "device with pairing code and type the code into Shizuku's " +
-                "notification. Back in Shizuku, press Start."
-        )
+        col.note("In Shizuku choose Pairing, pair with the code, then press Start.")
         if (state != Shell.State.NOT_INSTALLED) {
             col.button("Open Shizuku") {
                 packageManager.getLaunchIntentForPackage(Shell.SHIZUKU_PACKAGE)?.let { tryStart(it) }
             }
         }
 
-        col.header("4. Allow AssistKey")
+        col.header("4. Allow Rebind")
         when (state) {
             Shell.State.NO_PERMISSION -> col.button("Ask Shizuku for permission") {
                 Shell.requestPermission()
@@ -107,24 +93,4 @@ class ShellActivity : Activity() {
 
     private fun tryStart(i: Intent): Boolean =
         runCatching { startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); true }.getOrDefault(false)
-
-    private companion object {
-
-        const val ABOUT =
-            "Android keeps a few things from every installed app: the Power " +
-                "button, the navigation bar, the system gestures, a device " +
-                "maker's own key settings.\n\n" +
-                "The shell user - the one a computer gets over USB debugging - " +
-                "can reach all of them. Shizuku is a free app that pairs with " +
-                "Android's own wireless debugging and then runs a small server " +
-                "as that user. So AssistKey gets the same access from the " +
-                "device itself, with no computer and no root.\n\n" +
-                "Everything that depends on shell access falls back by itself " +
-                "when there is none."
-
-        const val RESTART =
-            "Shizuku started over wireless debugging stops when the device " +
-                "restarts. Until it is started again, AssistKey gives the Power " +
-                "button back to the system, so the button always works."
-    }
 }

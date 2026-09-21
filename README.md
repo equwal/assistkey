@@ -1,4 +1,6 @@
-# AssistKey
+# Rebind
+
+Formerly AssistKey. The package id, the repository and the code keep the old name.
 
 Remaps the hardware keys of an Android device - volume keys, the Power button,
 and whatever else the device has - to arbitrary actions, with multi-tap,
@@ -15,13 +17,16 @@ products, pricing and how the beta is run and ended are in
 
 ## Set up a button
 
-The main screen starts with **Set up a button**. Tap the button in the drawing
-of the device. Choose tap, double tap or hold. Choose what it does. The app
-finds what Android must allow for that, and asks for only that. The app does
-not ask you to press a key to find it.
+The main screen is a drawing of the device. Each button shows what it does
+now. Tap a button, or two buttons for a combination. Choose how you press it.
+Choose what it does. The app finds what Android must allow for that, and asks
+for only that. The app does not ask you to press a key to find it.
 
-The same bindings are under **Advanced > Full control**, with every key, every
-gesture, the Power button and two-key combinations.
+The on-screen button is a small round button that floats over every app. It
+is there only while it has an action. Drag it to move it.
+
+The same bindings are under **Advanced > Full control**, with every button,
+every gesture, the Power button and two-button combinations.
 
 ## Two builds
 

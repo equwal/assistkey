@@ -16,23 +16,17 @@ import android.app.AlertDialog
 object AccessibilityDisclosure {
 
     const val TEXT =
-        "AssistKey uses the Android AccessibilityService API to remap the hardware " +
-            "keys of this device and to carry out the actions you bind to them.\n\n" +
-            "With the service on, AssistKey:\n\n" +
-            "- receives key presses, so that it can recognise taps, holds and " +
-            "combinations;\n\n" +
-            "- does the action you chose for you: Back, Home, Recents, a swipe, a " +
-            "scroll;\n\n" +
-            "- looks at the window in front to find its scrollable area, when you " +
-            "use the Scroll action;\n\n" +
-            "- puts recognised words into the text field that has the cursor, when " +
-            "you use Voice typing. It never writes into password fields;\n\n" +
-            "- notes the name of the app in front, in memory only, so that a key " +
-            "can take you back to it.\n\n" +
-            "It does not record what you type or what is on your screen. It collects " +
-            "nothing, keeps nothing and sends nothing. The app has no internet " +
-            "permission.\n\n" +
-            "Agree to go to the accessibility settings of Android."
+        "Rebind uses the Android AccessibilityService API to remap the buttons " +
+            "of this device.\n\n" +
+            "With it on, Rebind:\n\n" +
+            "- sees button presses;\n" +
+            "- does the action you chose;\n" +
+            "- reads the front window only for the Scroll action;\n" +
+            "- puts dictated words in the focused text field, never a password " +
+            "field;\n" +
+            "- shows a small on-screen button only when you bind one;\n" +
+            "- remembers the front app's name, in memory only.\n\n" +
+            "Nothing is collected, stored or sent. The app has no internet permission."
 
     fun show(a: Activity, onAgree: () -> Unit, onDecline: () -> Unit = {}) {
         AlertDialog.Builder(a)

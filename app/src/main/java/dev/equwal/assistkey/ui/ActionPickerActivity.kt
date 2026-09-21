@@ -47,7 +47,7 @@ class ActionPickerActivity : Activity() {
         if (!pickOnly) {
             col.row("Now", Store.bindings(this).raw(trigger).describe(), enabled = false)
             col.header("More than one")
-            col.row("Build a menu", "This gesture opens a menu, and the menu holds as many actions as you want") {
+            col.row("Build a menu", "As many actions as you want") {
                 startActivityForResult(dev.equwal.assistkey.menu.MenuEditActivity.intent(this, trigger), MENU)
             }
             dev.equwal.assistkey.menu.Menu.presets(this).forEach { (name, items) ->
@@ -64,13 +64,13 @@ class ActionPickerActivity : Activity() {
             col.header("Light")
             listOf("toggle", "darker", "brighter", "system_up", "system_down").forEach { what ->
                 val spec = ActionSpec(ActionKind.DIM, what, "")
-                col.row(spec.describe(), if (what == "toggle") "On is the lowest level. Off is your system brightness." else null) {
+                col.row(spec.describe(), if (what == "toggle") "Lowest level, or back to the system" else null) {
                     choose(spec)
                 }
             }
         }
         col.header("Typing")
-        col.row("Voice typing", "Speak, and the words go where the cursor is") {
+        col.row("Voice typing", "Speak, and the words appear") {
             choose(ActionSpec(ActionKind.VOICE, "", "Voice typing"))
         }
         own(col)
@@ -84,6 +84,10 @@ class ActionPickerActivity : Activity() {
             setResult(RESULT_OK, Intent().putExtra(RESULT_SPEC, spec.toJson().toString()))
         } else {
             Store.bind(this, trigger, spec)
+            // Ask now for what this binding needs. The screen closes itself when nothing is missing.
+            if (spec.kind != ActionKind.PASS_THROUGH && !intent.getBooleanExtra(EXTRA_NO_ASK, false)) {
+                dev.equwal.assistkey.setup.GuidedSetupActivity.askIfMissing(this, trigger)
+            }
         }
         finish()
     }
@@ -92,10 +96,10 @@ class ActionPickerActivity : Activity() {
 
     private fun basics(col: LinearLayout) {
         col.header("Basics")
-        col.row("Default behaviour", "Let the system handle this key normally") {
+        col.row("Default behaviour", "The system handles this button") {
             choose(ActionSpec.PASS)
         }
-        col.row("Do nothing", "Swallow the key - this is how you disable a button") {
+        col.row("Do nothing", "Switches the button off") {
             choose(ActionSpec.NOTHING)
         }
     }
@@ -109,7 +113,7 @@ class ActionPickerActivity : Activity() {
     }
 
     private fun own(col: LinearLayout) {
-        col.header("AssistKey")
+        col.header("Rebind")
         listOf(
             "Recent apps (cards)" to "dev.equwal.assistkey.home.RecentsActivity",
             "App search" to "dev.equwal.assistkey.home.HomeActivity"
@@ -130,7 +134,7 @@ class ActionPickerActivity : Activity() {
 
     private fun navigation(col: LinearLayout) {
         col.header("Navigation")
-        col.note("These need the accessibility key filter to be active.")
+        col.note("These need button remapping.")
         GlobalAction.usable().forEach { g ->
             col.row(g.label, null) {
                 choose(ActionSpec(ActionKind.GLOBAL, g.name, g.label))
@@ -140,7 +144,7 @@ class ActionPickerActivity : Activity() {
 
     private fun reading(col: LinearLayout) {
         col.header("Page turning")
-        col.note("Synthetic swipes and scrolls, for reader apps that only take touch.")
+        col.note("For reader apps that only take touch.")
         listOf(
             "left" to "Swipe left (next page)",
             "right" to "Swipe right (previous page)",
@@ -186,7 +190,7 @@ class ActionPickerActivity : Activity() {
 
         col.row(
             "Open a specific screen",
-            "package/class - reaches activities with no launcher icon"
+            "For a screen with no icon"
         ) {
             Ui.textInput(this, "Component", "com.example/com.example.SomeActivity") { v ->
                 choose(ActionSpec(ActionKind.LAUNCH_COMPONENT, v, shortLabel(v)))
@@ -199,7 +203,7 @@ class ActionPickerActivity : Activity() {
             }
         }
 
-        col.row("Send a broadcast", "For apps that listen for a custom action") {
+        col.row("Send a broadcast", "For apps that listen for one") {
             Ui.textInput(this, "Broadcast action", "com.example.ACTION") { v ->
                 choose(ActionSpec(ActionKind.BROADCAST, v, "Broadcast " + shortLabel(v)))
             }
@@ -235,6 +239,9 @@ class ActionPickerActivity : Activity() {
     companion object {
         private const val EXTRA_TRIGGER = "trigger"
         private const val EXTRA_PICK_ONLY = "pick_only"
+
+        /** Set by the guided setup, which asks for what a binding needs by itself. */
+        const val EXTRA_NO_ASK = "no_ask"
         private const val MENU = 7
         const val RESULT_SPEC = "spec"
 

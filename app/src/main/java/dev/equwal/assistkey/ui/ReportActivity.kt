@@ -10,6 +10,7 @@ import android.widget.Toast
 import dev.equwal.assistkey.BuildConfig
 import dev.equwal.assistkey.channel.Channel
 import dev.equwal.assistkey.channel.Channels
+import dev.equwal.assistkey.device.Detect
 import dev.equwal.assistkey.device.Device
 import dev.equwal.assistkey.native.NavNative
 import dev.equwal.assistkey.shell.PowerControl
@@ -50,26 +51,23 @@ class ReportActivity : Activity() {
 
     private fun build(text: String) {
         val col = Ui.page(this, "Device report")
-        col.note(
-            "Help get " + Device.name + " fully supported. Nothing is sent unless " +
-                "you send it, and AssistKey has no internet permission to send it with."
-        )
+        col.note("Nothing is sent unless you send it.")
         col.primaryButton("Send by email") {
             val i = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:" + to))
-                .putExtra(Intent.EXTRA_SUBJECT, "AssistKey device report: " + Device.name)
+                .putExtra(Intent.EXTRA_SUBJECT, "Rebind device report: " + Device.name)
                 .putExtra(Intent.EXTRA_TEXT, report)
             if (runCatching { startActivity(i) }.isFailure) share()
         }
         col.button("Share another way") { share() }
         col.button("Copy") {
             getSystemService(ClipboardManager::class.java)
-                ?.setPrimaryClip(ClipData.newPlainText("AssistKey device report", report))
+                ?.setPrimaryClip(ClipData.newPlainText("Rebind device report", report))
             Toast.makeText(this, "Copied", Toast.LENGTH_SHORT).show()
         }
         col.header("The report")
         col.code(text)
         if (Shell.SUPPORTED && !Shell.ready) {
-            col.note("With shell access the report also lists the input devices and their keys, which is the most useful part.")
+            col.note("Shell access adds the input devices and their buttons.")
         }
     }
 
@@ -78,7 +76,7 @@ class ReportActivity : Activity() {
             startActivity(
                 Intent.createChooser(
                     Intent(Intent.ACTION_SEND).setType("text/plain")
-                        .putExtra(Intent.EXTRA_SUBJECT, "AssistKey device report: " + Device.name)
+                        .putExtra(Intent.EXTRA_SUBJECT, "Rebind device report: " + Device.name)
                         .putExtra(Intent.EXTRA_TEXT, report),
                     "Send report"
                 )
@@ -92,7 +90,7 @@ class ReportActivity : Activity() {
         val sb = StringBuilder()
         fun line(k: String, v: Any?) { sb.append(k).append(": ").append(v).append('\n') }
 
-        sb.append("# AssistKey device report\n")
+        sb.append("# Rebind device report\n")
         line("app", BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")")
         line("manufacturer", Build.MANUFACTURER)
         line("brand", Build.BRAND)
@@ -113,6 +111,16 @@ class ReportActivity : Activity() {
         line("button bar showing", NavNative.buttonsShowing(this))
         line("keys shown", Device.keys(this).joinToString { it.token })
         line("keys seen in tester", Device.unknownSeen(this).ifEmpty { listOf("none") }.joinToString("; "))
+
+        // What detection found by asking the device. No key press is in this.
+        sb.append("\n# Detection\n")
+        val found = Detect.stored(this)
+        if (found == null) {
+            line("detection", "not run yet")
+        } else {
+            line("keys found", found.keys.joinToString { it.token }.ifEmpty { "none" })
+            Detect.capabilityNames.forEach { name -> line(name.lowercase(), found.capability(name).label.lowercase()) }
+        }
 
         if (!Shell.ready) return done(sb.toString())
 

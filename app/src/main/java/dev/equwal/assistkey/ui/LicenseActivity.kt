@@ -47,44 +47,25 @@ class LicenseActivity : Activity() {
 
     private fun status(col: LinearLayout, state: License.State) {
         when (state.tier) {
-            License.Tier.LICENSED -> {
-                col.header("Unlocked")
-                col.note(
-                    "This Google account owns AssistKey. It stays unlocked on every " +
-                        "device signed in to the same account. Thank you."
-                )
-            }
+            License.Tier.LICENSED -> col.header("Unlocked")
             License.Tier.BETA -> {
                 col.header("Beta - free for now")
-                col.note(
-                    "Everything works, at no charge, for as long as the beta is open. " +
-                        "When it closes, remapping stops until a licence is bought. " +
-                        "Because you were here for the beta, yours will be at the " +
-                        "tester price."
-                )
+                col.note("When the beta closes, remapping stops until you buy.")
                 col.note(
                     if (state.betaConfirmedByPlay) {
                         "Google Play confirms the beta is open."
                     } else {
-                        "This build's free access ends on " + BuildConfig.BETA_EXPIRES_DATE +
-                            " at the latest, and sooner if the beta is closed before then."
+                        "Free until " + BuildConfig.BETA_EXPIRES_DATE + " at the latest."
                     }
                 )
             }
             License.Tier.TRIAL -> {
                 col.header("Trial - " + days(state.trialDaysLeft) + " left")
-                col.note(
-                    "Everything works during the trial. After it, remapping stops " +
-                        "until a licence is bought. Your bindings are kept either way."
-                )
+                col.note("After it, remapping stops until you buy. Your bindings are kept.")
             }
             License.Tier.LOCKED -> {
                 col.header("Locked")
-                col.note(
-                    "Remapping is switched off and every key behaves as the firmware " +
-                        "intends. Your bindings are kept and come back the moment the " +
-                        "app is unlocked."
-                )
+                col.note("Remapping is off. Your bindings are kept.")
             }
         }
     }
@@ -97,10 +78,7 @@ class LicenseActivity : Activity() {
         col.header("Buy")
 
         if (PlayBilling.purchasePending) {
-            col.note(
-                "A payment is still being processed by Google Play. The app unlocks " +
-                    "by itself when it clears; nothing more is needed."
-            )
+            col.note("A payment is being processed. The app unlocks by itself.")
         }
 
         val tester = License.testerEligible(this)
@@ -112,24 +90,19 @@ class LicenseActivity : Activity() {
             else -> {
                 if (tester && testerPrice != null) {
                     col.note(
-                        "You took part in the beta, so the licence is " + testerPrice +
-                            (if (fullPrice != null) " instead of " + fullPrice else "") + "."
+                        "Tester price" +
+                            (if (fullPrice != null) ", instead of " + fullPrice else "") + "."
                     )
-                    col.primaryButton("Buy at the tester price - " + testerPrice) {
-                        purchase(Sku.PRO_TESTER)
-                    }
+                    col.primaryButton("Buy - " + testerPrice) { purchase(Sku.PRO_TESTER) }
                 } else if (fullPrice != null) {
-                    col.primaryButton("Buy AssistKey - " + fullPrice) { purchase(Sku.PRO) }
+                    col.primaryButton("Buy - " + fullPrice) { purchase(Sku.PRO) }
                 }
-                col.note("One payment through Google Play. No subscription, no account.")
+                col.note("One payment. No subscription.")
             }
         }
 
         if (!tester) {
-            col.row(
-                "I was a beta tester",
-                "Enter the code you were given to get the tester price"
-            ) { askForCode() }
+            col.row("I was a beta tester", "For the tester price") { askForCode() }
         }
     }
 
@@ -141,13 +114,10 @@ class LicenseActivity : Activity() {
                 PlayBilling.availability == PlayBilling.Availability.UNKNOWN ->
                     "Asking Google Play..."
                 problem != null -> problem
-                state.tier == License.Tier.BETA ->
-                    "The licence is not on sale yet. There is nothing to buy during " +
-                        "this stage of the beta."
+                state.tier == License.Tier.BETA -> "Not on sale yet."
                 else ->
-                    "Google Play is not offering the licence to this account. If the " +
-                        "app was installed from a file, install it from Google Play " +
-                        "instead and try again."
+                    "Google Play is not offering it to this account. Install the app " +
+                        "from Google Play."
             }
         )
     }
@@ -178,11 +148,8 @@ class LicenseActivity : Activity() {
 
     private fun restore(col: LinearLayout) {
         col.header("Already bought it?")
-        col.note(
-            "Purchases belong to the Google account that made them. Sign in to that " +
-                "account in the Play Store, then check again."
-        )
-        col.button("Check Google Play again") {
+        col.note("Sign in to the Google account that bought it.")
+        col.button("Check again") {
             Toast.makeText(this, "Checking...", Toast.LENGTH_SHORT).show()
             PlayBilling.refresh(this) {
                 val tier = License.state(this).tier

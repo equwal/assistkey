@@ -14,7 +14,6 @@ import dev.equwal.assistkey.shell.Shell
 import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.code
 import dev.equwal.assistkey.ui.Ui.header
-import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.primaryButton
 import dev.equwal.assistkey.ui.Ui.row
@@ -48,8 +47,8 @@ class PermissionsActivity : Activity() {
         val state = granted(this)
         val list = ArrayList<Item>()
         list += Item(
-            "Key remapping",
-            "The accessibility key filter. It sees the keys and carries out the actions. Everything else depends on it.",
+            "Button remapping",
+            "Everything else depends on it",
             state[0]
         ) {
             Channels.setEnabled(this, Channel.ACCESSIBILITY, true)
@@ -61,7 +60,7 @@ class PermissionsActivity : Activity() {
         }
         list += Item(
             "Digital assistant",
-            "So that holding the Power button reaches this app.",
+            "For holding the Power button",
             state[1]
         ) {
             Channels.setEnabled(this, Channel.ASSISTANT, true)
@@ -69,12 +68,12 @@ class PermissionsActivity : Activity() {
         }
         list += Item(
             "Microphone",
-            "For Voice typing only. A speech app on this device does the listening.",
+            "For Voice typing",
             state[2]
         ) { requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), 1) }
         list += Item(
             "App usage data",
-            "For the recent-apps cards, to put apps in order of last use. Not needed with shell access.",
+            "Puts the recent apps cards in order",
             state[3]
         ) { start(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
         return list
@@ -122,33 +121,23 @@ class PermissionsActivity : Activity() {
         val all = items()
         val missing = all.count { !it.granted }
         val col = Ui.page(this, "Permissions")
-        col.note("Nothing here is required. The app works with whatever you grant.")
-        if (missing == 0) {
-            col.note("Everything is granted.")
-        } else {
+        col.note("Nothing here is required.")
+        if (missing > 0) {
             col.primaryButton("Set up what is missing (" + missing + ")") {
                 walking = true
                 asked = HashSet()
                 next()
             }
-            col.note("Android grants each one on a screen of its own. Come back here after each, and the next one opens.")
         }
 
-        col.header("One at a time")
         all.forEach { item -> entry(col, item) }
 
-        col.header("If a switch turns itself back off")
-        col.note("Android blocks some switches for apps that were installed from a file.")
+        col.note("If a switch turns itself off, allow restricted settings in App info.")
         col.button("Open App info") { Channels.safeStart(this, Channels.appInfoIntent(this)) }
-        col.more("Restricted settings", RESTRICTED)
 
         if (!PowerNative.canWriteSecure(this)) {
             col.header("From a computer, once")
-            col.note(
-                "One permission cannot be granted on the device" +
-                    (if (Shell.SUPPORTED) " without shell access" else "") +
-                    ". It lets the app change the system's own Power button and Emergency SOS settings."
-            )
+            col.note("It lets the app change the Power button and Emergency SOS settings.")
             col.code(PowerNative.GRANT_COMMAND)
         }
     }
@@ -163,14 +152,6 @@ class PermissionsActivity : Activity() {
     companion object {
         private const val PREFS = "assistkey_setup"
         private const val K_SHOWN = "permissions_shown"
-
-        private const val RESTRICTED =
-            "Android blocks restricted settings for an app that was installed " +
-                "outside an app store, and accessibility is one of them. The " +
-                "symptom is silent: the switch appears to turn on, then reverts " +
-                "a moment later with no message.\n\n" +
-                "Open App info, tap the three-dot menu, choose Allow restricted " +
-                "settings, then try again."
 
         /**
          * Whether each grant is in place, in the order this screen lists them.

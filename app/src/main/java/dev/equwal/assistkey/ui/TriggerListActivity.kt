@@ -12,8 +12,6 @@ import dev.equwal.assistkey.model.Trigger
 import dev.equwal.assistkey.native.ViwoodsBridge
 import dev.equwal.assistkey.store.Store
 import dev.equwal.assistkey.ui.Ui.check
-import dev.equwal.assistkey.ui.Ui.header
-import dev.equwal.assistkey.ui.Ui.more
 import dev.equwal.assistkey.ui.Ui.note
 import dev.equwal.assistkey.ui.Ui.row
 
@@ -41,56 +39,49 @@ class TriggerListActivity : Activity() {
             !Channels.isSatisfied(this, Channel.ACCESSIBILITY)
         ) {
             col.row(
-                "Key remapping is off",
-                "Nothing here will fire yet",
+                "Button remapping",
+                "Nothing here can fire",
                 state = "Off"
             ) { startActivity(Intent(this, SetupActivity::class.java)) }
         }
 
         keys.filter { ViwoodsBridge.hidesFromFilter(this, it) }.forEach { k ->
             col.note(
-                "A firmware hook is set for " + k.label.lowercase() + ", so the " +
-                    "firmware keeps that key to itself and nothing bound here " +
-                    "can fire. Advanced > Firmware key hooks has the fix."
+                "The device keeps " + k.label.lowercase() +
+                    " to itself - see Device button settings."
             )
         }
 
         if (keys == setOf(HwKey.AI) && dev.equwal.assistkey.device.Device.isViwoods) {
             col.check(
                 "In the AI or crop screen, go back",
-                "There the AI key returns to the app you were in, whatever is bound below",
+                null,
                 dev.equwal.assistkey.device.Device.aiKeyReturns(this)
             ) { dev.equwal.assistkey.device.Device.setAiKeyReturns(this, it) }
         }
         if (HwKey.AI in keys) {
             col.note(
                 if (ViwoodsBridge.aiHookedToUs(this)) {
-                    "The firmware sends the AI key straight to AssistKey, so only " +
-                        "taps of the AI key on its own can fire."
+                    "Only taps of the AI key on its own can fire."
                 } else {
-                    "The firmware also opens its AI screen on every AI key press, " +
-                        "underneath whatever is bound here. Advanced > Firmware key " +
-                        "hooks shows how to stop that."
+                    "The AI screen also opens - see Device button settings."
                 }
             )
         }
 
         val b = Store.bindings(this)
-        col.header("Taps")
         (1..Trigger.MAX_TAPS).forEach { n ->
             val t = Trigger(keys, GestureType.TAP, n)
             col.row(tapLabel(n), b.raw(t).describe()) { edit(t) }
         }
 
-        col.header("Hold")
         val hold = Trigger(keys, GestureType.HOLD)
-        col.row("Press and hold", b.raw(hold).describe()) { edit(hold) }
+        col.row("Hold", b.raw(hold).describe()) { edit(hold) }
 
-        col.more("Taps and delay", DELAY)
     }
 
     private fun tapLabel(n: Int) = when (n) {
-        1 -> "Single tap"
+        1 -> "Tap"
         2 -> "Double tap"
         3 -> "Triple tap"
         else -> n.toString() + " taps"
@@ -100,13 +91,6 @@ class TriggerListActivity : Activity() {
 
     companion object {
         private const val EXTRA_KEYS = "keys"
-
-        private const val DELAY =
-            "Binding a double tap adds a short delay to the single tap, " +
-                "because the app has to wait and see whether a second tap " +
-                "follows. Leave the higher tap counts on default behaviour if " +
-                "you want the key to feel instant.\n\n" +
-                "The wait is set under Advanced > Gesture timing."
 
         fun intent(c: Context, keys: Set<HwKey>): Intent =
             Intent(c, TriggerListActivity::class.java).putExtra(
