@@ -23,6 +23,7 @@ import dev.equwal.assistkey.model.Trigger
 import dev.equwal.assistkey.native.NavNative
 import dev.equwal.assistkey.setup.DeviceView
 import dev.equwal.assistkey.setup.GuidedSetupActivity
+import dev.equwal.assistkey.store.AutoBackup
 import dev.equwal.assistkey.store.Store
 import dev.equwal.assistkey.ui.Ui.dp
 import dev.equwal.assistkey.ui.Ui.header
@@ -53,6 +54,7 @@ class MainActivity : Activity() {
         // Finds the buttons and the capabilities of this device. It runs at
         // first start, and again after a firmware or app change.
         Detect.refreshIfStale(this)
+        AutoBackup.watch(this)
         PermissionsActivity.showOnce(this)
     }
 

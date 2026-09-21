@@ -46,8 +46,13 @@
         <package android:name="com.viwoods.settings" />
     </queries>
 
+    <!--
+        hasFragileUserData: on uninstall, Android asks the user whether to keep
+        the data of the app. With the data kept, a new install has every setting.
+    -->
     <application
         android:allowBackup="true"
+        android:hasFragileUserData="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"

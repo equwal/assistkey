@@ -40,6 +40,7 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
         super.onServiceConnected()
         engine = GestureEngine(this, Store.timing(this))
         ServiceHolder.service = this
+        dev.equwal.assistkey.store.AutoBackup.watch(this)
         // The service starts at boot and may run for weeks without the settings
         // screen ever opening, so it keeps the licence fresh on its own.
         PlayBilling.refresh(this) { syncPower() }

@@ -23,8 +23,11 @@ service asks Android which part of the current window can scroll, so that it
 can scroll it. It does not read, record or transmit what the window contains.
 
 **Your settings.** Your key bindings, timing preferences and which capture
-channels are on are saved in the app's private storage on your device. They
-leave the device only through Android's own backup, if you have it on.
+channels are on are saved in the app's private storage on your device. Rebind
+also keeps a copy of them as a file in your Documents folder
+(`Documents/Rebind/rebind-settings.json`), so that an uninstall does not lose
+them. The file stays on your device. Your settings leave the device only
+through Android's own backup, if you have it on, or if you share the file.
 
 **Voice typing.** If you bind the Voice typing action, Rebind asks for the
 microphone permission. A speech recognition app on your device, which you

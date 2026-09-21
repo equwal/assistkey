@@ -12,11 +12,13 @@ import dev.equwal.assistkey.device.Device
 import dev.equwal.assistkey.engine.KeyFilterService
 import dev.equwal.assistkey.model.Trigger
 import dev.equwal.assistkey.route.ServiceHolder
+import dev.equwal.assistkey.store.AutoBackup
 import dev.equwal.assistkey.store.SettingsFile
 import dev.equwal.assistkey.store.Store
 import dev.equwal.assistkey.ui.Ui.button
 import dev.equwal.assistkey.ui.Ui.header
 import dev.equwal.assistkey.ui.Ui.note
+import dev.equwal.assistkey.ui.Ui.row
 import org.json.JSONObject
 
 /**
@@ -32,6 +34,11 @@ class BackupActivity : Activity() {
         const val OPEN = 2
         const val FILE_NAME = "assistkey-settings.json"
 
+        /** Documents/Rebind, as the file picker of Android names it. */
+        val COPY_FOLDER: Uri = android.provider.DocumentsContract.buildDocumentUri(
+            "com.android.externalstorage.documents", "primary:Documents/" + AutoBackup.FOLDER
+        )
+
     }
 
     override fun onResume() {
@@ -41,6 +48,9 @@ class BackupActivity : Activity() {
 
     private fun build() {
         val col = Ui.page(this, "Export and import")
+
+        col.header("Automatic copy")
+        col.row(AutoBackup.PLACE, "Kept up to date. It stays after an uninstall.", enabled = false)
 
         col.header("Export")
         col.button("Save to a file") {
@@ -64,7 +74,12 @@ class BackupActivity : Activity() {
 
         col.header("Import")
         col.button("Open a file") {
-            start(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*"), OPEN)
+            start(
+                Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*")
+                    // Start in the folder of the automatic copy.
+                    .putExtra(android.provider.DocumentsContract.EXTRA_INITIAL_URI, COPY_FOLDER),
+                OPEN
+            )
         }
         col.button("Paste from the clipboard") {
             val clip = getSystemService(android.content.ClipboardManager::class.java)
@@ -96,12 +111,7 @@ class BackupActivity : Activity() {
 
     // ---- export ---------------------------------------------------------------------------------
 
-    private fun export(): String {
-        val settings = SettingsFile.ALLOWED.keys.associateWith { file ->
-            getSharedPreferences(file, Context.MODE_PRIVATE).all
-        }
-        return SettingsFile.encode(settings, BuildConfig.VERSION_NAME, Device.name)
-    }
+    private fun export(): String = AutoBackup.export(this)
 
     // ---- import ---------------------------------------------------------------------------------
 

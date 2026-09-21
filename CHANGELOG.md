@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- **Settings are safe across versions and across an uninstall.** An update
+  always kept the settings: they are in the data of the app. An uninstall
+  removed them. Now Android asks at uninstall whether to keep the data
+  (`hasFragileUserData`), and Rebind keeps an automatic copy of the settings in
+  `Documents/Rebind/rebind-settings.json`, which an uninstall does not touch.
+  Import opens that folder. `StoredFormatTest` holds the texts that every
+  0.0.x version stored, so a new version cannot stop reading them unseen.
+
 ## 0.0.15-alpha - 2026-09-21
 
 Version code 15.
