@@ -25,7 +25,9 @@ object AccessibilityDisclosure {
             "- puts dictated words in the focused text field, never a password " +
             "field;\n" +
             "- shows a small on-screen button only when you bind one;\n" +
-            "- remembers the front app's name, in memory only.\n\n" +
+            "- remembers the front app's name, in memory only;\n" +
+            "- sees the recent apps of the system open, to open Ink Recents in " +
+            "their place, if you have it.\n\n" +
             "Nothing is collected, stored or sent. The app has no internet permission."
 
     fun show(a: Activity, onAgree: () -> Unit, onDecline: () -> Unit = {}) {

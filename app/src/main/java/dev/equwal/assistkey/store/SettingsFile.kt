@@ -30,7 +30,7 @@ object SettingsFile {
         "assistkey_channels" to null,
         "assistkey_nav" to setOf("buttons", "gestures", "keys"),
         "assistkey_voice" to setOf("engine", "language"),
-        "assistkey_device" to setOf("ai_key_returns"),
+        "assistkey_device" to setOf("ai_key_returns", "ink_recents_for_system"),
         "assistkey_power" to setOf("wanted")
     )
 

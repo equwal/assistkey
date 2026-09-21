@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.0.15-alpha - 2026-09-21
+
+Version code 15.
+
+- **The Recents button opens Ink Recents.** Android does not let an app take
+  the place of the recent-apps screen of the system. Rebind now sees that
+  screen open (the task manager of the Viwoods launcher, or the stock Android
+  one), closes it, and opens Ink Recents. It works for the Recents button of
+  the bar, for the swipe, and for the Recents action. Home and recents has the
+  switch "Recents button opens Ink Recents". It is on when Ink Recents is
+  installed. Tests: `SystemRecentsTest`.
+
 ## 0.0.14-alpha - 2026-09-21
 
 Version code 14.

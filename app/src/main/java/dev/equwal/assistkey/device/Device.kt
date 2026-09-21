@@ -62,6 +62,29 @@ object Device {
         c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(K_AI_RETURNS, on).apply()
     }
 
+    private const val K_INK_RECENTS = "ink_recents_for_system"
+
+    /**
+     * True for the recent-apps screen of the system: the task manager of the
+     * Viwoods launcher, and the two screens that stock Android uses. Android
+     * does not let an app take the place of that screen, so the key filter
+     * watches for it. See KeyFilterService.
+     */
+    fun isSystemRecents(pkg: String?, cls: String?): Boolean = when {
+        pkg == null || cls == null -> false
+        pkg == "com.viwoods.launcher" -> cls.endsWith(".task_manager.TaskManagerActivity")
+        else -> cls == "com.android.quickstep.RecentsActivity" ||
+            cls == "com.android.systemui.recents.RecentsActivity"
+    }
+
+    /** The user wants Ink Recents where the system shows its own recent apps. On until switched off. */
+    fun inkRecentsForSystem(c: Context): Boolean =
+        c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(K_INK_RECENTS, true)
+
+    fun setInkRecentsForSystem(c: Context, on: Boolean) {
+        c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(K_INK_RECENTS, on).apply()
+    }
+
     /** True for the Viwoods AI assistant and for the Viwoods crop and screenshot-edit screens. */
     fun isAiScreen(pkg: String?, cls: String?): Boolean =
         pkg == "com.viwoods.viwoodsai" ||

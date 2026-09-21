@@ -259,6 +259,8 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
         val pkg = event.packageName?.toString() ?: return
         val cls = event.className?.toString()
         when {
+            // Before the line that skips the system UI: stock Android has its recents there.
+            dev.equwal.assistkey.device.Device.isSystemRecents(pkg, cls) -> swapInInkRecents()
             pkg == packageName || pkg == "android" || pkg == "com.android.systemui" -> Unit
             dev.equwal.assistkey.device.Device.isAiScreen(pkg, cls) -> inAiScreen = true
             // Dialogs and keyboards report window changes too; only activities count.
@@ -267,6 +269,23 @@ class KeyFilterService : AccessibilityService(), GestureEngine.Host {
                 lastApp = pkg
             }
         }
+    }
+
+    /**
+     * The Recents button of the bar, the swipe, and the Recents action all open
+     * the recent-apps screen of the system. Where the user has Ink Recents, this
+     * closes that screen and opens Ink Recents. Android has no other way to put
+     * an app in that place.
+     */
+    private fun swapInInkRecents() {
+        if (!License.active(this) || !dev.equwal.assistkey.device.Device.inkRecentsForSystem(this)) return
+        val open = android.content.Intent(dev.equwal.assistkey.home.RecentsActivity.ACTION_OPEN)
+            .setPackage(dev.equwal.assistkey.home.RecentsActivity.INK_RECENTS)
+            .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (open.resolveActivity(packageManager) == null) return
+        // Back first, so that the screen of the system is not left under Ink Recents.
+        performGlobalAction(GLOBAL_ACTION_BACK)
+        handler.postDelayed({ runCatching { startActivity(open) } }, 120L)
     }
 
     private fun isActivity(pkg: String, cls: String): Boolean = runCatching {

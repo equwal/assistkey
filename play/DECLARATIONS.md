@@ -64,7 +64,7 @@ disabilities)?** No. The manifest does not set `isAccessibilityTool`.
 ```
 AssistKey is a hardware key remapper for the Viwoods AiPaper Reader, an e-ink reading device. Remapping hardware keys is the app's only function, and the AccessibilityService API is the only public Android API that can do it.
 
-The service is used for five things:
+The service is used for six things:
 
 1. Key event filtering (flagRequestFilterKeyEvents / onKeyEvent). The service receives presses of the device's AI key and volume keys, recognises the gesture the user configured - single or multiple taps, press-and-hold, or a combination of keys - and consumes the press so that the user's chosen action runs instead of the default one.
 
@@ -75,6 +75,8 @@ The service is used for five things:
 4. Going back to the app that was in use, on Viwoods readers: the service reads the package name of the window in front from window-state events, keeps the latest one in memory only, and uses it to return from the maker's AI screen when the user presses the AI key there.
 
 5. An on-screen button, if the user binds one: the service draws a small round button in an accessibility overlay window (TYPE_ACCESSIBILITY_OVERLAY). A tap on it runs the action the user chose. The button exists only while it has an action, and it reads nothing from the screen.
+
+6. Ink Recents in place of the recent apps of the system, if the user has installed Ink Recents and left the switch on: from the same window-state events, the service recognises the recent-apps screen of the system by its package and class name, sends Back, and starts Ink Recents. It reads nothing from that screen.
 
 Window content is retrieved only in cases 2 and 3: to locate a scrollable node at the moment the user presses a key bound to the Scroll action, and to read the one focused text field at the moment recognised words are inserted into it. No window content, text, or key event is stored, logged or transmitted. The app does not request the INTERNET permission and cannot transmit anything.
 
