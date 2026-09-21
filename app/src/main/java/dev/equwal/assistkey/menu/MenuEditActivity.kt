@@ -59,6 +59,10 @@ class MenuEditActivity : Activity() {
 
         col.primaryButton(if (items.isEmpty()) "Remove the menu" else "Save the menu") {
             Store.bind(this, trigger, if (items.isEmpty()) ActionSpec.PASS else Menu.spec(items))
+            // Ask now for what the menu needs. The guided setup asks by itself.
+            if (items.isNotEmpty() && !intent.getBooleanExtra(ActionPickerActivity.EXTRA_NO_ASK, false)) {
+                dev.equwal.assistkey.setup.GuidedSetupActivity.askIfMissing(this, trigger)
+            }
             setResult(RESULT_OK)
             finish()
         }

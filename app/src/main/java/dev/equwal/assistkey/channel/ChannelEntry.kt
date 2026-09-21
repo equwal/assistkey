@@ -61,11 +61,8 @@ object ChannelEntry {
 
         if (ActionRouter.requiresAccessibility(spec)) {
             if (!ServiceHolder.isRunning) {
-                Toast.makeText(
-                    activity,
-                    "Turn on button remapping first",
-                    Toast.LENGTH_SHORT
-                ).show()
+                // The user tried the button, and something is not allowed yet. Ask now.
+                dev.equwal.assistkey.setup.GuidedSetupActivity.askIfMissing(activity.applicationContext, trigger)
                 activity.finishAndVanish()
                 return
             }

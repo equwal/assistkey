@@ -48,7 +48,11 @@ class ActionPickerActivity : Activity() {
             col.row("Now", Store.bindings(this).raw(trigger).describe(), enabled = false)
             col.header("More than one")
             col.row("Build a menu", "As many actions as you want") {
-                startActivityForResult(dev.equwal.assistkey.menu.MenuEditActivity.intent(this, trigger), MENU)
+                startActivityForResult(
+                    dev.equwal.assistkey.menu.MenuEditActivity.intent(this, trigger)
+                        .putExtra(EXTRA_NO_ASK, intent.getBooleanExtra(EXTRA_NO_ASK, false)),
+                    MENU
+                )
             }
             dev.equwal.assistkey.menu.Menu.presets(this).forEach { (name, items) ->
                 col.row(name + " menu", items.joinToString(", ") { it.describe() }) {

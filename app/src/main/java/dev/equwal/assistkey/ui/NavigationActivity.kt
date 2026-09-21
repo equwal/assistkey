@@ -16,6 +16,7 @@ import dev.equwal.assistkey.model.HwKey
 import dev.equwal.assistkey.model.Trigger
 import dev.equwal.assistkey.native.NavNative
 import dev.equwal.assistkey.route.ServiceHolder
+import dev.equwal.assistkey.setup.GuidedSetupActivity
 import dev.equwal.assistkey.shell.PowerControl
 import dev.equwal.assistkey.shell.Shell
 import dev.equwal.assistkey.store.Store
@@ -117,6 +118,9 @@ class NavigationActivity : Activity() {
             Channels.setEnabled(this, Channel.ASSISTANT, true)
         }
         (ServiceHolder.service as? KeyFilterService)?.syncPower()
+        // One question at a time: the first of these bindings that needs something.
+        if (on) defaults.map { it.first }.firstOrNull { GuidedSetupActivity.missing(this, it) }
+            ?.let { GuidedSetupActivity.askIfMissing(this, it) }
     }
 
     // ---- the bar and the gestures ----------------------------------------------------------

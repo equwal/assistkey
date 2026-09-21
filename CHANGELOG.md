@@ -5,6 +5,11 @@
 - **Change a button from the Done step.** "Change what it does" and "Change
   how you press it" go back to those steps with the button kept. Back on the
   Done step goes to the actions too. Tests: `Route.back`.
+- **Ask when the user tries it.** The first run asks for every grant once.
+  After that the app asks at the moment something is missing: after a menu is
+  saved, after the Power switch on the Navigation screen, when a Power press
+  arrives while button remapping is off, and when voice typing starts with no
+  microphone grant. Before, those places showed a short message or nothing.
 - **Fix: system Back always closed the button setup.** From Android 13 the
   system does not call `onBackPressed` for an app with this target version.
   The setup now registers the Back callback, and Back goes one step back.

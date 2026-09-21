@@ -110,7 +110,15 @@ object Dictation {
             it()
             return true
         }
-        if (!hasMicrophone(svc)) return fail(svc, "Voice typing needs the microphone")
+        if (!hasMicrophone(svc)) {
+            // The user tried voice typing. Open the screen that asks for the microphone.
+            runCatching {
+                svc.startActivity(
+                    Intent(svc, dev.equwal.assistkey.ui.VoiceActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            }
+            return false
+        }
         if (!available(svc)) return fail(svc, "No speech app on this device")
         return runCatching {
             svc.startActivity(

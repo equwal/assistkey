@@ -247,7 +247,7 @@ class GuidedSetupActivity : Activity() {
         }
         col.row("A menu of actions", "One press, many choices") {
             leftForPicker = true
-            startActivity(MenuEditActivity.intent(this, t))
+            startActivity(MenuEditActivity.intent(this, t).putExtra(ActionPickerActivity.EXTRA_NO_ASK, true))
         }
         col.row("Advanced", "Every action") {
             leftForPicker = true
@@ -356,16 +356,25 @@ class GuidedSetupActivity : Activity() {
         private const val EXTRA_ASK = "ask"
 
         /**
-         * For a screen that has just made a binding for [t]. Opens the allow
-         * step when the binding needs something the user has not allowed yet.
+         * For any code that has just made a binding for [t], or has just tried
+         * to run it. Opens the allow step when the binding needs something the
+         * user has not allowed yet. True when it opened the step.
          */
-        fun askIfMissing(a: Activity, t: Trigger) {
-            val spec = Store.bindings(a)[t] ?: return
+        fun askIfMissing(c: android.content.Context, t: Trigger): Boolean {
+            if (!missing(c, t)) return false
+            val ask = Intent(c, GuidedSetupActivity::class.java).putExtra(EXTRA_ASK, t.id)
+            // A service or a channel entry is not a screen. It needs a task of its own.
+            if (c !is Activity) ask.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            return runCatching { c.startActivity(ask) }.isSuccess
+        }
+
+        /** True when the binding of [t] needs something that the user has not allowed yet. */
+        fun missing(c: android.content.Context, t: Trigger): Boolean {
+            val spec = Store.bindings(c)[t] ?: return false
             val needsFilter = ActionRouter.requiresAccessibility(spec) || spec.kind == ActionKind.MENU
-            val plan = Route.plan(t, needsFilter, env(a))
-            val microphone = spec.kind == ActionKind.VOICE && !Dictation.hasMicrophone(a)
-            if (plan.possible && plan.needs.all { satisfied(a, it) } && !microphone) return
-            a.startActivity(Intent(a, GuidedSetupActivity::class.java).putExtra(EXTRA_ASK, t.id))
+            val plan = Route.plan(t, needsFilter, env(c))
+            val microphone = spec.kind == ActionKind.VOICE && !Dictation.hasMicrophone(c)
+            return !(plan.possible && plan.needs.all { satisfied(c, it) } && !microphone)
         }
 
         private fun env(c: android.content.Context): Route.Env =
