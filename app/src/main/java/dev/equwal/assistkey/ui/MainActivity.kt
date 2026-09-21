@@ -257,6 +257,10 @@ class MainActivity : Activity() {
             ) { startActivity(Intent(this, ViwoodsActivity::class.java)) }
         }
 
+        col.row("Export and import", "Save your settings to a file, or share them") {
+            startActivity(Intent(this, BackupActivity::class.java))
+        }
+
         col.row(
             "Device report",
             "Help get this device fully supported - you see everything before it is sent"

@@ -56,6 +56,7 @@ class DisplayActivity : Activity() {
                 "put back whenever the screen comes on. If this device does not let " +
                 "the shell reach the light, choosing a level will say so."
         )
+        col.note("To change the level from a key, bind one of the Light actions: darker, brighter, or on and off.")
         if (Device.brightnessFloor == null) {
             col.note("This device's floor has not been measured, so these values are a guess.")
         }

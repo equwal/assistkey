@@ -80,6 +80,17 @@
         <activity android:name=".ui.ShellActivity" android:exported="false" />
         <activity android:name=".ui.DisplayActivity" android:exported="false" />
         <activity android:name=".ui.VoiceActivity" android:exported="false" />
+        <activity android:name=".ui.BackupActivity" android:exported="false" />
+        <activity android:name=".menu.MenuEditActivity" android:exported="false" />
+        <!-- The action menu: a box over the app in front, in a task of its own. -->
+        <activity
+            android:name=".menu.MenuActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Invisible" />
         <!-- See-through and unfocusable: on top only so the microphone is allowed. -->
         <activity
             android:name=".voice.DictationActivity"

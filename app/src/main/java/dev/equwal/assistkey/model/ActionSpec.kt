@@ -42,7 +42,13 @@ enum class ActionKind {
     SCROLL,
 
     /** Speak, and the words go where the cursor is. The payload is not used. */
-    VOICE;
+    VOICE,
+
+    /** The extra-dim light. The payload is "darker", "brighter" or "toggle". */
+    DIM,
+
+    /** Opens a menu of actions. The payload is a JSON array of action specs. */
+    MENU;
 
     companion object {
         fun fromName(n: String): ActionKind =

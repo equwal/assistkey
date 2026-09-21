@@ -59,26 +59,44 @@ class VoiceActivity : Activity() {
 
         col.header("2. Speech recognition app")
         val engines = Dictation.engines(this)
-        if (engines.isEmpty()) {
+        val current = Dictation.engine(this)
+        engines.forEach { e ->
+            val mark = if (e.component == current) "* " else "   "
+            val where = if (Dictation.isOnDevice(e)) "Recognises on this device" else "May send speech to its own server"
+            col.row(mark + e.title, where) {
+                Dictation.setEngine(this, e.component)
+                build()
+            }
+        }
+        if (engines.none(Dictation::isOnDevice)) {
             col.note(
-                "This device has none. Install a voice input app that offers speech " +
-                    "recognition to other apps. For recognition on the device with a " +
-                    "Whisper model, look for FUTO Voice Input or Whisper by woheller69."
+                "No app on this device recognises speech offline. Whisper, from " +
+                    "F-Droid, is free, works with no connection after its model is " +
+                    "downloaded, and detects the language by itself."
             )
-        } else {
-            val current = Dictation.engine(this)
-            engines.forEach { e ->
-                val mark = if (e.component == current) "* " else "   "
-                col.row(mark + e.title, e.component.packageName) {
-                    Dictation.setEngine(this, e.component)
-                    build()
+            col.button("Get Whisper") {
+                val pages = listOf(
+                    "market://details?id=" + Dictation.WHISPER_PACKAGE,
+                    "https://f-droid.org/packages/" + Dictation.WHISPER_PACKAGE + "/"
+                )
+                pages.firstOrNull { url ->
+                    runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }.isSuccess
                 }
             }
+            col.note(
+                "In Whisper, download the multilingual model and allow the microphone. " +
+                    "Then come back here: it appears in this list."
+            )
         }
 
         col.header("3. Language")
         val lang = Dictation.language(this)
-        col.row(if (lang.isEmpty()) "The speech app decides" else lang, "A tag such as en-US or de-DE") {
+        col.note(
+            "Leave this empty to let the speech app detect the language. Whisper " +
+                "detects it from what you say, so you can change language from one " +
+                "sentence to the next."
+        )
+        col.row(if (lang.isEmpty()) "Detect the language" else lang, "Or force one: a tag such as en-US or de-DE") {
             Ui.textInput(this, "Language tag", "en-US", lang) { Dictation.setLanguage(this, it); build() }
         }
         if (lang.isNotEmpty()) col.button("Clear the language") { Dictation.setLanguage(this, ""); build() }

@@ -141,4 +141,11 @@ dependencies {
     // wireless debugging; nothing here needs root or a computer.
     "fullImplementation"("dev.rikka.shizuku:api:13.1.5")
     "fullImplementation"("dev.rikka.shizuku:provider:13.1.5")
+
+    // Tests only, never in the APK. JUnit 4 is what the Android Gradle plugin
+    // runs with no more setup; there was no test framework before it.
+    testImplementation("junit:junit:4.13.2")
+    // org.json is part of Android, where unit tests get an empty stub of it.
+    // This is the same library as a plain jar, so SettingsFile can be tested.
+    testImplementation("org.json:json:20240303")
 }

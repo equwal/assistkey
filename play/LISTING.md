@@ -45,7 +45,9 @@ ACTIONS
 • Sound and media: volume up, down, mute, play/pause, next, previous
 • Open any app, or any screen inside an app
 • Send an intent or a broadcast, for automation apps
+• A menu of actions: one gesture opens a menu with as many actions as you want, so you have more actions than keys
 • Do nothing - disable a key you keep pressing by accident
+• Export and import your setup as a file, to move it to another device or share it
 
 VOICE TYPING
 Bind a key to Voice typing: press, speak, and the words appear where the cursor is - in any app, with the keyboard you already have. AssistKey has no speech engine and no internet access; a speech recognition app on your device does the listening.

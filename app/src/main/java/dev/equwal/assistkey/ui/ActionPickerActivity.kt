@@ -30,17 +30,43 @@ class ActionPickerActivity : Activity() {
         super.onCreate(savedInstanceState)
         trigger = Trigger.parse(intent.getStringExtra(EXTRA_TRIGGER).orEmpty())
             ?: run { finish(); return }
+        pickOnly = intent.getBooleanExtra(EXTRA_PICK_ONLY, false)
         build()
+    }
+
+    /** True when the choice goes back to the caller and is not bound to the trigger. */
+    private var pickOnly = false
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        // The menu editor saved: nothing more to pick here.
+        if (requestCode == MENU && resultCode == RESULT_OK) finish()
     }
 
     private fun build() {
         val col = Ui.page(this)
-        col.title(trigger.label())
-        col.note("Currently: " + Store.bindings(this).raw(trigger).describe())
+        col.title(if (pickOnly) "Add to the menu" else trigger.label())
+        if (!pickOnly) {
+            col.note("Currently: " + Store.bindings(this).raw(trigger).describe())
+            col.header("More than one")
+            col.row("Menu of actions", "This gesture opens a menu, and the menu holds as many actions as you want") {
+                startActivityForResult(dev.equwal.assistkey.menu.MenuEditActivity.intent(this, trigger), MENU)
+            }
+        }
 
-        basics(col)
+        if (!pickOnly) basics(col)
         viwoods(col)
         navigation(col)
+        if (dev.equwal.assistkey.shell.Shell.SUPPORTED) {
+            col.header("Light")
+            listOf(
+                "Extra-dim: darker" to "darker",
+                "Extra-dim: brighter" to "brighter",
+                "Extra-dim: on and off" to "toggle"
+            ).forEach { (label, what) ->
+                col.row(label, null) { choose(ActionSpec(ActionKind.DIM, what, label)) }
+            }
+        }
         col.header("Typing")
         col.row("Voice typing", "Speak, and the words go where the cursor is") {
             choose(ActionSpec(ActionKind.VOICE, "", "Voice typing"))
@@ -52,7 +78,11 @@ class ActionPickerActivity : Activity() {
     }
 
     private fun choose(spec: ActionSpec) {
-        Store.bind(this, trigger, spec)
+        if (pickOnly) {
+            setResult(RESULT_OK, Intent().putExtra(RESULT_SPEC, spec.toJson().toString()))
+        } else {
+            Store.bind(this, trigger, spec)
+        }
         finish()
     }
 
@@ -202,6 +232,12 @@ class ActionPickerActivity : Activity() {
 
     companion object {
         private const val EXTRA_TRIGGER = "trigger"
+        private const val EXTRA_PICK_ONLY = "pick_only"
+        private const val MENU = 7
+        const val RESULT_SPEC = "spec"
+
+        /** Opens the picker to choose one action for a menu; the result carries [RESULT_SPEC]. */
+        fun pickIntent(c: Context, t: Trigger): Intent = intent(c, t).putExtra(EXTRA_PICK_ONLY, true)
 
         fun intent(c: Context, t: Trigger): Intent =
             Intent(c, ActionPickerActivity::class.java).putExtra(EXTRA_TRIGGER, t.id)

@@ -40,12 +40,36 @@ object Dictation {
             )
         }
 
-    /** The engine the user chose, else the only one, else the system default (null). */
+    /**
+     * Package name fragments of speech apps that recognise on the device. One of
+     * these is the default when the user has not chosen, because voice typing
+     * must not send speech to a server unless the user asks for that.
+     */
+    private val onDevice = listOf("whisper", "futo", "vosk", "sayboard", "sherpa")
+
+    /** The F-Droid app that recognises on the device, in many languages, with language detection. */
+    const val WHISPER_PACKAGE = "org.woheller69.whisper"
+
+    fun isOnDevice(e: Engine): Boolean = isOnDevice(e.component.packageName)
+
+    fun isOnDevice(packageName: String): Boolean = onDevice.any { it in packageName.lowercase() }
+
+    /**
+     * The choice rule, on plain strings so that a test can run it with no
+     * device. [engines] are flattened component names, `package/class`.
+     * Order: the saved one if it is still installed, else the first on-device
+     * one, else the only one, else null (the system default).
+     */
+    fun pick(saved: String?, engines: List<String>): String? =
+        engines.firstOrNull { it == saved }
+            ?: engines.firstOrNull { isOnDevice(it.substringBefore('/')) }
+            ?: engines.singleOrNull()
+
+    /** The engine the user chose, else an on-device one, else the only one, else the system default (null). */
     fun engine(c: Context): ComponentName? {
-        val all = engines(c)
         val saved = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(K_ENGINE, null)
-        return all.firstOrNull { it.component.flattenToString() == saved }?.component
-            ?: all.singleOrNull()?.component
+        return pick(saved, engines(c).map { it.component.flattenToString() })
+            ?.let(ComponentName::unflattenFromString)
     }
 
     fun setEngine(c: Context, component: ComponentName?) {

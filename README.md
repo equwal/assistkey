@@ -84,6 +84,27 @@ every official route including `cmd display set-brightness`. Writing
 sticks until the system slider is moved. The node belongs to `system`, so it
 needs Shizuku running as root or a shell that may `su` (userdebug firmware).
 
+## Menus, and export and import
+
+`menu/`. The action *Menu of actions* binds a gesture to a menu with any number
+of actions. The menu is stored in the payload of its own binding, as a JSON
+array of action specs. There is no second store. A menu cannot hold a menu.
+`MenuActivity` closes before it runs the chosen action, because Back, a swipe
+or voice typing act on the app in front.
+
+`store/SettingsFile.kt` turns the settings into one JSON document and back. It
+has no Android types, so tests run it with no device. `SettingsFile.ALLOWED` is
+the only list of what may pass, in both directions. The licence, the firmware
+values that `PowerControl` saved, and facts about one device are not in it.
+
+## Tests
+
+```bash
+./gradlew testPlayReleaseUnitTest      # logic, on the computer
+tools/e2e/power-wake.sh                # on a device, through the kernel input node
+tools/e2e/ai-key-return.sh
+```
+
 ## Voice typing
 
 `voice/`. The action *Typing > Voice typing* turns a key into a dictation key.
@@ -94,6 +115,13 @@ offers a `RecognitionService`. `TextInsert` then puts the words into the field
 that has input focus, through the accessibility service: `ACTION_SET_TEXT` at
 the selection, with a clipboard paste as the fallback. It never writes into a
 password field.
+
+The app does not bundle a Whisper model. A multilingual model is 140 MB or
+more, and with no `INTERNET` permission the app could not download one. The
+F-Droid app Whisper (`org.woheller69.whisper`) already does this work and
+offers a `RecognitionService`, so voice typing uses it. `Dictation.pick` chooses
+an on-device speech app before one that may use a server. With no language tag
+set, the speech app detects the language.
 
 Two facts cost time:
 
@@ -389,7 +417,8 @@ engine/    the gesture state machine and the accessibility service
 channel/   the key filter switch and the Power side doors (assistant, camera, wallet)
 device/    device profiles
 display/   the extra-dim light
-home/      the home screen and the recent-apps list
+home/      the home screen and the recent-apps cards
+menu/      the menu of actions
 shell/     shell access through Shizuku, and the managed Power button
 voice/     voice typing: recognizer choice, the listening screen, text insert
 license/   licence tiers and Google Play Billing

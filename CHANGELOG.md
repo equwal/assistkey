@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.0.6-alpha - 2026-09-21
+
+Version code 6.
+
+- **Voice typing prefers speech recognition on the device.** When the user has
+  not chosen a speech app, an on-device one (Whisper, FUTO Voice Input, Vosk,
+  Sayboard, Sherpa) wins over one that may use a server. The Voice typing screen
+  says which kind each app is.
+- **A route to local Whisper.** If no on-device speech app is installed, the
+  screen offers Whisper from F-Droid (`org.woheller69.whisper`): offline after
+  the model download, many languages, automatic language detection.
+- Language is "Detect the language" by default. A fixed language tag stays
+  possible.
+- **Menu of actions.** A gesture can open a menu that holds any number of
+  actions, so there can be more actions than keys. The menu lives in its own
+  binding, so export, import and delete treat it like any other binding.
+- **Export and import.** Settings as one JSON file: save, share, open, paste.
+  The licence, saved firmware values and device facts never enter the file, and
+  a file cannot write them.
+- **Extra-dim from a key.** Three actions under Light: darker, brighter, on and
+  off. `full` build only.
+- First unit tests, 20 in all: the speech app choice rule, the settings file
+  round trip (500 random cases) and its allow-list, the light level steps, the
+  menu round trip. Run them with `./gradlew testPlayReleaseUnitTest`.
+
 ## 0.0.5-alpha - 2026-09-21
 
 Version code 5.

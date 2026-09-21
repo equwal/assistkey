@@ -32,6 +32,11 @@ object ActionRouter {
                 ActionKind.BROADCAST -> broadcast(ctx, spec.payload)
                 ActionKind.SWIPE -> swipe(spec.payload)
                 ActionKind.SCROLL -> scroll(spec.payload)
+                ActionKind.MENU -> dev.equwal.assistkey.menu.MenuActivity.open(ctx, spec.payload)
+                ActionKind.DIM -> {
+                    dev.equwal.assistkey.display.ExtraDim.act(ctx.applicationContext, spec.payload)
+                    true
+                }
                 ActionKind.VOICE -> ServiceHolder.service
                     ?.let { dev.equwal.assistkey.voice.Dictation.toggle(it) } ?: false
             }
