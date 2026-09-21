@@ -70,6 +70,7 @@ object Summary {
     /** The licence chip in the app bar. Short, because it sits beside the name. */
     fun licenceChip(tier: License.Tier, trialDaysLeft: Int): String = when (tier) {
         License.Tier.LICENSED -> "Unlocked"
+        License.Tier.NO_STORE -> "Free"
         License.Tier.BETA -> "Beta"
         License.Tier.TRIAL -> count(trialDaysLeft, "day") + " left"
         License.Tier.LOCKED -> "Locked"

@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- **No Google Play, no lock.** On a device where the Google Play app is not
+  installed or is turned off, the app is free and complete. There is no way
+  to buy there, so there is nothing to lock. The licence screen says "Free on
+  this device". A bought licence still comes first. Tests: `LicenseDecideTest`.
+- The reasons in the allow step are hints of three to seven words. The app
+  says "double tap" for Power too.
+
 ## 0.0.9-alpha - 2026-09-21
 
 Version code 9.

@@ -38,8 +38,11 @@ class LicenseActivity : Activity() {
         val state = License.state(this)
         val col = Ui.page(this, "Licence")
         status(col, state)
-        if (state.tier != License.Tier.LICENSED) buy(col, state)
-        restore(col)
+        // With no Google Play there is nothing to buy and nothing to restore.
+        if (state.tier != License.Tier.NO_STORE) {
+            if (state.tier != License.Tier.LICENSED) buy(col, state)
+            restore(col)
+        }
         col.note("Version " + BuildConfig.VERSION_NAME)
     }
 
@@ -48,6 +51,10 @@ class LicenseActivity : Activity() {
     private fun status(col: LinearLayout, state: License.State) {
         when (state.tier) {
             License.Tier.LICENSED -> col.header("Unlocked")
+            License.Tier.NO_STORE -> {
+                col.header("Free on this device")
+                col.note("No Google Play here, so everything is unlocked.")
+            }
             License.Tier.BETA -> {
                 col.header("Beta - free for now")
                 col.note("When the beta closes, remapping stops until you buy.")

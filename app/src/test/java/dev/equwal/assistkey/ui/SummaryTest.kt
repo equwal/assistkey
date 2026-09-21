@@ -70,6 +70,7 @@ class SummaryTest {
     @Test
     fun `the licence chip stays short`() {
         assertEquals("Unlocked", Summary.licenceChip(License.Tier.LICENSED, 0))
+        assertEquals("Free", Summary.licenceChip(License.Tier.NO_STORE, 0))
         assertEquals("Beta", Summary.licenceChip(License.Tier.BETA, 0))
         assertEquals("1 day left", Summary.licenceChip(License.Tier.TRIAL, 1))
         assertEquals("7 days left", Summary.licenceChip(License.Tier.TRIAL, 7))

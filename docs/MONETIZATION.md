@@ -1,5 +1,13 @@
 # Monetization models for Rebind
 
+## Decision of the owner, 2026-09-21
+
+A device with no Google Play gets the full app at no charge. The owner accepts
+that some users turn Google Play off to get this. The US$9.99 licence for the
+`full` build is dropped. Income comes from the Pro unlock on Google Play and
+from a tip link (Ko-fi) with no feature behind it. The text below is the
+research as it was written, before this decision.
+
 ## Recommendation
 
 Keep the free core for everyone. Sell Pro through two one-time unlocks, not a

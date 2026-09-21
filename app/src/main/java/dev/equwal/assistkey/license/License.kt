@@ -29,7 +29,13 @@ import java.security.MessageDigest
  */
 object License {
 
-    enum class Tier { LICENSED, BETA, TRIAL, LOCKED }
+    /**
+     * NO_STORE: the device has no Google Play, so there is no way to buy. The
+     * app is then free and complete. A user can get this tier on purpose by
+     * turning Google Play off. The owner accepts that: the users who can pay
+     * have Google Play, and most of them do not do this.
+     */
+    enum class Tier { LICENSED, NO_STORE, BETA, TRIAL, LOCKED }
 
     data class State(
         val tier: Tier,
@@ -97,21 +103,34 @@ object License {
         val firstRun = firstRunAt(p, now)
 
         val owned = p.getStringSet(K_OWNED, emptySet()) ?: emptySet()
-        if (owned.any { it in Sku.LICENCES }) return State(Tier.LICENSED)
-
         val fresh = now - p.getLong(K_CAT_AT, 0L) < CATALOG_FRESH_MS
         val pro = if (fresh) p.getInt(K_CAT_PRO, Seen.UNKNOWN) else Seen.UNKNOWN
         val beta = if (fresh) p.getInt(K_CAT_BETA, Seen.UNKNOWN) else Seen.UNKNOWN
 
+        val state = decide(owned, storePresent(c), pro, beta, now, firstRun, BuildConfig.BETA_EXPIRES_MS)
+        if (state.tier == Tier.BETA && !p.getBoolean(K_TESTER, false)) p.edit().putBoolean(K_TESTER, true).apply()
+        return state
+    }
+
+    /** The rules, with no Android types, so that a test can run them. */
+    fun decide(
+        owned: Set<String>,
+        storePresent: Boolean,
+        pro: Int,
+        beta: Int,
+        now: Long,
+        firstRun: Long,
+        betaExpires: Long
+    ): State {
+        if (owned.any { it in Sku.LICENCES }) return State(Tier.LICENSED)
+        if (!storePresent) return State(Tier.NO_STORE)
+
         val open = when {
             beta == Seen.FOUND -> true
             pro == Seen.FOUND && beta == Seen.NOT_FOUND -> false
-            else -> now < BuildConfig.BETA_EXPIRES_MS
+            else -> now < betaExpires
         }
-        if (open) {
-            if (!p.getBoolean(K_TESTER, false)) p.edit().putBoolean(K_TESTER, true).apply()
-            return State(Tier.BETA, betaConfirmedByPlay = beta == Seen.FOUND)
-        }
+        if (open) return State(Tier.BETA, betaConfirmedByPlay = beta == Seen.FOUND)
 
         val left = firstRun + TRIAL_DAYS * DAY_MS - now
         if (left > 0) {
@@ -119,6 +138,12 @@ object License {
         }
         return State(Tier.LOCKED)
     }
+
+    /** True when the Google Play app is installed and not turned off. */
+    private fun storePresent(c: Context): Boolean =
+        runCatching { c.packageManager.getApplicationInfo(PLAY_STORE, 0).enabled }.getOrDefault(false)
+
+    private const val PLAY_STORE = "com.android.vending"
 
     private fun firstRunAt(p: SharedPreferences, now: Long): Long {
         val at = p.getLong(K_FIRST_RUN, 0L)
