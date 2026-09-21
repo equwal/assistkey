@@ -117,7 +117,10 @@ the whole chain can be tested on a bench with no voice.
 app list is hidden until you type, and a single match opens itself. It is
 original code: the idea is shared with CLauncher/Olauncher, which are GPL-3.0
 and therefore cannot be copied into this app. Disabled in the manifest until
-switched on. Recent apps is a text list in place of the screenshot carousel.
+switched on. Recent apps is a row of cards like the Android switcher, drawn for
+e-ink: outlines, no animation, one jump per card. A card closes with a swipe up
+when there is shell access, and shows the task picture the system keeps when
+the shell is root (`/data/system_ce/0/snapshots`, owned by `system`).
 
 ## Why it is shaped like this
 

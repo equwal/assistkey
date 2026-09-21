@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.0.5-alpha - 2026-09-21
+
+Version code 5.
+
+- **Recent apps as cards.** The list is now a row of cards, like the Android
+  switcher: swipe sideways, tap a card to open it, swipe a card up to close it.
+  It is drawn for e-ink: outlines only, and the row jumps from card to card with
+  no animation. With shell access a card is a real task and can be closed
+  (`am stack remove`). Where the shell is root, a card shows the picture the
+  system keeps of the task. Otherwise a card shows the app icon.
+
 ## 0.0.4-alpha - 2026-09-20
 
 Version code 4.

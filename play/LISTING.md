@@ -52,7 +52,7 @@ Bind a key to Voice typing: press, speak, and the words appear where the cursor 
 
 MORE FOR E-INK
 • A plain text home screen: a clock, a few apps, type to find the rest
-• Recent apps as a list instead of a slow screenshot carousel
+• Recent apps as swipe cards, drawn for e-ink with no animation
 
 BUILT FOR E-INK
 

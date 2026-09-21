@@ -241,7 +241,7 @@ class MainActivity : Activity() {
         col.row("Home screen", "A plain, fast launcher made for e-ink") {
             startActivity(Intent(this, dev.equwal.assistkey.home.HomeSettingsActivity::class.java))
         }
-        col.row("Recent apps", "A plain app switcher, bindable to any key") {
+        col.row("Recent apps", "Card switcher made for e-ink, bindable to any key") {
             startActivity(Intent(this, dev.equwal.assistkey.home.RecentsActivity::class.java))
         }
 

@@ -79,7 +79,7 @@ class ActionPickerActivity : Activity() {
     private fun own(col: LinearLayout) {
         col.header("AssistKey")
         listOf(
-            "Recent apps (list)" to "dev.equwal.assistkey.home.RecentsActivity",
+            "Recent apps (cards)" to "dev.equwal.assistkey.home.RecentsActivity",
             "App search" to "dev.equwal.assistkey.home.HomeActivity"
         ).filter { (_, cls) ->
             // The home screen is switched off until asked for; a disabled
