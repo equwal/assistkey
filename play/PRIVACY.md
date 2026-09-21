@@ -1,17 +1,17 @@
-# AssistKey privacy policy
+# Rebind privacy policy
 
-*Effective 20 September 2026*
+*Effective 21 September 2026*
 
-AssistKey is published by equwal. Contact: truex@equwal.com
+Rebind is published by equwal. Contact: truex@equwal.com
 
 ## The short version
 
-AssistKey collects nothing, stores nothing about you, and sends nothing
+Rebind collects nothing, stores nothing about you, and sends nothing
 anywhere. It does not hold Android's internet permission, so it is not able to.
 
 ## What the app handles
 
-**Hardware key presses.** With its accessibility service switched on, AssistKey
+**Hardware key presses.** With its accessibility service switched on, Rebind
 is told when the AI key or a volume key is pressed or released. It uses this
 only to recognise the taps, holds and combinations you have set up and to run
 the action you chose. Key presses are handled in memory as they arrive and are
@@ -26,10 +26,10 @@ can scroll it. It does not read, record or transmit what the window contains.
 channels are on are saved in the app's private storage on your device. They
 leave the device only through Android's own backup, if you have it on.
 
-**Voice typing.** If you bind the Voice typing action, AssistKey asks for the
+**Voice typing.** If you bind the Voice typing action, Rebind asks for the
 microphone permission. A speech recognition app on your device, which you
 choose, does the listening; how it handles audio is covered by that app's own
-policy. AssistKey receives only the recognised text, and puts it into the text
+policy. Rebind receives only the recognised text, and puts it into the text
 field that has the cursor. To do that it reads the current text of that one
 field at that moment. It keeps and sends none of it, and never writes into
 password fields.
@@ -39,8 +39,14 @@ reads the usage log Android keeps, with the usage access you grant, to put apps
 in order of last use. This happens on the device each time the list opens;
 nothing from it is stored or sent.
 
+**Closing apps.** When you close an app in the recent-apps list, Rebind asks Android to end the background processes of that app, and remembers on your device the time you closed it, so that the app stays off the list until you open it again.
+
+**The on-screen button.** If you give the on-screen button an action, the accessibility service draws a small round button over other apps. It reads nothing from the screen. It remembers only where you put it.
+
+**Device detection.** At first start the app asks Android which buttons the device has and what the device can do, and saves the answer on your device. It never asks you to press a button for this.
+
 **Shell access.** Not in the Google Play build. In the build for direct
-install, if you connect AssistKey to Shizuku, it runs commands on your
+install, if you connect Rebind to Shizuku, it runs commands on your
 device as the shell user to read the Power button, switch the navigation bar
 and gestures, and set the light. These act on your device only.
 
@@ -50,12 +56,12 @@ navigation settings. It does not include your apps, accounts or identifiers.
 It is shown to you in full and goes nowhere unless you send it yourself.
 
 **Licence state.** The app saves, on your device, the date it was first
-opened, whether it was used during the beta, and which AssistKey products
+opened, whether it was used during the beta, and which Rebind products
 Google Play reports your account as owning.
 
 ## The accessibility service
 
-AssistKey uses Android's AccessibilityService API for one purpose: remapping
+Rebind uses Android's AccessibilityService API for one purpose: remapping
 hardware keys, and carrying out navigation actions such as Back, Home and
 Recents on your behalf. It is not used to collect information, and the app asks
 for your agreement, in the app, before directing you to switch the service on.
@@ -63,14 +69,14 @@ You can switch it off at any time in Android's accessibility settings.
 
 ## Purchases
 
-Purchases are made through Google Play. AssistKey never sees your payment
+Purchases are made through Google Play. Rebind never sees your payment
 details. It learns from Google Play only whether your account owns a licence.
 Google's handling of the purchase is covered by Google's own privacy policy:
 <https://policies.google.com/privacy>.
 
-AssistKey includes Google's Play Billing Library in order to do this. The part
+Rebind includes Google's Play Billing Library in order to do this. The part
 of that library which reports usage statistics to Google has been removed from
-AssistKey, and the app has no network access with which it could do so.
+Rebind, and the app has no network access with which it could do so.
 
 ## What is not in the app
 
@@ -79,7 +85,7 @@ SDKs other than Google's Play Billing Library.
 
 ## Children
 
-AssistKey is a utility for a general audience and is not directed at children.
+Rebind is a utility for a general audience and is not directed at children.
 It collects no personal information from anyone.
 
 ## Changes
