@@ -15,6 +15,17 @@ Sold on Google Play as a free download with a one-time licence. Publishing,
 products, pricing and how the beta is run and ended are in
 [play/CHECKLIST.md](play/CHECKLIST.md). The app holds no `INTERNET` permission.
 
+## Screenshots
+
+<p>
+  <img src="docs/screenshots/main.png" width="200" alt="Main screen: a drawing of the device, and each button shows its actions">
+  <img src="docs/screenshots/setup.png" width="200" alt="Set up a button: tap it in the drawing">
+  <img src="docs/screenshots/hacks.png" width="200" alt="Hardware hacks">
+  <img src="docs/screenshots/apps.png" width="200" alt="Apps of other makers that the build carries">
+</p>
+
+The pictures are from a Viwoods AiPaper Reader.
+
 ## Set up a button
 
 The main screen is a drawing of the device. Each button shows what it does
