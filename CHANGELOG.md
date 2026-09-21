@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.0.11-alpha - 2026-09-21
+
+Version code 11.
+
+- **Fix: a Camera key in the drawing of a device that has none.** The Viwoods
+  reader declares a camera key to Android and has no such button. Detection
+  put the declared key in the drawing. The drawing now shows only the buttons
+  that the device profile knows, and a button that was really pressed in
+  normal use. The Detect screen still lists what the device declares, and
+  marks a key that was never seen. Regression test: `DeviceKeysTest`.
+  The double tap of Power uses the camera *intent* of Android. It needs no
+  camera button.
+
 ## 0.0.10-alpha - 2026-09-21
 
 Version code 10.

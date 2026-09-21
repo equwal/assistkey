@@ -24,9 +24,9 @@ class SummaryTest {
     @Test
     fun `detected says whether it has run, then what it found`() {
         assertEquals("Not run yet", Summary.detected(null))
-        assertEquals("No named buttons found", Summary.detected(0))
-        assertEquals("1 button found", Summary.detected(1))
-        assertEquals("4 buttons found", Summary.detected(4))
+        assertEquals("The device declares no named keys", Summary.detected(0))
+        assertEquals("1 key declared by the device", Summary.detected(1))
+        assertEquals("4 keys declared by the device", Summary.detected(4))
     }
 
     @Test

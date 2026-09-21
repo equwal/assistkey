@@ -24,8 +24,8 @@ object Summary {
     /** The detection row: how many buttons the last detection found. */
     fun detected(keyCount: Int?): String = when {
         keyCount == null -> "Not run yet"
-        keyCount == 0 -> "No named buttons found"
-        else -> count(keyCount, "button") + " found"
+        keyCount == 0 -> "The device declares no named keys"
+        else -> count(keyCount, "key") + " declared by the device"
     }
 
     /** The Power button, which has its own screen. */

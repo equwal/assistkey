@@ -4,6 +4,8 @@ import android.app.Activity
 import android.os.Build
 import android.widget.LinearLayout
 import dev.equwal.assistkey.device.Detect
+import dev.equwal.assistkey.model.HwKey
+import dev.equwal.assistkey.device.Device
 import dev.equwal.assistkey.shell.Shell
 import dev.equwal.assistkey.ui.Ui.header
 import dev.equwal.assistkey.ui.Ui.note
@@ -66,13 +68,18 @@ class DetectActivity : Activity() {
     }
 
     private fun buttons(col: LinearLayout, found: Detect.Result) {
-        col.header("Buttons found")
+        col.header("Keys the device declares")
         if (found.keys.isEmpty()) {
             col.note("None found.")
             return
         }
         found.keys.forEach { key ->
-            col.row(key.label, "Code " + key.code + (if (key.interceptable) "" else " · kept by the system"))
+            val real = key == HwKey.POWER || key in Device.keys(this)
+            col.row(
+                key.label,
+                "Code " + key.code + (if (key.interceptable) "" else " · kept by the system"),
+                state = if (real) null else "No such button seen"
+            )
         }
     }
 

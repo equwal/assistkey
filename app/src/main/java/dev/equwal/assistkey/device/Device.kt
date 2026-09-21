@@ -74,20 +74,21 @@ object Device {
         else listOf(HwKey.VOL_UP, HwKey.VOL_DOWN)
 
     /**
-     * The remappable keys to show: what the profile knows about, what detection
-     * found, plus any other supported key this device has actually produced.
+     * The remappable keys to show: what the profile knows about, plus any other
+     * supported key this device has actually produced in normal use.
      *
-     * Detection only adds. A profile key stays on the list even if no source
-     * reports it, because a firmware hook can hide a key that is really there.
+     * What [Detect] finds is NOT on this list. A device declares keys it does
+     * not have: the Viwoods reader declares a camera key, and has none. Only a
+     * real press proves a real button.
      */
-    fun keys(c: Context): List<HwKey> {
-        val seen = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getStringSet(K_SEEN, emptySet()).orEmpty()
-        val detected = Detect.stored(c)?.keys.orEmpty().filter { it.interceptable }
-        // The profile knows where its buttons sit. The other keys follow in a fixed order.
-        val others = (detected + HwKey.interceptable.filter { it.token in seen }).sortedBy { it.ordinal }
-        return (builtIn + others).distinct()
-    }
+    fun keys(c: Context): List<HwKey> = listed(
+        builtIn,
+        c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getStringSet(K_SEEN, emptySet()).orEmpty()
+    )
+
+    /** The profile knows where its buttons sit. The keys that were seen follow in a fixed order. */
+    fun listed(profileKeys: List<HwKey>, seenTokens: Set<String>): List<HwKey> =
+        (profileKeys + HwKey.interceptable.filter { it.token in seenTokens }).distinct()
 
     private const val K_UNKNOWN = "unknown_keys"
 
