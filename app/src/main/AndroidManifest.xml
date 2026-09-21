@@ -91,6 +91,7 @@
         <activity android:name=".ui.SetupActivity" android:exported="false" />
         <activity android:name=".ui.HomeHubActivity" android:exported="false" />
         <activity android:name=".ui.AdvancedActivity" android:exported="false" />
+        <activity android:name=".ui.HacksActivity" android:exported="false" />
         <!-- The guided flow the hub opens first. -->
         <activity android:name=".setup.GuidedSetupActivity" android:exported="false" />
         <activity android:name=".menu.MenuEditActivity" android:exported="false" />

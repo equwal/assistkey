@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **Hardware hacks** is a tile on the main screen with a screen of its own:
+  hold Power (assistant role), double tap Power (camera intent), the wallet
+  button, the full Power button (shell access), extra-dim light, and the
+  button settings of the device. Advanced no longer holds them.
+
 ## 0.0.11-alpha - 2026-09-21
 
 Version code 11.

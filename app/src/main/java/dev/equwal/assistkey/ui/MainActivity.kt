@@ -143,6 +143,9 @@ class MainActivity : Activity() {
                 Ui.Tile("Setup", setupSummary()) {
                     startActivity(Intent(this, SetupActivity::class.java))
                 },
+                Ui.Tile("Hardware hacks", "Power tricks, extra-dim light") {
+                    startActivity(Intent(this, HacksActivity::class.java))
+                },
                 Ui.Tile("Advanced", "Every button, tools and backup") {
                     startActivity(Intent(this, AdvancedActivity::class.java))
                 }
