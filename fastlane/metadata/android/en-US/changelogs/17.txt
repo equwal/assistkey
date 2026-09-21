@@ -1,0 +1,1 @@
+First build for F-Droid. It is free and complete, with no licence check. It has no Google Play Billing and holds no other apps inside.

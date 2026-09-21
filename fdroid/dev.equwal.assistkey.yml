@@ -1,0 +1,30 @@
+Categories:
+  - System
+License: GPL-3.0-or-later
+AuthorName: equwal
+AuthorEmail: truex@equwal.com
+SourceCode: https://github.com/equwal/assistkey
+IssueTracker: https://github.com/equwal/assistkey/issues
+Changelog: https://github.com/equwal/assistkey/blob/main/CHANGELOG.md
+Donate: https://ko-fi.com/truex
+
+AutoName: Rebind
+
+RepoType: git
+Repo: https://github.com/equwal/assistkey.git
+
+Builds:
+  - versionName: 0.1.1-beta
+    versionCode: 17
+    commit: v0.1.1-beta
+    subdir: app
+    gradle:
+      - fdroid
+    rm:
+      - app/src/full/assets/bundled
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+UpdateCheckData: gradle.properties|assistkey\.versionCode=(\d+)|gradle.properties|assistkey\.versionName=(.+)
+CurrentVersion: 0.1.1-beta
+CurrentVersionCode: 17

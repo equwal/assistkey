@@ -1,0 +1,24 @@
+Rebind changes what the hardware buttons of your device do: the volume buttons, the Power button, page-turn buttons, and on the Viwoods AiPaper the AI button.
+
+Turn pages with the volume buttons. Hold Power for Home. Double press Power for Recents. Put three actions on one button: a tap, a double tap and a hold.
+
+Setup takes three taps. Tap a button in the drawing of your device. Choose tap, double tap or hold. Choose what it does. Rebind asks only for the permissions that the choice needs.
+
+If the device has no spare button, add the on-screen button. It floats over every app.
+
+Rebind is made for e-ink readers. It works on any Android 12 or later phone or tablet.
+
+Actions:
+- Navigation: Back, Home, Recents, notifications, quick settings, power menu, lock screen, screenshot.
+- Page turning: swipes and scrolls, for reading apps that accept only touch.
+- Sound and media: volume, mute, play and pause, next, previous.
+- Open any app, or any screen inside an app.
+- Send an intent or a broadcast, for automation apps.
+- A menu of actions: one gesture opens a menu, so you have more actions than buttons.
+- Voice typing with a speech recognition app that is on the device.
+
+Shizuku is optional. It lets Rebind read the Power button for taps and switch the navigation bar. Hold Power and double press Power do not need it.
+
+Rebind has no INTERNET permission. It collects nothing and has no advertisements. The Accessibility service reads button presses only to run the actions that you chose. It never sends them anywhere.
+
+Rebind is free and open source (GPL-3.0-or-later). This F-Droid build has no licence check and no paid part. To thank the author, open the Licence screen in the app.

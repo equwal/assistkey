@@ -107,7 +107,9 @@ object License {
         val pro = if (fresh) p.getInt(K_CAT_PRO, Seen.UNKNOWN) else Seen.UNKNOWN
         val beta = if (fresh) p.getInt(K_CAT_BETA, Seen.UNKNOWN) else Seen.UNKNOWN
 
-        val state = decide(owned, storePresent(c), pro, beta, now, firstRun, BuildConfig.BETA_EXPIRES_MS)
+        // The F-Droid build has no licence check: it is always the free tier.
+        val store = BuildConfig.LICENCE_CHECK && storePresent(c)
+        val state = decide(owned, store, pro, beta, now, firstRun, BuildConfig.BETA_EXPIRES_MS)
         if (state.tier == Tier.BETA && !p.getBoolean(K_TESTER, false)) p.edit().putBoolean(K_TESTER, true).apply()
         return state
     }

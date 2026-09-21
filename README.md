@@ -11,9 +11,17 @@ recent-apps list made for e-ink.
 It runs on any Android 12+ device. The **Viwoods AiPaper Reader** is the first
 device profile, because that is where it was built; see *Device profiles*.
 
-Sold on Google Play as a free download with a one-time licence. Publishing,
-products, pricing and how the beta is run and ended are in
-[play/CHECKLIST.md](play/CHECKLIST.md). The app holds no `INTERNET` permission.
+Open source under [GPL-3.0-or-later](LICENSE). Three builds:
+
+- `play`: on Google Play, as a free download with a one-time licence. Publishing,
+  products, pricing and how the beta is run and ended are in
+  [play/CHECKLIST.md](play/CHECKLIST.md).
+- `full`: the APK for direct install. It carries the apps of other makers and
+  adds shell access through Shizuku.
+- `fdroid`: on F-Droid. Free and complete, with no licence check. See
+  [fdroid/](fdroid/).
+
+The app holds no `INTERNET` permission.
 
 ## Screenshots
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.1-beta - 2026-09-21
+
+Version code 17. The source code is now public under GPL-3.0-or-later.
+
+- **F-Droid.** A new build, the `fdroid` flavour, is free and complete. It has
+  no licence check, no Google Play Billing and no apps of other makers inside.
+  Its permissions are those of the `full` build, less the permission to
+  install apps. F-Droid builds each new `v*` tag by itself; see `fdroid/`.
+- The `play` and `full` builds do not change.
+
 ## 0.1.0-beta - 2026-09-21
 
 Version code 16. The first beta. The alpha versions end here.

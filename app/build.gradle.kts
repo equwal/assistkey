@@ -73,13 +73,31 @@ android {
     //   play: for Google Play. No Shizuku code, no Shizuku permission.
     //   full: for direct install. Adds shell access through Shizuku, which is
     //         what reads the Power button and switches the navigation bar.
+    //   fdroid: for F-Droid. Like `full`, but free and complete: no Google Play
+    //         Billing, no licence check, no apps of other makers inside. The
+    //         version name has no suffix, because F-Droid compares it.
     flavorDimensions += "store"
     productFlavors {
-        create("play") { dimension = "store" }
+        create("play") {
+            dimension = "store"
+            buildConfigField("boolean", "LICENCE_CHECK", "true")
+        }
         create("full") {
             dimension = "store"
             versionNameSuffix = "-full"
+            buildConfigField("boolean", "LICENCE_CHECK", "true")
         }
+        create("fdroid") {
+            dimension = "store"
+            buildConfigField("boolean", "LICENCE_CHECK", "false")
+        }
+    }
+
+    // Code that two flavours share lives in its own folder.
+    sourceSets {
+        getByName("play").java.srcDir("src/billing/java")
+        getByName("full").java.srcDir("src/billing/java")
+        getByName("fdroid").java.srcDir("src/full/java/dev/equwal/assistkey/shell")
     }
 
     buildTypes {
@@ -131,16 +149,19 @@ android {
 // with javap before bumping the billing version, and re-check the merged
 // permissions with `aapt2 dump badging` after.
 dependencies {
-    implementation("com.android.billingclient:billing:8.3.0") {
-        exclude(group = "com.google.android.datatransport")
-    }
+    // The `fdroid` flavour has no billing library: it has no proprietary dependency.
+    val billing = "com.android.billingclient:billing:8.3.0"
+    "playImplementation"(billing) { exclude(group = "com.google.android.datatransport") }
+    "fullImplementation"(billing) { exclude(group = "com.google.android.datatransport") }
 
-    // Shell access, `full` flavour only. Shizuku (MIT) lets the app run a small service of its own
+    // Shell access, `full` and `fdroid` flavours. Shizuku (MIT) lets the app run a small service of its own
     // under the shell uid, which is what reads the Power key and switches the
     // settings Android keeps from ordinary apps. The user starts Shizuku through
     // wireless debugging; nothing here needs root or a computer.
     "fullImplementation"("dev.rikka.shizuku:api:13.1.5")
     "fullImplementation"("dev.rikka.shizuku:provider:13.1.5")
+    "fdroidImplementation"("dev.rikka.shizuku:api:13.1.5")
+    "fdroidImplementation"("dev.rikka.shizuku:provider:13.1.5")
 
     // Tests only, never in the APK. JUnit 4 is what the Android Gradle plugin
     // runs with no more setup; there was no test framework before it.
