@@ -47,7 +47,21 @@ class LicenseActivity : Activity() {
             restore(col)
         }
         tip(col)
+        moreApps(col)
         col.note("Version " + BuildConfig.VERSION_NAME)
+    }
+
+    /** Links to the other sites and apps of the same author. A tap opens the page in the browser. */
+    private fun moreApps(col: LinearLayout) {
+        if (!MoreApps.shown) return
+        col.header("More apps")
+        for (app in MoreApps.ALL) {
+            col.row(app.name, app.line) {
+                runCatching {
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(app.url)))
+                }.onFailure { Toast.makeText(this, "No browser on this device", Toast.LENGTH_LONG).show() }
+            }
+        }
     }
 
     /**
