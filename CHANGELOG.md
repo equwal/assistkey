@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.2-beta - 2026-09-26
+
+Version code 18.
+
+- **Smaller.** R8 now removes unused code from the release builds. F-Droid asks
+  for it. Names of classes stay the same.
+- **Reproducible F-Droid build.** The signed APK has no dependency list for
+  Google in it. F-Droid builds the `fdroid` flavour itself and checks that it is
+  the same as the signed APK on GitHub.
+
 ## 0.1.1-beta - 2026-09-21
 
 Version code 17. The source code is now public under GPL-3.0-or-later.

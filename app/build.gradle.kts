@@ -42,6 +42,13 @@ android {
     namespace = "dev.equwal.assistkey"
     compileSdk = 36
 
+    // No list of dependencies, encrypted for Google alone, in the signed APK.
+    // F-Droid does not accept it, and it would stop the reproducible build check.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+
     defaultConfig {
         applicationId = "dev.equwal.assistkey"
         // QuickAccessWalletService, which the wallet channel needs, is API 31.
@@ -102,10 +109,11 @@ android {
 
     buildTypes {
         release {
-            // No shrinking: the app is tiny, and R8 would only complicate
-            // keeping the accessibility service and the three impersonation
-            // entry points reachable.
-            isMinifyEnabled = false
+            // R8 removes unused code. F-Droid asks for it. proguard-rules.pro
+            // turns off renaming, because the code names its own activities and
+            // services in strings, and keeps Shizuku.newProcess for Shell.kt.
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             if (hasSigning) signingConfig = signingConfigs.getByName("release")
         }
         debug {

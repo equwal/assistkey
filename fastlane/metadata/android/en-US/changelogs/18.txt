@@ -1,0 +1,1 @@
+The app is smaller: R8 removes code that it does not use. F-Droid now checks that its build is the same as the signed APK on GitHub.

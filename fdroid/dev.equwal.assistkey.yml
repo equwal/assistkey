@@ -12,19 +12,22 @@ AutoName: Rebind
 
 RepoType: git
 Repo: https://github.com/equwal/assistkey.git
+Binaries: https://github.com/equwal/assistkey/releases/download/v%v/rebind-%v-fdroid.apk
 
 Builds:
-  - versionName: 0.1.1-beta
-    versionCode: 17
-    commit: v0.1.1-beta
+  - versionName: 0.1.2-beta
+    versionCode: 18
+    commit: v0.1.2-beta
     subdir: app
     gradle:
       - fdroid
     rm:
       - app/src/full/assets/bundled
 
+AllowedAPKSigningKeys: bcb3127e1931a9b906e8e2498184ef5380f97cbf3531e5bc8bb0064476ee2919
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
 UpdateCheckData: gradle.properties|assistkey\.versionCode=(\d+)|gradle.properties|assistkey\.versionName=(.+)
-CurrentVersion: 0.1.1-beta
-CurrentVersionCode: 17
+CurrentVersion: 0.1.2-beta
+CurrentVersionCode: 18
